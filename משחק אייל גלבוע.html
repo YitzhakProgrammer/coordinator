@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>אייל גלבוע - שלב 1: הבית בשלומים</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Assistant', sans-serif;
+            background-color: #030712;
+            color: #e0f2fe;
+            overflow-x: hidden;
+        }
+        .font-mono-tactical {
+            font-family: 'Share Tech Mono', monospace;
+        }
+        .hud-border {
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            box-shadow: 0 0 25px rgba(14, 165, 233, 0.12), inset 0 0 15px rgba(6, 182, 212, 0.08);
+        }
+        @keyframes pulse-cyan {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .animate-hud-pulse {
+            animation: pulse-cyan 2.2s infinite ease-in-out;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(3, 105, 161, 0.2);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(56, 189, 248, 0.5);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(56, 189, 248, 0.8);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-950 via-blue-950 to-black text-sky-100 relative selection:bg-cyan-500 selection:text-black" onclick="autoStartAudioOnFirstInteraction()">
+
+    <!-- Audio Player for Background Music -->
+    <audio id="bg-music" src="https://www.prog.co.il/attachments/01-40-years-later-mp3.167223/" loop preload="auto"></audio>
+
+    <header class="w-full bg-slate-950/90 sticky top-0 z-50 border-b border-cyan-800/60 backdrop-blur-md px-4 py-3 shadow-2xl">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
+            
+            <!-- Mission Title & Tactical Status -->
+            <div class="flex items-center gap-3 sm:gap-4 flex-wrap">
+                <div class="relative flex items-center justify-center w-4 h-4">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-sky-400"></span>
+                </div>
+                <div>
+                    <h1 class="font-bold text-base sm:text-xl text-sky-100 tracking-wider flex items-center gap-2">
+                        <span>אייל גלבוע</span>
+                        <span class="text-xs font-mono-tactical text-cyan-300 border border-cyan-700/80 px-2.5 py-0.5 rounded bg-blue-950/60">שלב 1: הבית בשלומים</span>
+                    </h1>
+                    <p class="text-[11px] font-mono-tactical text-sky-400/80">02:30:14 AM | תדר מוצפן פרילנס</p>
+                </div>
+            </div>
+
+            <!-- Tactical Stats HUD (Restricted strictly to Navy, Sky Blue & Cyan palette) -->
+            <div class="flex items-center gap-2 sm:gap-3 text-xs font-mono-tactical">
+                <div class="flex flex-col items-center bg-blue-950/80 px-3 py-1 rounded-lg border border-sky-400/40 shadow-sm">
+                    <span class="text-sky-300/80 text-[10px]">אומץ</span>
+                    <span id="stat-courage" class="font-bold text-sky-300 text-base">50</span>
+                </div>
+                <div class="flex flex-col items-center bg-blue-950/80 px-3 py-1 rounded-lg border border-cyan-400/40 shadow-sm">
+                    <span class="text-cyan-300/80 text-[10px]">תחבולה</span>
+                    <span id="stat-strategy" class="font-bold text-cyan-300 text-base">50</span>
+                </div>
+                <div class="flex flex-col items-center bg-blue-950/80 px-3 py-1 rounded-lg border border-blue-400/40 shadow-sm">
+                    <span class="text-blue-300/80 text-[10px]">חשאיות</span>
+                    <span id="stat-stealth" class="font-bold text-blue-300 text-base">50</span>
+                </div>
+                <div class="flex flex-col items-center bg-blue-950/80 px-3 py-1 rounded-lg border border-indigo-400/40 shadow-sm">
+                    <span class="text-indigo-300/80 text-[10px]">אמון המפעיל</span>
+                    <span id="stat-trust" class="font-bold text-indigo-300 text-base">30</span>
+                </div>
+            </div>
+
+            <!-- Controls & Progress Tracker -->
+            <div class="flex items-center gap-2">
+                <button id="audio-toggle-btn" onclick="toggleAudio(event)" class="text-xs font-mono-tactical bg-blue-950/90 hover:bg-cyan-950/90 text-cyan-300 border border-cyan-600/60 px-3 py-1.5 rounded-lg flex items-center gap-2 shadow transition cursor-pointer">
+                    <span id="audio-icon">🔊</span>
+                    <span id="audio-status-text">מוזיקה: פועלת</span>
+                </button>
+                <div class="text-xs font-mono-tactical bg-blue-950/90 text-cyan-200 px-3.5 py-1.5 rounded-lg border border-cyan-600/60 flex items-center gap-1.5 shadow">
+                    <span>שידור:</span>
+                    <span id="beat-counter" class="text-cyan-300 font-bold text-base">1</span> / 20
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl w-full mx-auto p-3 sm:p-6 flex-1 flex flex-col justify-center relative z-10">
+        
+        <div id="game-card" class="hud-border bg-slate-950/90 backdrop-blur-2xl rounded-2xl overflow-hidden shadow-2xl grid grid-cols-1 lg:grid-cols-12 min-h-[620px] relative">
+            
+            <!-- Left Column: Eyal Gilboa Profile & Visual Wave -->
+            <div class="lg:col-span-5 bg-gradient-to-b from-slate-950 via-blue-950/60 to-black p-5 flex flex-col items-center justify-between border-b lg:border-b-0 lg:border-l border-cyan-800/40 relative">
+                
+                <div class="w-full flex justify-between items-center text-[11px] font-mono-tactical mb-2">
+                    <span class="text-cyan-300 bg-blue-950/90 border border-cyan-600/50 px-2.5 py-1 rounded-md">
+                        📍 מיקום: בית פרטי, שלומים
+                    </span>
+                    <span class="text-cyan-400 animate-hud-pulse">● ערוץ מוצפן</span>
+                </div>
+
+                <!-- Portrait Frame -->
+                <div class="relative w-full max-w-[310px] aspect-[3/4] sm:aspect-[4/5] rounded-xl overflow-hidden border-2 border-cyan-500/50 shadow-[0_0_30px_rgba(6,182,212,0.2)] my-2 bg-slate-950 group">
+                    <img id="eyal-portrait" 
+                         src="ChatGPT Image Jun 29, 2026, 08_22_31 PM.png" 
+                         onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1000&auto=format&fit=crop';" 
+                         alt="אייל גלבוע" 
+                         class="w-full h-full object-cover object-top filter brightness-95 contrast-105 transition-transform duration-700 group-hover:scale-105" />
+                    
+                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-90"></div>
+                    
+                    <div class="absolute top-2.5 left-2.5 right-2.5 flex justify-between text-[10px] font-mono-tactical text-cyan-200 pointer-events-none">
+                        <span>סוכן: אייל גלבוע</span>
+                        <span id="heart-rate">דופק: 68 BPM</span>
+                    </div>
+
+                    <!-- Audio Wave Visualization -->
+                    <div class="absolute bottom-14 inset-x-2.5 h-8 bg-slate-950/80 backdrop-blur border border-cyan-500/40 rounded-lg p-1 flex items-center justify-center">
+                        <canvas id="audio-wave-canvas" class="w-full h-full"></canvas>
+                    </div>
+
+                    <div class="absolute bottom-2.5 inset-x-2.5 bg-slate-950/90 backdrop-blur-md p-2.5 rounded-lg border border-blue-900/80">
+                        <div class="text-xs font-bold text-sky-100 flex items-center justify-between font-mono-tactical">
+                            <span class="text-cyan-300 text-sm">אייל גלבוע</span>
+                            <span class="text-[10px] text-cyan-300 bg-blue-950 px-2 py-0.5 rounded border border-cyan-500/50">מבצעי</span>
+                        </div>
+                        <p class="text-[11px] text-sky-300/70 mt-0.5">עצמאי | מפקד יחידה מבצעית לשעבר</p>
+                    </div>
+                </div>
+
+                <!-- Tactical Mood Indicator -->
+                <div class="w-full bg-blue-950/50 border border-cyan-800/50 p-3.5 rounded-xl text-xs text-sky-200 mt-2">
+                    <span class="text-cyan-300 font-mono-tactical block text-[11px] font-bold mb-1">הערכה טקטית נוכחית:</span>
+                    <p id="eyal-mood-text" class="text-sky-100 text-xs sm:text-sm leading-relaxed">
+                        אייל עומד דרוך בסלון החשוך בשלומים. המחשב המוצפן דולק. הוא מנתח את התדר בזהירות.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Right Column: Situation Description, Handler Box & Choices -->
+            <div class="lg:col-span-7 p-4 sm:p-7 flex flex-col justify-between bg-slate-950/80 relative">
+                
+                <div class="flex items-center justify-between border-b border-cyan-900/50 pb-2.5 mb-3 text-xs font-mono-tactical">
+                    <span class="text-cyan-300 flex items-center gap-2 font-semibold">
+                        <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
+                        תקשורת מוצפנת נכנסת
+                    </span>
+                    <span id="ai-loading-status" class="text-sky-300">אות יציב: 100%</span>
+                </div>
+
+                <!-- Dialogue History & Situation Display Container -->
+                <div id="dialogue-area" class="flex-1 flex flex-col justify-start space-y-3 overflow-y-auto max-h-[390px] pl-1 pr-1 mb-3">
+                    
+                    <!-- Situation Briefing Banner -->
+                    <div id="situation-briefing-box" class="bg-blue-950/70 border-r-4 border-cyan-400 p-3.5 rounded-l-xl text-xs sm:text-sm text-cyan-100 shadow-md">
+                        <span class="font-bold text-cyan-300 font-mono-tactical block mb-1 text-xs">📋 תיאור הסיטואציה:</span>
+                        <p id="situation-text" class="text-sky-100 leading-relaxed font-medium"></p>
+                    </div>
+
+                    <!-- Handler Statement Box (Amber / Warm Gold Color Palette for Handler) -->
+                    <div id="handler-box" class="bg-amber-950/30 border-r-4 border-amber-500 p-4 sm:p-5 rounded-l-xl shadow-xl relative min-h-[110px] flex flex-col justify-center transition-all duration-300">
+                        <div class="flex justify-between items-center mb-1.5 font-mono-tactical">
+                            <span id="speaker-name" class="text-xs sm:text-sm font-bold text-amber-400 tracking-wider flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                                תקשורת מוצפנת (המפעיל)
+                            </span>
+                            <span class="text-[11px] text-amber-300/80 bg-amber-950/80 border border-amber-700/60 px-2 py-0.5 rounded">קול המפעיל</span>
+                        </div>
+                        <p id="speaker-text" class="text-base sm:text-lg md:text-xl text-amber-100 leading-relaxed font-semibold">
+                            "אייל, אני יודע שמאוחר בשלומים. אפרת והילדים ישנים עמוק למעלה, נכון?"
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Player Choices -->
+                <div class="border-t border-cyan-900/50 pt-3">
+                    <p class="text-xs sm:text-sm font-bold font-mono-tactical text-cyan-300 uppercase tracking-widest mb-2.5">
+                        בחר את תגובתו של אייל:
+                    </p>
+
+                    <div id="choices-container" class="space-y-2.5">
+                        <!-- Choices populated dynamically -->
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Summary Card -->
+        <div id="summary-card" class="hidden hud-border bg-slate-950/95 backdrop-blur-2xl rounded-2xl p-6 sm:p-10 max-w-2xl mx-auto text-center shadow-2xl space-y-6 my-auto border border-cyan-500/50">
+            <div class="w-20 h-20 bg-blue-950/90 border-2 border-cyan-400 text-cyan-300 rounded-full flex items-center justify-center mx-auto text-4xl font-bold shadow-[0_0_25px_rgba(6,182,212,0.4)]">
+                ✓
+            </div>
+            <div>
+                <h2 class="text-2xl sm:text-3xl font-bold font-mono-tactical text-sky-100">שלב 1 הושלם: הבית בשלומים</h2>
+                <p class="text-sm sm:text-base text-sky-200 mt-2 leading-relaxed">השידור המוצפן הסתיים. אייל גלבוע וידא שהבית מוגן, אסף את המידע ויצא לכיוון שדה התעופה בחיפה.</p>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-900/90 p-4 rounded-xl border border-blue-900 text-center font-mono-tactical">
+                <div class="p-2 bg-blue-950/80 rounded border border-sky-400/30">
+                    <span class="text-xs text-sky-300 block">אומץ סופי</span>
+                    <span id="final-courage" class="text-xl font-bold text-sky-300">50</span>
+                </div>
+                <div class="p-2 bg-blue-950/80 rounded border border-cyan-400/30">
+                    <span class="text-xs text-cyan-300 block">תחבולה סופית</span>
+                    <span id="final-strategy" class="text-xl font-bold text-cyan-300">50</span>
+                </div>
+                <div class="p-2 bg-blue-950/80 rounded border border-blue-400/30">
+                    <span class="text-xs text-blue-300 block">חשאיות</span>
+                    <span id="final-stealth" class="text-xl font-bold text-blue-300">50</span>
+                </div>
+                <div class="p-2 bg-blue-950/80 rounded border border-indigo-400/30">
+                    <span class="text-xs text-indigo-300 block">אמון המפעיל</span>
+                    <span id="final-trust" class="text-xl font-bold text-indigo-300">30</span>
+                </div>
+            </div>
+
+            <div class="bg-blue-950/80 p-4 rounded-xl border border-cyan-800/60 text-right text-sm text-sky-100 space-y-1">
+                <span class="font-bold text-cyan-300 font-mono-tactical block text-xs">סיכום טקטי מפי אייל:</span>
+                <p id="summary-evaluation-text" class="italic text-sky-200">
+                    "השיחה הזו עזרה לי למפות את מקור הדלף. הבית בשלומים מאובטח, ואני בדרך למנחת בחיפה. הלילה הזה ממשיך לז'נבה."
+                </p>
+            </div>
+
+            <button onclick="nextLevelPrompt()" 
+                    class="w-full py-4 bg-gradient-to-r from-blue-700 via-cyan-700 to-blue-900 hover:from-cyan-600 hover:to-blue-800 text-white font-bold rounded-xl shadow-lg transition duration-200 text-base font-mono-tactical tracking-wide border border-cyan-400/40">
+                המשך לשלב 2: החדירה לאחוזה המושלגת בז'נבה ➔
+            </button>
+        </div>
+
+    </main>
+
+    <footer class="w-full text-center py-3 text-[11px] font-mono-tactical text-sky-400/60 border-t border-blue-950 bg-black/80 relative z-10">
+        סדרת "אייל גלבוע" | סימולציית דרמה וקבלת החלטות טקטיות - שלב 1
+    </footer>
+
+    <script>
+        let currentBeatIndex = 0;
+        let stats = {
+            courage: 50,
+            strategy: 50,
+            stealth: 50,
+            trust: 30
+        };
+
+        let typewriterTimer = null;
+        let isAudioPlaying = false;
+        let audioInitialized = false;
+
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) {
+                    audioCtx = new AudioContextClass();
+                }
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        // Mechanical keypress click sound effect
+        function playKeyClickSound() {
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(650 + Math.random() * 250, ctx.currentTime);
+                gain.gain.setValueAtTime(0.015, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.025);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.025);
+            } catch(e) {}
+        }
+
+        // Incoming message notification chime sound effect
+        function playIncomingMessageSound() {
+            try {
+                const ctx = getAudioContext();
+                if (!ctx) return;
+                
+                const now = ctx.currentTime;
+                
+                // First tactical tone
+                const osc1 = ctx.createOscillator();
+                const gain1 = ctx.createGain();
+                osc1.type = 'sine';
+                osc1.frequency.setValueAtTime(660, now);
+                gain1.gain.setValueAtTime(0.06, now);
+                gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                osc1.connect(gain1);
+                gain1.connect(ctx.destination);
+                osc1.start(now);
+                osc1.stop(now + 0.08);
+
+                // Second incoming notification chime
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(987.77, now + 0.07);
+                gain2.gain.setValueAtTime(0.07, now + 0.07);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.start(now + 0.07);
+                osc2.stop(now + 0.22);
+            } catch(e) {}
+        }
+
+        function autoStartAudioOnFirstInteraction() {
+            getAudioContext();
+            if (audioInitialized) return;
+            const audio = document.getElementById('bg-music');
+            if (audio) {
+                audio.play().then(() => {
+                    isAudioPlaying = true;
+                    audioInitialized = true;
+                    updateAudioUI();
+                }).catch(err => {
+                    console.log("Autoplay waiting for direct interaction:", err);
+                });
+            }
+        }
+
+        function toggleAudio(e) {
+            if (e) e.stopPropagation();
+            const audio = document.getElementById('bg-music');
+            if (!audio) return;
+
+            if (audio.paused) {
+                audio.play().then(() => {
+                    isAudioPlaying = true;
+                    audioInitialized = true;
+                    updateAudioUI();
+                }).catch(err => console.log(err));
+            } else {
+                audio.pause();
+                isAudioPlaying = false;
+                updateAudioUI();
+            }
+        }
+
+        function updateAudioUI() {
+            const btnText = document.getElementById('audio-status-text');
+            const btnIcon = document.getElementById('audio-icon');
+            if (isAudioPlaying) {
+                if (btnText) btnText.innerText = "מוזיקה: פעילה";
+                if (btnIcon) btnIcon.innerText = "🔊";
+            } else {
+                if (btnText) btnText.innerText = "מוזיקה: מופסקת";
+                if (btnIcon) btnIcon.innerText = "🔇";
+            }
+        }
+
+        function drawAudioWave() {
+            const canvas = document.getElementById('audio-wave-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+
+            let phase = 0;
+            function renderWave() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.beginPath();
+                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = '#38bdf8';
+
+                const width = canvas.width;
+                const height = canvas.height;
+                const mid = height / 2;
+
+                const ampMultiplier = (isAudioPlaying ? 1.8 : 0.6) * (typewriterTimer ? 1.5 : 0.8);
+
+                for (let x = 0; x < width; x++) {
+                    const y = mid + Math.sin(x * 0.05 + phase) * 4 * ampMultiplier;
+                    if (x === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+                phase += 0.10;
+                requestAnimationFrame(renderWave);
+            }
+            renderWave();
+        }
+
+        function typeWriterText(element, text, speed = 22, callback = null) {
+            if (typewriterTimer) clearInterval(typewriterTimer);
+            element.innerHTML = '';
+            let i = 0;
+
+            typewriterTimer = setInterval(() => {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    // Play tactile keypress click for each character typed
+                    if (text.charAt(i) !== ' ') {
+                        playKeyClickSound();
+                    }
+                    i++;
+                } else {
+                    clearInterval(typewriterTimer);
+                    typewriterTimer = null;
+                    if (callback) callback();
+                }
+            }, speed);
+        }
+
+        const dynamicBeats = [
+            {
+                beatNumber: 1,
+                situation: "חצות וחצי. אייל יושב מול צג מוצפן בסלון החשוך בשלומים. המודם הטקטי מציג תדר חירום חסוי.",
+                defaultSpeakerText: "\"אייל, אני יודע שמאוחר בשלומים. אפרת והילדים ישנים עמוק למעלה, נכון?\"",
+                eyalMood: "אייל עומד שקט ליד המחשב המוצפן. הוא מזהה את התדר ויודע שכל מילה תימדד.",
+                choices: [
+                    {
+                        text: "\"אם באת להקריא לי שירי ערש, תנסה בקו אחר. כנס לעניין.\"",
+                        response: "\"אם באת להקריא לי שירי ערש, תנסה בקו אחר. כנס לעניין.\"",
+                        deltas: { courage: 5, strategy: 5, stealth: 0, trust: -5 },
+                        nextHandlerText: "\"הציניות שלך לא תעלים את הבעיה, אייל. נחשף דלף קריטי בכידון. יש לנו מעט זמן לפני שארכיון שלם נוחת בז'נבה.\""
+                    },
+                    {
+                        text: "\"אם השם של המשפחה שלי יעבור שוב בגרון שלך, התקשורת הזו תהיה האחרונה שתבצע.\"",
+                        response: "\"אם השם של המשפחה שלי יעבור שוב בגרון שלך, התקשורת הזו תהיה האחרונה שתבצע.\"",
+                        deltas: { courage: 10, strategy: -5, stealth: -5, trust: -10 },
+                        nextHandlerText: "\"תרגיע את הדופק, גלבוע. אף אחד לא מאיים על המשפחה שלך. אבל נחשף דלף קריטי בכידון שנמצא כרגע בדרכו לציריך.\""
+                    },
+                    {
+                        text: "\"התדר הזה מוצפן ברמת אבטחה 4. מי נתן לך את קוד הגישה לערוץ הפרטי שלי?\"",
+                        response: "\"התדר הזה מוצפן ברמת אבטחה 4. מי נתן לך את קוד הגישה לערוץ הפרטי שלי?\"",
+                        deltas: { courage: 0, strategy: 10, stealth: 5, trust: 5 },
+                        nextHandlerText: "\"קיבלתי את הקוד ממישהו בדסק המבצעים. יש לנו דלף קריטי בכידון, והחומר בדרך לציריך ולעיתונות העולמית.\""
+                    }
+                ]
+            },
+            {
+                beatNumber: 2,
+                situation: "התדר ננעל. המפעיל מעבר לקו מעלה את השם 'כידון', יחידת העלית שבה אייל פעל בעבר.",
+                eyalMood: "אייל מצמצם עיניים. השם 'כידון' והאיום מבהירים שמדובר באירוע חירום.",
+                choices: [
+                    {
+                        text: "\"כידון? חשבתי שהחלפתם מנעולים אחרי שפיטרתם אותי.\"",
+                        response: "\"כידון? חשבתי שהחלפתם מנעולים אחרי שפיטרתם אותי.\"",
+                        deltas: { courage: 5, strategy: 5, stealth: 0, trust: -5 },
+                        nextHandlerText: "\"אתה יכול להמשיך להשתעשע, אבל הדיסק המוצפן כולל את התיק האישי שלך ואת כל נתיבי המילוט שעיצבת עבור המשפחה שלך.\""
+                    },
+                    {
+                        text: "\"איזה סוג של ארכיון? שמות סוכנים או תיקי מבצעים שעדיין פעילים?\"",
+                        response: "\"איזה סוג של ארכיון? שמות סוכנים או תיקי מבצעים שעדיין פעילים?\"",
+                        deltas: { courage: 0, strategy: 10, stealth: 5, trust: 5 },
+                        nextHandlerText: "\"שניהם. אבל גרוע מכך – הוא כולל את הפרופיל המלא שלך ואת נתיבי החירום שהכנת למשפחה שלך בשלומים.\""
+                    },
+                    {
+                        text: "\"אם המוסד מסובך, שתתקשרו לראש המוסד. למה הצינור הזה מגיע אליי באמצע הלילה?\"",
+                        response: "\"אם המוסד מסובך, שתתקשרו לראש המוסד. למה הצינור הזה מגיע אליי באמצע הלילה?\"",
+                        deltas: { courage: 5, strategy: 0, stealth: -5, trust: -5 },
+                        nextHandlerText: "\"כי ראש המוסד לא יכול לנגוע בזה בלי להפעיל מדליף פנימי. והקובץ שנסחר בז'נבה מכיל את כל המידע על המשפחה שלך.\""
+                    }
+                ]
+            },
+            {
+                beatNumber: 3,
+                situation: "מחשב הקשר מעבד את המידע. אייל מזהה שהאיום פוגע ישירות בביטחון משפחתו.",
+                eyalMood: "אייל נשען על השולחן. משקל גופו קדימה. ידו קרובה למקלדת המוצפנת.",
+                choices: [
+                    {
+                        text: "\"אתה מנסה לסחוט אותי? תבדוק בהיסטוריה מה קרה לאחרון שניסה את הדרך הזו.\"",
+                        response: "\"אתה מנסה לסחוט אותי? תבדוק בהיסטוריה מה קרה לאחרון שניסה את הדרך הזו.\"",
+                        deltas: { courage: 10, strategy: -5, stealth: -5, trust: -10 },
+                        nextHandlerText: "\"אני לא סוחט אותך, אייל, אני מזהיר אותך! האדם שמחזיק בדיסק יושב באחוזה בז'נבה וממתין לקונה.\""
+                    },
+                    {
+                        text: "\"אז מי שברשותו הקובץ נמצא כרגע בז'נבה. מי הקונה?\"",
+                        response: "\"אז מי שברשותו הקובץ נמצא כרגע בז'נבה. מי הקונה?\"",
+                        deltas: { courage: 0, strategy: 15, stealth: 5, trust: 5 },
+                        nextHandlerText: "\"מדויק. ז'נבה. והקונה הוא לא סוחר קלאסי – הוא מוכר את זה לארגון צללים שרוצה לסגור איתך חשבון פתוח.\""
+                    },
+                    {
+                        text: "\"נחמד לדעת שמישהו טורח לקרוא את התיק שלי. הפרק על הפרת פקודות הוא האהוב עליי.\"",
+                        response: "\"נחמד לדעת שמישהו טורח לקרוא את התיק שלי. הפרק על הפרת פקודות הוא האהוב עליי.\"",
+                        deltas: { courage: 5, strategy: 5, stealth: 0, trust: 0 },
+                        nextHandlerText: "\"הם לא קוראים אותו להנאתם. הם משתמשים בו כדי למכור את נקודות התורפה שלך לארגון שיושב כעת בז'נבה.\""
+                    }
+                ]
+            },
+            {
+                beatNumber: 4,
+                situation: "מפות טקטיות מוצפנות מתחילות לרדת לטרמינל. היעד מזוהה כז'נבה המושלגת.",
+                eyalMood: "אייל מריץ בראשו מפה טקטית של שווייץ. הוא מכיר את גזרת ז'נבה באופן מפורט.",
+                choices: [
+                    {
+                        text: "\"תן לי מיקום מדויק של האחוזה ורמת אבטחה היקפית.\"",
+                        response: "\"תן לי מיקום מדויק של האחוזה ורמת אבטחה היקפית.\"",
+                        deltas: { courage: 0, strategy: 10, stealth: 5, trust: 5 },
+                        nextHandlerText: "\"אחוזה מבודדת על אגם ז'נבה. 4 מאבטחים חמושים, מצלמות תרמיות, ושלג כבד שמשתק את האזור.\""
+                    },
+                    {
+                        text: "\"ארגון צללים? נשמע כמו תסריט גרוע. תהיה ספציפי יותר בפרטים.\"",
+                        response: "\"ארגון צללים? נשמע כמו תסריט גרוע. תהיה ספציפי יותר בפרטים.\"",
+                        deltas: { courage: 5, strategy: 5, stealth: 0, trust: -5 },
+                        nextHandlerText: "\"זה לא תסריט. המבנה הוא אחוזה מוצפנת בז'נבה, מוקפת מצלמות תרמיות ו-4 שומרים חמושים שממתינים לסימן.\""
+                    },
+                    {
+                        text: "\"אם אתם יודעים את המיקום בז'נבה, למה יחידת כידון לא פורצת לשם בעצמה?\"",
+                        response: "\"אם אתם יודעים את המיקום בז'נבה, למה יחידת כידון לא פורצת לשם בעצמה?\"",
+                        deltas: { courage: 5, strategy: 5, stealth: -5, trust: -5 },
+                        nextHandlerText: "\"כי יש חפרפרת בפסגה! כל תנועה רשמית של כידון תפעיל מנגנון השמדה מיידי של הממידע והדלפה לרשת.\""
+                    }
+                ]
+            },
+            {
+                beatNumber: 5,
+                situation: "ניתוח המודיעין מעלה חשד כבד לחפרפרת בתוך דרג הפיקוד הבכיר.",
+                eyalMood: "המידע על החפרפרת מחזק את הבנתו של אייל: כדי שהעבודה תתבצע נקייה, הוא חייב לפעול לבד.",
+                choices: [
+                    {
+                        text: "\"אז אתה צריך פרילנסר שאינו כפוף לפקודות. אחד שלא מופיע ברישומים.\"",
+                        response: "\"אז אתה צריך פרילנסר שאינו כפוף לפקודות. אחד שלא מופיע ברישומים.\"",
+                        deltas: { courage: 0, strategy: 10, stealth: 5, trust: 10 },
+                        nextHandlerText: "\"בדיוק. סוכן צללים שיודע לחדור, לקחת את הדיסק ולהעלם בלי להשאיר טביעות אצבע.\""
+                    },
+                    {
+                        text: "\"איזה מזל שפוטרתי בזמנו. ככה לפחות לא תצטרכו למלא טפסים על החיסול שלי.\"",
+                        response: "\"איזה מזל שפוטרתי בזמנו. ככה לפחות לא תצטרכו למלא טפסים על החיסול שלי.\"",
+                        deltas: { courage: 5, strategy: 5, stealth: 0, trust: -5 },
+                        nextHandlerText: "\"אף אחד לא רוצה בחיסול שלך, אייל. אנחנו רוצים שהדיסק הקשיח ייעלם לפני שהמכירה תסתיים.\""
+                    },
+                    {
+                        text: "\"ומי מבטיח לי שאתה בעצמך לא החפרפרת שמנסה למשוך אותי למארב?\"",
+                        response: "\"ומי מבטיח לי שאתה בעצמך לא החפרפרת שמנסה למשוך אותי למארב?\"",
+                        deltas: { courage: 10, strategy: -5, stealth: -5, trust: -10 },
+                        nextHandlerText: "\"שום דבר לא מבטיח. חוץ מהעובדה שאם הדיסק יופעל הלילה בז'נבה, התחנה הבאה שלהם היא הבית שלך בשלומים.\""
+                    }
+                ]
+            },
+            {
+                beatNumber: 6,
+                situation: "שעון העצר הטקטי מופעל. חלון הזמנים לפעולה לפני מעבר הדיסק הוא שעות ספורות בלבד.",
+                eyalMood: "אייל מקבל החלטה פנימית. עיניו חדות כפלדה. הוא מתחיל להיערך ליציאה.",
+                choices: [
+                    {
+                        text: "\"מה חלון הזמנים המדויק להגיע למתחם בז'נבה לפני העברת הבעלות?\"",
+                        response: "\"מה חלון הזמנים המדויק להגיע למתחם בז'נבה לפני העברת הבעלות?\"",
+                        deltas: { courage: 0, strategy: 10, stealth: 5, trust: 5 },
+                        nextHandlerText: "\"יש לך כ-6 שעות. מטוס קל ללא רישום ממתין במסלול פרטי בשדה התעופה בחיפה.\""
+                    },
+                    {
+                        text: "\"אם משהו יגע במשפחה שלי, לא יהיה מקום על הגלובוס שתוכל להסתתר בו.\"",
+                        response: "\"אם משהו יגע במשפחה שלי, לא יהיה מקום על הגלובוס שתוכל להסתתר בו.\"",
+                        deltas: { courage: 10, strategy: -5, stealth: -5, trust: -5 },
+                        nextHandlerText: "\"המטרה שלנו זהה – לשמור על המידע סגור. המטוס בחיפה מוכן להמראה בעוד 35 דקות.\""
+                    },
+                    {
+                        text: "\"טקטיקת האיומים הזו שקופה. שלח את קוד הגישה המוצפן לתיקיית החירום.\"",
+                        response: "\"טקטיקת האיומים הזו שקופה. שלח את קוד הגישה המוצפן לתיקיית החירום.\"",
+                        deltas: { courage: 5, strategy: 5, stealth: 0, trust: 0 },
+                        nextHandlerText: "\"הקוד נשלח ברגע זה. מטוס מחיפה מוכן. הטייס לא שואל שאלות ואתה נוחת קרוב לגבול השווייצרי.\""
+                    }
+                ]
+            },
+            {
+                beatNumber: 7,
+                situation: "אייל פותח את המגירה הסודית בשולחן ומכין את הציוד האישי ליציאה מהירה.",
+                eyalMood: "אייל פותח מגירה סודית בשולחן, מוציא דרכון זר ואקדח מושתק בתוך נרתיק פנימי.",
+                choices: [
+                    {
+                        text: "\"מי איש הקשר שלי בשדה בשווייץ לקבלת ציוד היקפי ורכב לבן בשלג?\"",
+                        response: "\"מי איש הקשר שלי בשדה בשווייץ לקבלת ציוד היקפי ורכב לבן בשלג?\"",
+                        deltas: { courage: 0, strategy: 10, stealth: 5, trust: 5 },
+                        nextHandlerText: "\"סייען מקומי בשם דניאל. הוא ימתין לך מחוץ למסלול עם רכב שטח וציוד הסוואה מושלג.\""
+                    },
+                    {
+                        text: "\"מטוס מחיפה? מקווה שהטייס יודע לעשות יותר מלטוס בקו ישר בשלג.\"",
+                        response: "\"מטוס מחיפה? מקווה שהטייס יודע לעשות יותר מלטוס בקו ישר בשלג.\"",
+                        deltas: { courage: 5, strategy: 5, stealth: 0, trust: -5 },
+                        nextHandlerText: "\"הוא מהטובים ביותר. בשווייץ ימתין לך דניאל עם ציוד חדירה ואמצעי ראיית לילה.\""
+                    },
+                    {
+                        text: "\"אני קובע את נתיב הטיסה. אל תעז לשלוח לי מלווים או מטפלים בשטח.\"",
+                        response: "\"אני קובע את נתיב הטיסה. אל תעז לשלוח לי מלווים או מטפלים בשטח.\"",
+                        deltas: { courage: 5, strategy: -5, stealth: 5, trust: -5 },
+                        nextHandlerText: "\"ללא מלווים. רק דניאל יביא לך את הרכב והציוד בשדה ויסתלק מיד.\""
+                    }
+                ]
+            },
+            {
+                beatNumber: 8,
+                situation: "הבית בשלומים שקט לחלוטין. אייל מביט אל המדרגות ומוודא שהכל מאובטח.",
+                eyalMood: "אייל מציץ לעבר המדרגות. אפרת והילדים ישנים בשקט. הוא כותב פתק קצר ומניח על הדלפק.",
+                choices: [
+                    {
+                        text: "\"הכללים שלי תקפים: אם חף מפשע נפגע באחוזה, המשימה מבוטלת.\"",
+                        response: "\"הכללים שלי תקפים: אם חף מפשע נפגע באחוזה, המשימה מבוטלת.\"",
+                        deltas: { courage: 5, strategy: 10, stealth: 0, trust: 5 },
+                        nextHandlerText: "\"מקובל. המטרה היא אך ורק הדיסק הקשיח. שום אלימות מיותרת שתעורר את המשטרה השווייצרית.\""
+                    },
+                    {
+                        text: "\"'ללא עקבות' זה השם השני שלי. השם הראשון הוא סיכון מחושב.\"",
+                        response: "\"'ללא עקבות' זה השם השני שלי. השם הראשון הוא סיכון מחושב.\"",
+                        deltas: { courage: 5, strategy: 0, stealth: 5, trust: 0 },
+                        nextHandlerText: "\"זה בדיוק מה שאנחנו צריכים בז'נבה הלילה. מקצוען שלא משאיר קצוות פתוחים.\""
+                    },
+                    {
+                        text: "\"אל תטיף לי על נהלי עבודה. אני הייתי בשטח כשתרגלת סימולציות בחדר ממוזג.\"",
+                        response: "\"אל תטיף לי על נהלי עבודה. אני הייתי בשטח כשתרגלת סימולציות בחדר ממוזג.\"",
+                        deltas: { courage: 5, strategy: -5, stealth: 0, trust: -10 },
+                        nextHandlerText: "\"אני לא מטיף, אייל. אני רק מוודא שאתה מבין את רגישות המצב. המפתח הוא חדירה שקטה.\""
+                    }
+                ]
+            },
+            {
+                beatNumber: 9,
+                situation: "סריקה טקטית של מפרט האבטחה באחוזה המושלגת בז'נבה תוך גיבוש תוכנית חדירה.",
+                eyalMood: "ניתוח טקטי מהיר מתבצע במוחו של אייל לקראת החדירה לאחוזה המושלגת בז'נבה.",
+                choices: [
+                    {
+                        text: "\"ניצול נקודת עיוורון של 90 שניות בזמן החלפת המשמרות באחוזה. שקט ונקי.\"",
+                        response: "\"ניצול נקודת עיוורון של 90 שניות בזמן החלפת המשמרות באחוזה. שקט ונקי.\"",
+                        deltas: { courage: 0, strategy: 15, stealth: 10, trust: 5 },
+                        nextHandlerText: "\"תוכנית מצוינת. דניאל יספק לך את לוח הזמנים המדויק של המשמרות בשווייץ.\""
+                    },
+                    {
+                        text: "\"עקיפה חזיתית עם יצירת קצר חשמלי מבוקר במחולל המרכזי של המתחם.\"",
+                        response: "\"עקיפה חזיתית עם יצירת קצר חשמלי מבוקר במחולל המרכזי של המתחם.\"",
+                        deltas: { courage: 10, strategy: 5, stealth: -5, trust: 0 },
+                        nextHandlerText: "\"נועז. הקצר ייתן לך בדיוק שתי דקות לפני שמחולל החירום ייכנס לפעולה.\""
+                    },
+                    {
+                        text: "\"אני אבקש מהם יפה לפתוח את השער. בשלג השווייצרי אנשים נהיים נחמדים.\"",
+                        response: "\"אני אבקש מהם יפה לפתוח את השער. בשלג השווייצרי אנשים נהיים נחמדים.\"",
+                        deltas: { courage: 5, strategy: 5, stealth: 0, trust: -5 },
+                        nextHandlerText: "\"אל תזלזל במאבטחים שם, אייל. הם שכירי חרב מיומנים. השתמש בערמה ולא בסתם דיבורים.\""
+                    }
+                ]
+            },
+            {
+                beatNumber: 10,
+                situation: "מערכות האבטחה של האחוזה כוללות נעילה ביומטרית וחיישנים תרמיים בשלג.",
+                eyalMood: "אייל פותח תיקיית קבצים מוצפנת בעזרת הקוד שקיבל, ובודק את מפת המתחם.",
+                choices: [
+                    {
+                        text: "\"הארכיון שמור בכספת ביומטרית בקומת המרתף. מי מחזיק במפתח הביומטרי?\"",
+                        response: "\"הארכיון שמור בכספת ביומטרית בקומת המרתף. מי מחזיק במפתח הביומטרי?\"",
+                        deltas: { courage: 0, strategy: 10, stealth: 5, trust: 5 },
+                        nextHandlerText: "\"מפקד האבטחה המקומי. תצטרך לנטרל אותו בשקט ולעקוף את הסורק.\""
+                    },
+                    {
+                        text: "\"כספות ביומטריות הן מצע נהדר לטעויות. תדאג לעקוף את המערכת מרחוק.\"",
+                        response: "\"כספות ביומטריות הן מצע נהדר לטעויות. תדאג לעקוף את המערכת מרחוק.\"",
+                        deltas: { courage: 5, strategy: 5, stealth: 0, trust: 0 },
+                        nextHandlerText: "\"דניאל יביא עמו התקן מעקף תדרים נייד שיעזור לך בפריצה המקומית.\""
+                    },
+                    {
+                        text: "\"אם הכספת נעולה, אני אפרוץ אותה עם פיצוץ מבוקר בגז אינרטי.\"",
+                        response: "\"אם הכספת נעולה, אני אפרוץ אותה עם פיצוץ מבוקר בגז אינרטי.\"",
+                        deltas: { courage: 10, strategy: -5, stealth: -10, trust: -5 },
+                        nextHandlerText: "\"פיצוץ יעיר את כל האחוזה. עדיף שתשתמש בהתקן העקיפה השקט.\""
+                    }
+                ]
+            },
+            {
+                beatNumber: 11,
+                situation: "אייל מנתח תרחישי קיצון במידה והקונה יגיע לפני הזמן המתוכנן.",
+                eyalMood: "אייל בודק את מכשיר הקשר המוצפן ומוודא שהתדרים חסומים להאזנה חופשית.",
+                choices: [
+                    {
+                        text: "\"מה הגיבוי אם הקונה יקדים ויגיע לפני הזמן המתוכנן?\"",
+                        response: "\"מה הגיבוי אם הקונה יקדים ויגיע לפני הזמן המתוכנן?\"",
+                        deltas: { courage: 5, strategy: 10, stealth: 5, trust: 5 },
+                        nextHandlerText: "\"אם הקונה יקדים, תצטרך לייצר הסחה חיצונית במתחם ולחטוף את הדיסק תוך כדי המבוכה.\""
+                    },
+                    {
+                        text: "\"אם הקונה שם, אני מנטרל את העסקה בנקודת המפגש בשביל הגישה.\"",
+                        response: "\"אם הקונה שם, אני מנטרל את העסקה בנקודת המפגש בשביל הגישה.\"",
+                        deltas: { courage: 10, strategy: 0, stealth: -5, trust: -5 },
+                        nextHandlerText: "\"נטרול העסקה בשביל הגישה יסכן את המידע. המטרה היא להשיג את הדיסק שלם.\""
+                    },
+                    {
+                        text: "\"אם הקונה יקדים, הוא ישלם כפול. בעיקר בבריאות.\"",
+                        response: "\"אם הקונה יקדים, הוא ישלם כפול. בעיקר בבריאות.\"",
+                        deltas: { courage: 5, strategy: 5, stealth: 0, trust: 0 },
+                        nextHandlerText: "\"קור הרוח שלך ייבחן בשטח. הקונה מוקף בצוות אבטחה חמוש.\""
+                    }
+                ]
+            },
+            {
+                beatNumber: 12,
+                situation: "תיאום סידורי התחבורה והמילוט בשטח השווייצרי המושלג.",
+                eyalMood: "אייל מציץ בשעונו. הזמן דוחק והלילה בשלומים הולך ומעמיק.",
+                choices: [
+                    {
+                        text: "\"איזה רכב ימתין במסלול הנחיתה המושלג ליד ז'נבה?\"",
+                        response: "\"איזה רכב ימתין במסלול הנחיתה המושלג ליד ז'נבה?\"",
+                        deltas: { courage: 0, strategy: 10, stealth: 5, trust: 5 },
+                        nextHandlerText: "\"רכב שטח שחור בעל צמיגים ממוסמרים לנהיגה בשלג. המפתחות בפנים.\""
+                    },
+                    {
+                        text: "\"מקווה שהחימום ברכב עובד. הקור בשווייץ נוטה להוריד לי את הסבלנות.\"",
+                        response: "\"מקווה שהחימום ברכב עובד. הקור בשווייץ נוטה להוריד לי את הסבלנות.\"",
+                        deltas: { courage: 5, strategy: 5, stealth: 0, trust: 0 },
+                        nextHandlerText: "\"החימום פועל, והרכב מצויד בכל הציוד הטקטי הנדרש.\""
+                    },
+                    {
+                        text: "\"תדאג שהרכב ימתין במנוע מונע. אני לא הולך לבזבז שניות יקרות בשלג.\"",
+                        response: "\"תדאג שהרכב ימתין במנוע מונע. אני לא הולך לבזבז שניות יקרות בשלג.\"",
+                        deltas: { courage: 5, strategy: -5, stealth: 0, trust: -5 },
+                        nextHandlerText: "\"המנוע יהיה דולק והנתיב יהיה פנוי לתנועה מהירה.\""
+                    }
+                ]
+            },
+            {
+                beatNumber: 13,
+                situation: "הכנת אמצעי התיעוד והגיבוי המוצפן למניעת טיוח או הפללה פנימית.",
+                eyalMood: "אייל פותח את הכספת האישית הקטנה בקיר ונטל אמצעי הקלטה מוצפן לגיבוי.",
+                choices: [
+                    {
+                        text: "\"אני מתעד את כל שידור התקשורת מהשטח במקביל למטה.\"",
+                        response: "\"אני מתעד את כל שידור התקשורת מהשטח במקביל למטה.\"",
+                        deltas: { courage: 5, strategy: 10, stealth: 5, trust: 5 },
+                        nextHandlerText: "\"צעד חכם. התיעוד המוצפן יבטיח שהמידע לא יוכל להיות מסולף על ידי גורם פנימי.\""
+                    },
+                    {
+                        text: "\"כל הוכחה על מעורבות פנימית של בכירים תוקלט ותשלח מידית לגיבוי ענני.\"",
+                        response: "\"כל הוכחה על מעורבות פנימית של בכירים תוקלט ותשלח מידית לגיבוי ענני.\"",
+                        deltas: { courage: 10, strategy: 0, stealth: 0, trust: -10 },
+                        nextHandlerText: "\"אין צורך באיומים, אייל. המטרה של כולנו היא לחשוף את החפרפרת.\""
+                    },
+                    {
+                        text: "\"תמיד טוב שיש גיבוי, במיוחד כשעובדים מול אנשים שכוחים זיכרון.\"",
+                        response: "\"תמיד טוב שיש גיבוי, במיוחד כשעובדים מול אנשים שכוחים זיכרון.\"",
+                        deltas: { courage: 5, strategy: 5, stealth: 0, trust: 0 },
+                        nextHandlerText: "\"הזיכרון שלנו חד מאוד, גלבוע. התרכז במשימה בז'נבה.\""
+                    }
+                ]
+            },
+            {
+                beatNumber: 14,
+                situation: "איתור נתיבי מילוט אלטרנטיביים במקרה של חסימת היקף המתחם בז'נבה.",
+                eyalMood: "הניתוח הטקטי של האחוזה מסתיים. אייל עובר לבדוק את נתיב המילוט המתוכנן.",
+                choices: [
+                    {
+                        text: "\"מה נתיב המילוט מתוך האחוזה במקרה שחומות ההיקף ננעלות?\"",
+                        response: "\"מה נתיב המילוט מתוך האחוזה במקרה שחומות ההיקף ננעלות?\"",
+                        deltas: { courage: 0, strategy: 10, stealth: 10, trust: 5 },
+                        nextHandlerText: "\"ישנה מנהרת שירות עתיקה המקשרת בין המרתף אל מעגן הסירות הקפוא באגם.\""
+                    },
+                    {
+                        text: "\"מנהרת שירות עתיקה? נשמע כמו מקום מעולה לטיול לילי בשלג.\"",
+                        response: "\"מנהרת שירות עתיקה? נשמע כמו מקום מעולה לטיול לילי בשלג.\"",
+                        deltas: { courage: 5, strategy: 5, stealth: 0, trust: 0 },
+                        nextHandlerText: "\"המנהרה חשוכה ומוצפנת, אך היא תביא אותך ישירות לנקודת החילוץ.\""
+                    },
+                    {
+                        text: "\"אם השערים יינעלו, אני אבקיע אותם עם הרכב הטקטי בשער האחורי.\"",
+                        response: "\"אם השערים יינעלו, אני אבקיע אותם עם הרכב הטקטי בשער האחורי.\"",
+                        deltas: { courage: 10, strategy: -5, stealth: -10, trust: -5 },
+                        nextHandlerText: "\"הבקעה חזיתית תמשוך את המשטרה המקומית. המנהרה היא האופציה הבטוחה.\""
+                    }
+                ]
+            },
+            {
+                beatNumber: 15,
+                situation: "סגירת פרטי המפגש עם הסייען המקומי בשדה הנחיתה בשווייץ.",
+                eyalMood: "אייל מהדק את מעיל הסערה השחור ובודק את הנרתיק הנסתר.",
+                choices: [
+                    {
+                        text: "\"וודא שדניאל ממתין במעגן הסירות עם אופנוע שלג מוכן.\"",
+                        response: "\"וודא שדניאל ממתין במעגן הסירות עם אופנוע שלג מוכן.\"",
+                        deltas: { courage: 5, strategy: 10, stealth: 5, trust: 5 },
+                        nextHandlerText: "\"דניאל יעמוד שם בערכונות מלאה עם הציוד הנדרש למעבר הגבול.\""
+                    },
+                    {
+                        text: "\"אם דניאל מפספס בדקה, אני ממשיך לבד ללא תיאום מחדש.\"",
+                        response: "\"אם דניאל מפספס בדקה, אני ממשיך לבד ללא תיאום מחדש.\"",
+                        deltas: { courage: 5, strategy: -5, stealth: 5, trust: -5 },
+                        nextHandlerText: "\"דניאל מקצוען מדויק. הוא לא יפספס.\""
+                    },
+                    {
+                        text: "\"אופנוע שלג נשמע מצוין, רק בלי מוזיקת רקע מיותרת.\"",
+                        response: "\"אופנוע שלג נשמע מצוין, רק בלי מוזיקת רקע מיותרת.\"",
+                        deltas: { courage: 5, strategy: 5, stealth: 0, trust: 0 },
+                        nextHandlerText: "\"השקט יהיה הליווי היחיד שלך הלילה בשווייץ.\""
+                    }
+                ]
+            },
+            {
+                beatNumber: 16,
+                situation: "המתח בערוץ המוצפן עולה ככל שזמן ההמראה מתקרב.",
+                eyalMood: "המפעיל בקו מגביר את קצב הדיבור. המתח הולך ועולה.",
+                choices: [
+                    {
+                        text: "\"אתה נשמע מתוח. יש משהו נוסף שלא סיפרת לי על האחוזה?\"",
+                        response: "\"אתה נשמע מתוח. יש משהו נוסף שלא סיפרת לי על האחוזה?\"",
+                        deltas: { courage: 0, strategy: 10, stealth: 5, trust: 5 },
+                        nextHandlerText: "\"המתיחות מוצדקת. הדיסק כולל קבצים שיכולים לטלטל את כל צמרת הארגון.\""
+                    },
+                    {
+                        text: "\"אם הלחץ דם שלך עולה, תשתה כוס מים. אני צריך מפעיל רגוע בקו.\"",
+                        response: "\"אם הלחץ דם שלך עולה, תשתה כוס מים. אני צריך מפעיל רגוע בקו.\"",
+                        deltas: { courage: 5, strategy: 5, stealth: 0, trust: -5 },
+                        nextHandlerText: "\"אני רגוע לחלוטין, אייל. פשוט מבין את גודל השעה והסיכון.\""
+                    },
+                    {
+                        text: "\"אם הסתרת ממני נתון קריטי אחד, המשחק הזה ייגמר רע מאוד מבחינתך.\"",
+                        response: "\"אם הסתרת ממני נתון קריטי אחד, המשחק הזה ייגמר רע מאוד מבחינתך.\"",
+                        deltas: { courage: 10, strategy: -5, stealth: -5, trust: -10 },
+                        nextHandlerText: "\"כל הנתונים אצלך. אין שום הסתרה. הכל פתוח על השולחן.\""
+                    }
+                ]
+            },
+            {
+                beatNumber: 17,
+                situation: "אישור קודי גישה סופיים ויציאה מהבית לכיוון רכב השטח.",
+                eyalMood: "אייל מכניס את הדרכון הזר ואת כרטיסי הגישה המוצפנים לכיס הפנימי.",
+                choices: [
+                    {
+                        text: "\"הקודים מאושרים. אני יוצא לכיוון מנחת חיפה.\"",
+                        response: "\"הקודים מאושרים. אני יוצא לכיוון מנחת חיפה.\"",
+                        deltas: { courage: 5, strategy: 10, stealth: 5, trust: 10 },
+                        nextHandlerText: "\"המטוס ממתין. הטייס קיבל אישור המראה מיידי מול מגדל הפיקוח.\""
+                    },
+                    {
+                        text: "\"אני יוצא. אל תנסו ליצור איתי קשר בדרך אלא אם זו הודעת חירום.\"",
+                        response: "\"אני יוצא. אל תנסו ליצור איתי קשר בדרך אלא אם זו הודעת חירום.\"",
+                        deltas: { courage: 10, strategy: 0, stealth: 5, trust: -5 },
+                        nextHandlerText: "\"התקשורת תהיה שקטה עד הנחיתה בשווייץ.\""
+                    },
+                    {
+                        text: "\"יצאתי. נתראה בצד השני של הענן המושלג.\"",
+                        response: "\"יצאתי. נתראה בצד השני של הענן המושלג.\"",
+                        deltas: { courage: 5, strategy: 5, stealth: 5, trust: 0 },
+                        nextHandlerText: "\"בהצלחה, אייל. תשמור על ערנות מרבית.\""
+                    }
+                ]
+            },
+            {
+                beatNumber: 18,
+                situation: "דריכת מערכת ההגנה ההיקפית של הבית בשלומים ואימות חיישנים.",
+                eyalMood: "אייל סוקר בפעם האחרונה את הסלון בשלומים, מוודא שאין כל סימן מחשיד.",
+                choices: [
+                    {
+                        text: "\"מערכת האבטחה הביתית הופעלה ברמת כוננות גבוהה.\"",
+                        response: "\"מערכת האבטחה הביתית הופעלה ברמת כוננות גבוהה.\"",
+                        deltas: { courage: 0, strategy: 10, stealth: 10, trust: 5 },
+                        nextHandlerText: "\"הבית בשלומים מוגן ומנוטר גם מרחוק דרך הלוויין.\""
+                    },
+                    {
+                        text: "\"אף זבוב לא ייכנס פה בלי להפעיל חיישן נפח. הכל נעול.\"",
+                        response: "\"אף זבוב לא ייכנס פה בלי להפעיל חיישן נפח. הכל נעול.\"",
+                        deltas: { courage: 5, strategy: 5, stealth: 5, trust: 0 },
+                        nextHandlerText: "\"מצוין. המשפחה שלך בטוחה לחלוטין.\""
+                    },
+                    {
+                        text: "\"אם החיישן הביתי יצפצף, אני חוזר ישר לכאן ולא משנה איפה אהיה.\"",
+                        response: "\"אם החיישן הביתי יצפצף, אני חוזר ישר לכאן ולא משנה איפה אהיה.\"",
+                        deltas: { courage: 10, strategy: -5, stealth: 0, trust: -5 },
+                        nextHandlerText: "\"מובן לחלוטין. אך המעקב מראה שהסביבה שקטה לחלוטין.\""
+                    }
+                ]
+            },
+            {
+                beatNumber: 19,
+                situation: "אייל נכנס לרכב השטח בחצר ומניע בשקט אל הלילה הצפוני.",
+                eyalMood: "אייל פותח את דלת הבית בשקט, רוח הלילה הקרה של הצפון פוגשת את פניו.",
+                choices: [
+                    {
+                        text: "\"אני ברכב. נסיעה מהירה ומוצפנת לחיפה תארך 25 דקות.\"",
+                        response: "\"אני ברכב. נסיעה מהירה ומוצפנת לחיפה תארך 25 דקות.\"",
+                        deltas: { courage: 5, strategy: 10, stealth: 5, trust: 5 },
+                        nextHandlerText: "\"הטייס מעלה מנועים. הגעה מדויקת בזמן.\""
+                    },
+                    {
+                        text: "\"זמן לצאת לדרך. הלילה הקר רק מתחיל.\"",
+                        response: "\"זמן לצאת לדרך. הלילה הקר רק מתחיל.\"",
+                        deltas: { courage: 5, strategy: 5, stealth: 5, trust: 0 },
+                        nextHandlerText: "\"הלילה בז'נבה יהיה מושלג וסוער. הכן את עצמך.\""
+                    },
+                    {
+                        text: "\"אני בתנועה. שום גורם לא יעצור את ההגעה שלי למתחם.\"",
+                        response: "\"אני בתנועה. שום גורם לא יעצור את ההגעה שלי למתחם.\"",
+                        deltas: { courage: 10, strategy: 0, stealth: 0, trust: -5 },
+                        nextHandlerText: "\"נחישות מצוינת. נעדכן אותך בנתיב הטיסה.\""
+                    }
+                ]
+            },
+            {
+                beatNumber: 20,
+                situation: "נסיעה מהירה בכביש החוף לכיוון מנחת חיפה. המשימה בז'נבה מתחילה כעת.",
+                eyalMood: "אייל סוגר את המחשב הנייד המוצפן, מניע את מנוע השטח השקט ויוצא לדרך לחיפה ולז'נבה.",
+                choices: [
+                    {
+                        text: "\"השידור בשלומים הסתיים. היעד הבא: האחוזה המושלגת בז'נבה.\"",
+                        response: "\"השידור בשלומים הסתיים. היעד הבא: האחוזה המושלגת בז'נבה.\"",
+                        deltas: { courage: 5, strategy: 10, stealth: 5, trust: 10 },
+                        nextHandlerText: "\"השידור ננעל. בהצלחה בז'נבה, אייל. סוף שידור.\""
+                    },
+                    {
+                        text: "\"אני יוצא. תדאגו שהכל מוכן בצד השני, בלי הפתעות.\"",
+                        response: "\"אני יוצא. תדאגו שהכל מוכן בצד השני, בלי הפתעות.\"",
+                        deltas: { courage: 10, strategy: 0, stealth: 0, trust: -5 },
+                        nextHandlerText: "\"הכל ערוך. הטיסה יוצאת כעת. סוף שידור.\""
+                    },
+                    {
+                        text: "\"נתראה בשלג השווייצרי. אל תשכחו לחמם את התדר.\"",
+                        response: "\"נתראה בשלג השווייצרי. אל תשכחו לחמם את התדר.\"",
+                        deltas: { courage: 5, strategy: 5, stealth: 5, trust: 0 },
+                        nextHandlerText: "\"התדר מחכה לך. צא לדרך, גלבוע. סוף שידור.\""
+                    }
+                ]
+            }
+        ];
+
+        function updateStatsUI() {
+            document.getElementById('stat-courage').innerText = stats.courage;
+            document.getElementById('stat-strategy').innerText = stats.strategy;
+            document.getElementById('stat-stealth').innerText = stats.stealth;
+            document.getElementById('stat-trust').innerText = stats.trust;
+        }
+
+        function renderBeat(index, customHandlerText = null) {
+            if (index >= dynamicBeats.length) {
+                showEndSummary();
+                return;
+            }
+
+            // Trigger incoming transmission notification sound
+            playIncomingMessageSound();
+
+            const beatData = dynamicBeats[index];
+            document.getElementById('beat-counter').innerText = beatData.beatNumber;
+            document.getElementById('speaker-name').innerText = "תקשורת מוצפנת (המפעיל)";
+            document.getElementById('eyal-mood-text').innerText = beatData.eyalMood;
+
+            // Update Situation Context Briefing Box
+            document.getElementById('situation-text').innerText = beatData.situation;
+
+            const textToType = customHandlerText || beatData.defaultSpeakerText;
+            const speakerTextEl = document.getElementById('speaker-text');
+            
+            typeWriterText(speakerTextEl, textToType, 22);
+
+            const choicesContainer = document.getElementById('choices-container');
+            choicesContainer.innerHTML = '';
+
+            beatData.choices.forEach((choice) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-right p-3.5 sm:p-4 rounded-xl border border-cyan-800/80 bg-blue-950/80 hover:bg-cyan-950/90 hover:border-cyan-400 transition duration-200 flex items-center justify-between group shadow-lg text-sky-100 text-base sm:text-lg font-medium leading-relaxed";
+
+                btn.innerHTML = `
+                    <span class="group-hover:text-cyan-200 transition-colors pl-2">
+                        ${choice.text}
+                    </span>
+                    <span class="text-cyan-400 group-hover:text-cyan-200 transition text-lg font-bold shrink-0">⟵</span>
+                `;
+
+                btn.onclick = () => handlePlayerChoice(choice);
+                choicesContainer.appendChild(btn);
+            });
+        }
+
+        function handlePlayerChoice(choice) {
+            // Play tactile key sound on selection
+            playKeyClickSound();
+
+            // Update stats immediately
+            stats.courage = Math.max(0, stats.courage + choice.deltas.courage);
+            stats.strategy = Math.max(0, stats.strategy + choice.deltas.strategy);
+            stats.stealth = Math.max(0, stats.stealth + choice.deltas.stealth);
+            stats.trust = Math.max(0, stats.trust + choice.deltas.trust);
+            
+            updateStatsUI();
+
+            const dialogueArea = document.getElementById('dialogue-area');
+            dialogueArea.scrollTop = 0;
+
+            // Advance immediately to the next beat with the handler's reaction
+            currentBeatIndex++;
+            renderBeat(currentBeatIndex, choice.nextHandlerText);
+        }
+
+        function showEndSummary() {
+            document.getElementById('game-card').classList.add('hidden');
+            const summaryCard = document.getElementById('summary-card');
+            summaryCard.classList.remove('hidden');
+
+            document.getElementById('final-courage').innerText = stats.courage;
+            document.getElementById('final-strategy').innerText = stats.strategy;
+            document.getElementById('final-stealth').innerText = stats.stealth;
+            document.getElementById('final-trust').innerText = stats.trust;
+        }
+
+        function nextLevelPrompt() {
+            const msg = document.createElement('div');
+            msg.className = "fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4 font-mono-tactical";
+            msg.innerHTML = `
+                <div class="bg-slate-950 border border-cyan-500 p-6 sm:p-8 rounded-2xl max-w-md text-center space-y-4 shadow-2xl">
+                    <h3 class="text-xl font-bold text-cyan-300">שלב 1 הושלם בהצלחה!</h3>
+                    <p class="text-sm text-sky-200 leading-relaxed">הנתונים נשמרו. הודע לי בצ'אט כדי לעבור ל<b>שלב 2: החדירה לאחוזה המושלגת בז'נבה</b>.</p>
+                    <button onclick="this.parentElement.parentElement.remove()" class="w-full py-2.5 bg-blue-800 hover:bg-cyan-700 text-white rounded-xl text-sm font-bold transition">סגור</button>
+                </div>
+            `;
+            document.body.appendChild(msg);
+        }
+
+        window.onload = function () {
+            updateStatsUI();
+            drawAudioWave();
+            renderBeat(0);
+        };
+    </script>
+</body>
+</html>

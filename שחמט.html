@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>משחק שחמט</title>
+    <!-- טעינת העיצוב של לוח השחמט -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        #board {
+            width: 400px;
+            max-width: 90vw;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        #status {
+            margin-top: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>משחק שחמט</h1>
+    <!-- האלמנט שבו ייווצר הלוח -->
+    <div id="board"></div>
+    <!-- הצגת מצב המשחק (תור מי, שח, מט וכו') -->
+    <div id="status">טוען...</div>
+
+    <!-- טעינת ספריות קוד נדרשות: jQuery, Chess.js (לוגיקה), ו-Chessboard.js (תצוגה) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+
+    <script>
+        // אתחול לוגיקת המשחק
+        var game = new Chess();
+        var board = null;
+        var $status = $('#status');
+
+        // פונקציה שמופעלת כאשר שחקן מנסה להרים כלי
+        function onDragStart (source, piece, position, orientation) {
+            // אם המשחק נגמר, אי אפשר להזיז כלים
+            if (game.game_over()) return false;
+
+            // מניעת הזזת כלי של היריב (לבן יכול להזיז רק לבן, שחור רק שחור)
+            if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
+                (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+                return false;
+            }
+        }
+
+        // פונקציה שמופעלת כאשר שחקן מניח כלי משבצת חדשה
+        function onDrop (source, target) {
+            // בדיקה וביצוע המהלך בלוגיקה של המשחק
+            var move = game.move({
+                from: source,
+                to: target,
+                promotion: 'q' // הפיכת רגלי למלכה אוטומטית בהגעה לשורה האחרונה
+            });
+
+            // אם המהלך לא חוקי, הכלי יחזור למקומו המקורי
+            if (move === null) return 'snapback';
+
+            updateStatus();
+        }
+
+        // עדכון מיקום הכלים על הלוח לאחר סיום האנימציה
+        function onSnapEnd () {
+            board.position(game.fen());
+        }
+
+        // פונקציה המעדכנת את תצוגת המצב (תור מי, האם יש שח/מט)
+        function updateStatus () {
+            var status = '';
+            var moveColor = 'לבן';
+            if (game.turn() === 'b') {
+                moveColor = 'שחור';
+            }
+
+            // בדיקת מצבי סיום משחק
+            if (game.in_checkmate()) {
+                status = 'המשחק נגמר! ' + moveColor + ' קיבל מט.';
+            } else if (game.in_draw()) {
+                status = 'המשחק נגמר בתיקו.';
+            } else {
+                status = 'תור: ' + moveColor;
+                // בדיקה אם השחקן הנוכחי נמצא במצב "שח"
+                if (game.in_check()) {
+                    status += ' (שח!)';
+                }
+            }
+
+            $status.html(status);
+        }
+
+        // הגדרות הלוח הויזואלי
+        var config = {
+            draggable: true, // מאפשר לגרור את הכלים
+            position: 'start', // מיקום התחלתי של שחמט
+            onDragStart: onDragStart,
+            onDrop: onDrop,
+            onSnapEnd: onSnapEnd,
+            pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png' // עיצוב הכלים הסטנדרטי
+        };
+
+        // יצירת הלוח בפועל
+        board = Chessboard('board', config);
+
+        // עדכון המצב הראשוני
+        updateStatus();
+    </script>
+</body>
+</html>

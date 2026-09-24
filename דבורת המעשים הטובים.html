@@ -1,0 +1,2327 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>דבורת המעשים הטובים</title>
+    <style>
+        /* איפוס והגדרות בסיס */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Rubik', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+            overflow: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(to bottom, #bae6fd, #e0f2fe); /* ברירת מחדל: שמיים בהירים */
+            color: #1e293b;
+            transition: background 1.5s ease;
+        }
+
+        /* ערכות נושא של שמיים מההגדרות */
+        .sky-day {
+            background: linear-gradient(to bottom, #bae6fd, #e0f2fe) !important;
+        }
+        .sky-sunset {
+            background: linear-gradient(to bottom, #fdba74, #fed7aa, #ffedd5) !important;
+            color: #2c1a04;
+        }
+        .sky-night {
+            background: linear-gradient(to bottom, #0f172a, #1e293b, #334155) !important;
+            color: #f8fafc;
+        }
+
+        /* מצב שמיים מעוננים/חשוכים כשנפסלים */
+        .sky-dark {
+            background: linear-gradient(to bottom, #94a3b8, #cbd5e1) !important;
+        }
+
+        .secular {
+            font-family: 'Arial Black', 'Impact', sans-serif;
+            font-weight: 900;
+        }
+
+        /* לוח בקרה עליון */
+        header {
+            width: 100%;
+            max-width: 56rem;
+            margin: 0 auto;
+            padding: 1rem;
+            z-index: 20;
+        }
+
+        .top-panel {
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 1.25rem;
+            padding: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .stats {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .stat-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-lbl {
+            font-size: 0.75rem;
+            color: #64748b;
+        }
+
+        .stat-val {
+            font-size: 1.15rem;
+            color: #b45309; /* צבע דבש חם */
+            font-weight: bold;
+        }
+
+        .divider {
+            height: 2rem;
+            width: 1px;
+            background-color: #cbd5e1;
+        }
+
+        /* צנצנת הדבש */
+        .honey-container {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .honey-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.25rem;
+        }
+
+        .honey-title {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .sound-btn {
+            cursor: pointer;
+            font-size: 1.25rem;
+            padding: 0.25rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s;
+        }
+        .sound-btn:hover {
+            background-color: #f1f5f9;
+        }
+
+        .honey-bar-track {
+            width: 100%;
+            background-color: #e2e8f0;
+            border-radius: 9999px;
+            height: 1.25rem;
+            overflow: hidden;
+            padding: 2px;
+            border: 1px solid #cbd5e1;
+            position: relative;
+        }
+
+        .honey-bar-fill {
+            height: 100%;
+            border-radius: 9999px;
+            background: linear-gradient(to right, #fbbf24, #f59e0b, #d97706); /* גווני דבש זהוב */
+            width: 0%;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.4);
+        }
+
+        /* מדד הבונוסים הפעילים */
+        #powerupIndicator {
+            display: flex;
+            gap: 0.5rem;
+            position: absolute;
+            top: 5.5rem;
+            right: 1.5rem;
+            z-index: 15;
+        }
+
+        .active-powerup-badge {
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 2px solid #fbbf24;
+            padding: 0.35rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            animation: pulse 1s infinite alternate;
+        }
+
+        /* אזור המשחק */
+        #gameArea {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            max-width: 64rem;
+            margin: 0 auto;
+            overflow: hidden;
+            background-color: transparent;
+            border-bottom: 8px solid #22c55e; /* דשא ירוק בתחתית */
+        }
+
+        /* עננים ברקע שזזים לאט */
+        .decor-bg-cloud {
+            position: absolute;
+            font-size: 4rem;
+            color: rgba(255, 255, 255, 0.5);
+            pointer-events: none;
+            z-index: 1;
+            animation: floatLeft 40s linear infinite;
+        }
+
+        @keyframes floatLeft {
+            from { transform: translateX(100vw); }
+            to { transform: translateX(-20vw); }
+        }
+
+        /* הדבורה של השחקן (מכילה גודל שמשתנה מההגדרות) */
+        #bee {
+            position: absolute;
+            left: 10%;
+            top: 50%;
+            width: 4.5rem;
+            height: 4.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            z-index: 10;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease-out, width 0.2s, height 0.2s, font-size 0.2s;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+
+        /* תצוגת קומבו מעופפת ליד הדבורה */
+        #comboBadge {
+            position: absolute;
+            background-color: #f43f5e;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 900;
+            padding: 0.15rem 0.4rem;
+            border-radius: 9999px;
+            top: -0.75rem;
+            right: -0.5rem;
+            border: 1.5px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: none;
+            transform: scale(1);
+            animation: popUp 0.2s ease-out;
+        }
+
+        @keyframes popUp {
+            0% { transform: scale(0.5); }
+            100% { transform: scale(1); }
+        }
+
+        /* מחלקות גודל דבורה */
+        .bee-small {
+            width: 3.5rem !important;
+            height: 3.5rem !important;
+            font-size: 2.5rem !important;
+        }
+        .bee-medium {
+            width: 4.5rem !important;
+            height: 4.5rem !important;
+            font-size: 3.5rem !important;
+        }
+        .bee-large {
+            width: 5.5rem !important;
+            height: 5.5rem !important;
+            font-size: 4.5rem !important;
+        }
+
+        /* מגן ויזואלי סביב הדבורה */
+        .bee-shield {
+            position: absolute;
+            width: 120%;
+            height: 120%;
+            border: 3px dashed #38bdf8;
+            border-radius: 50%;
+            animation: rotateShield 4s linear infinite;
+            display: none;
+            background-color: rgba(56, 189, 248, 0.1);
+        }
+
+        @keyframes rotateShield {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* שובל כוכבים נוצצים מאחורי הדבורה */
+        .trail-particle {
+            position: absolute;
+            font-size: 1rem;
+            pointer-events: none;
+            z-index: 5;
+            animation: fadeAndShrink 0.6s ease-out forwards;
+        }
+
+        @keyframes fadeAndShrink {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+            100% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
+        }
+
+        /* אלמנטים במשחק (פרחים, עננים) */
+        .game-element {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        /* עיצוב פרח טוב */
+        .flower-item {
+            font-size: 3rem;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.05));
+        }
+
+        .flower-label {
+            font-size: 0.8rem;
+            font-weight: bold;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #065f46; /* ירוק כהה */
+            border: 1.5px solid #34d399;
+            padding: 0.2rem 0.6rem;
+            border-radius: 9999px;
+            margin-top: -0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+
+        /* עיצוב בועת בונוס מיוחדת */
+        .powerup-bubble {
+            font-size: 2.75rem;
+            animation: rotateBubble 6s linear infinite;
+            filter: drop-shadow(0 4px 10px rgba(251, 191, 36, 0.4));
+        }
+
+        .powerup-label {
+            font-size: 0.8rem;
+            font-weight: bold;
+            background-color: #fef3c7;
+            color: #b45309;
+            border: 1.5px solid #fbbf24;
+            padding: 0.2rem 0.6rem;
+            border-radius: 9999px;
+            margin-top: -0.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        @keyframes rotateBubble {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.1); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        /* עיצוב ענן מכשול */
+        .cloud-item {
+            font-size: 3.5rem;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+            animation: cloudSway 2s ease-in-out infinite alternate;
+        }
+
+        .cloud-label {
+            font-size: 0.75rem;
+            font-weight: bold;
+            background-color: #f87171;
+            color: #ffffff;
+            padding: 0.15rem 0.5rem;
+            border-radius: 0.375rem;
+            margin-top: -0.75rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        @keyframes cloudSway {
+            from { transform: translateY(-4px); }
+            to { transform: translateY(4px); }
+        }
+
+        /* אפקטים וחלקיקים חזותיים */
+        .honey-drop {
+            position: absolute;
+            font-size: 1.25rem;
+            pointer-events: none;
+            z-index: 15;
+            animation: splash 0.7s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        @keyframes splash {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+            100% { transform: translate(var(--dx), var(--dy)) scale(1.2); opacity: 0; }
+        }
+
+        .points-pop {
+            position: absolute;
+            font-weight: 900;
+            font-size: 1.25rem;
+            color: #d97706;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            border: 1px solid #fbbf24;
+            pointer-events: none;
+            z-index: 15;
+            animation: floatUp 1s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translate(-50%, -50%) scale(0.8); opacity: 1; }
+            100% { transform: translate(-50%, -100px) scale(1.1); opacity: 0; }
+        }
+
+        /* הוראות לנייד */
+        footer {
+            width: 100%;
+            max-width: 56rem;
+            margin: 0 auto;
+            padding: 0.75rem 1rem;
+            z-index: 20;
+        }
+
+        @media (min-width: 768px) {
+            footer { display: none; }
+        }
+
+        .footer-banner {
+            background-color: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(4px);
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #475569;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* מודאלים (חלונות פתיחה וסיום) */
+        .modal-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            background-color: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            overflow-y: auto;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .modal-card {
+            background-color: #ffffff;
+            border-radius: 2rem;
+            padding: 2rem;
+            max-width: 28rem;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            position: relative;
+            overflow: hidden;
+            border: 4px solid #fcd34d; /* זהב דבש */
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-circle-decor {
+            position: absolute;
+            top: -3rem;
+            right: -3rem;
+            width: 7rem;
+            height: 7rem;
+            background-color: #fef3c7;
+            border-radius: 9999px;
+            z-index: -10;
+        }
+
+        .modal-emoji {
+            font-size: 3.5rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            color: #b45309;
+            margin-bottom: 0.5rem;
+            font-weight: 900;
+        }
+
+        .modal-desc {
+            color: #475569;
+            font-size: 0.85rem;
+            margin-bottom: 1.25rem;
+            line-height: 1.5;
+        }
+
+        /* עיצוב חנות ומעמדים */
+        .shop-section-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #78350f;
+            margin-bottom: 0.75rem;
+            text-align: center;
+            border-bottom: 2px solid #fde68a;
+            padding-bottom: 0.5rem;
+        }
+
+        .shop-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .shop-item {
+            background-color: #fffbeb;
+            border: 2px solid #fcd34d;
+            border-radius: 1rem;
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .shop-item:hover {
+            transform: scale(1.03);
+            background-color: #fef3c7;
+        }
+
+        .shop-item.equipped {
+            border-color: #10b981;
+            background-color: #ecfdf5;
+        }
+
+        .shop-item-emoji {
+            font-size: 2.25rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .shop-item-name {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+
+        .shop-item-price {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #d97706;
+            background-color: rgba(217, 119, 6, 0.1);
+            padding: 0.15rem 0.5rem;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            gap: 0.15rem;
+        }
+
+        .shop-item-equipped-lbl {
+            font-size: 0.75rem;
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        /* עיצוב הגדרות המשחק (Settings Panels) */
+        .settings-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            text-align: right;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f8fafc;
+            padding: 0.75rem 1rem;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .setting-label {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #334155;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .setting-label-desc {
+            font-size: 0.7rem;
+            color: #64748b;
+            font-weight: normal;
+        }
+
+        .setting-control select, .setting-control input[type="checkbox"] {
+            padding: 0.4rem 0.8rem;
+            border-radius: 0.5rem;
+            border: 1.5px solid #cbd5e1;
+            background-color: #ffffff;
+            font-family: inherit;
+            font-size: 0.85rem;
+            color: #1e293b;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .setting-control select:focus {
+            border-color: #fbbf24;
+        }
+
+        /* כפתור החלקה (Toggle Switch) */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 2.75rem;
+            height: 1.5rem;
+        }
+
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background-color: #cbd5e1;
+            transition: .3s;
+            border-radius: 9999px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 1.1rem;
+            width: 1.1rem;
+            left: 0.2rem;
+            bottom: 0.2rem;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #10b981;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(1.25rem);
+        }
+
+        /* עיצוב המשימות היומיות בתפריט */
+        .missions-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+            text-align: right;
+        }
+
+        .mission-item-row {
+            background-color: #f0fdf4;
+            border: 1.5px solid #bbf7d0;
+            padding: 0.6rem 0.85rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mission-done {
+            background-color: #ecfdf5;
+            border-color: #34d399;
+            opacity: 0.85;
+            text-decoration: line-through;
+            color: #065f46;
+        }
+
+        .mission-reward-badge {
+            background-color: #fef3c7;
+            color: #d97706;
+            font-weight: bold;
+            padding: 0.15rem 0.4rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            border: 1px solid #fde68a;
+        }
+
+        /* עיצוב יומן המצוות */
+        .journal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            max-height: 50vh;
+            overflow-y: auto;
+            padding: 0.25rem;
+        }
+
+        .journal-card-item {
+            background-color: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            opacity: 0.5; /* חסום כברירת מחדל */
+            transition: opacity 0.3s, border-color 0.3s, background-color 0.3s;
+        }
+
+        .journal-unlocked {
+            opacity: 1 !important;
+            border-color: #10b981;
+            background-color: #f0fdf4;
+        }
+
+        .journal-emoji {
+            font-size: 2rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .journal-card-title {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 0.15rem;
+        }
+
+        .journal-card-desc {
+            font-size: 0.7rem;
+            color: #64748b;
+            line-height: 1.3;
+        }
+
+        .rules-grid {
+            background-color: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 1rem;
+            padding: 1rem;
+            text-align: right;
+            font-size: 0.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .rules-title {
+            font-weight: bold;
+            color: #78350f;
+            text-align: center;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .rule-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* כפתורים */
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 1.25rem;
+            border: none;
+            color: #ffffff;
+            font-size: 1.25rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+            background: linear-gradient(to right, #f59e0b, #d97706);
+            margin-bottom: 0.75rem;
+        }
+
+        .btn:hover {
+            background: linear-gradient(to right, #d97706, #b45309);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(to right, #64748b, #475569);
+        }
+        .btn-secondary:hover {
+            background: linear-gradient(to right, #475569, #334155);
+        }
+
+        .btn-shop {
+            background: linear-gradient(to right, #10b981, #059669); /* כפתור ירוק לחנות */
+        }
+        .btn-shop:hover {
+            background: linear-gradient(to right, #059669, #047857);
+        }
+
+        .btn-settings {
+            background: linear-gradient(to right, #6366f1, #4f46e5); /* כפתור סגול להגדרות */
+        }
+        .btn-settings:hover {
+            background: linear-gradient(to right, #4f46e5, #4338ca);
+        }
+
+        .btn-journal {
+            background: linear-gradient(to right, #ec4899, #db2777); /* כפתור ורוד ליומן */
+        }
+        .btn-journal:hover {
+            background: linear-gradient(to right, #db2777, #be185d);
+        }
+
+        .score-result {
+            background-color: #f8fafc;
+            border-radius: 1rem;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .score-lbl {
+            font-size: 0.75rem;
+            color: #64748b;
+            display: block;
+            margin-bottom: 0.15rem;
+        }
+
+        .score-num {
+            font-size: 1.5rem;
+            color: #d97706;
+            font-weight: bold;
+        }
+
+        /* אפקט רעידת מסך */
+        .shake-screen {
+            animation: shakeScreen 0.3s ease-in-out infinite;
+        }
+
+        @keyframes shakeScreen {
+            0%, 100% { transform: translate(0, 0); }
+            10%, 30%, 50%, 70%, 90% { transform: translate(-3px, 1px); }
+            20%, 40%, 60%, 80% { transform: translate(3px, -1px); }
+        }
+
+        /* עיצוב קרדיט */
+        .credit-box {
+            margin-top: 1rem;
+            padding: 0.5rem;
+            border-radius: 0.75rem;
+            background-color: #f0fdf4;
+            border: 1px dashed #86efac;
+            font-size: 0.75rem;
+            color: #166534;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+    </style>
+</head>
+<body id="gameBody" class="sky-day">
+
+    <!-- לוח עליון -->
+    <header class="select-none">
+        <div class="top-panel">
+            <!-- שלב וניקוד -->
+            <div class="stats">
+                <div class="stat-box">
+                    <span class="stat-lbl" id="levelTitleLbl">שלב 1: גינת החסד</span>
+                    <span id="levelLabel" class="stat-val">🍯 דבש מתוק</span>
+                </div>
+                <div class="divider"></div>
+                <div class="stat-box">
+                    <span class="stat-lbl">שקלים חדשים</span>
+                    <span id="coinsVal" class="stat-val">₪ 0</span>
+                </div>
+                <div class="divider"></div>
+                <div class="stat-box">
+                    <span class="stat-lbl">מעשים טובים</span>
+                    <span id="scoreVal" class="stat-val">0</span>
+                </div>
+            </div>
+
+            <!-- צנצנת הדבש שלכם -->
+            <div class="honey-container">
+                <div class="honey-header">
+                    <span class="honey-title">
+                        <span>🍯 צנצנת השלב:</span>
+                        <span id="honeyPercent">0%</span>
+                    </span>
+                    <span id="soundToggleBtn" class="sound-btn" onclick="toggleSound()">🔊</span>
+                </div>
+                <div class="honey-bar-track">
+                    <div id="honeyBar" class="honey-bar-fill"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- מחוון בונוסים פעילים -->
+    <div id="powerupIndicator"></div>
+
+    <!-- מגרש המשחק -->
+    <main id="gameArea">
+        <!-- ענני רקע קישוטיים -->
+        <div class="decor-bg-cloud" style="top: 10%; animation-delay: 0s;">☁️</div>
+        <div class="decor-bg-cloud" style="top: 25%; animation-delay: -15s; font-size: 3rem;">☁️</div>
+        <div class="decor-bg-cloud" style="top: 5%; animation-delay: -30s; font-size: 2.5rem;">☁️</div>
+
+        <!-- הדבורה החמודה -->
+        <div id="bee" class="bee-medium">
+            <span>🐝</span>
+            <div id="beeShield" class="bee-shield"></div>
+            <!-- מד קומבו נוצץ -->
+            <div id="comboBadge">X0</div>
+        </div>
+    </main>
+
+    <!-- פוטר הוראות לנייד -->
+    <footer class="md:hidden">
+        <div class="footer-banner">
+            הזז את האצבע מעלה ומטה כדי להטיס את הדבורה! 🐝
+        </div>
+    </footer>
+
+    <!-- חלון התחלת משחק / תפריט ראשי -->
+    <div id="menuModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-circle-decor"></div>
+            <span class="modal-emoji" id="menuMainEmoji">🐝</span>
+            <h1 class="modal-title">דבורת המעשים הטובים</h1>
+            <p class="modal-desc">
+                עזרו לדבורה לעוף בגינה הקסומה, לאסוף מעשים טובים, להרוויח שקלים חדשים (₪), ולהתקדם במיליוני שלבים מדהימים!
+            </p>
+
+            <button onclick="startGame()" class="btn secular">
+                להתחלת השלב הבא! 🌸🍯
+            </button>
+
+            <!-- משימות בתפריט ראשי -->
+            <div class="shop-section-title">📜 משימות השלב שלך</div>
+            <div id="menuMissionsList" class="missions-container">
+                <!-- משימות ייווצרו פה דינמית -->
+            </div>
+
+            <!-- כפתור לחנות השדרוגים -->
+            <button onclick="openShop()" class="btn btn-shop secular">
+                🛒 חנות השדרוגים
+            </button>
+
+            <!-- כפתור חדש ליומן המצוות -->
+            <button onclick="openJournal()" class="btn btn-journal secular">
+                📖 ספר המצוות שלי
+            </button>
+
+            <!-- כפתור להגדרות המשחק -->
+            <button onclick="openSettings()" class="btn btn-settings secular">
+                ⚙️ הגדרות המשחק
+            </button>
+
+            <!-- תיבת הקרדיט הנדרשת -->
+            <div class="credit-box">
+                <span>📱</span>
+                <span>האתר פותח ע''י ישראל לויטין 0556753097</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- חלון הגדרות ייעודי -->
+    <div id="settingsModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-circle-decor"></div>
+            <span class="modal-emoji">⚙️</span>
+            <h1 class="modal-title">הגדרות המשחק</h1>
+            <p class="modal-desc">
+                התאם אישית את מראה הגינה, רמת הקושי וההגדרות הוויזואליות לשחק בצורה שאתה הכי אוהב!
+            </p>
+
+            <div class="settings-container">
+                <!-- רקע השמיים -->
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <span>עיצוב הגינה</span>
+                        <span class="setting-label-desc">בחר את צבעי השמיים</span>
+                    </div>
+                    <div class="setting-control">
+                        <select id="setting-sky-theme" onchange="applySettingsFromUI()">
+                            <option value="day">☀️ שמיים בהירים</option>
+                            <option value="sunset">🌅 שמיים בשקיעה</option>
+                            <option value="night">🌙 לילה קסום</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- רמת קושי -->
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <span>רמת קושי</span>
+                        <span class="setting-label-desc">מהירות הטיסה של העננים</span>
+                    </div>
+                    <div class="setting-control">
+                        <select id="setting-difficulty" onchange="applySettingsFromUI()">
+                            <option value="easy">קל 💚</option>
+                            <option value="medium">בינוני 💛</option>
+                            <option value="hard">קשה ❤️</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- גודל דבורה -->
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <span>גודל הדבורה</span>
+                        <span class="setting-label-desc">גודל המטרה והנוחות</span>
+                    </div>
+                    <div class="setting-control">
+                        <select id="setting-bee-size" onchange="applySettingsFromUI()">
+                            <option value="small">קטן (התחמקות קלה) 🐝</option>
+                            <option value="medium" selected>בינוני (רגיל)</option>
+                            <option value="large">גדול (איסוף קל)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- סגנון שובל מעוף -->
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <span>שובל מעוף</span>
+                        <span class="setting-label-desc">אפקט ויזואלי של תנועה</span>
+                    </div>
+                    <div class="setting-control">
+                        <select id="setting-trail" onchange="applySettingsFromUI()">
+                            <option value="stars">✨ כוכבים נוצצים</option>
+                            <option value="hearts">💖 לבבות מעשים</option>
+                            <option value="bubbles">🫧 בועות שמחה</option>
+                            <option value="nectar">🍯 טיפות צוף זהב</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- אפקט רעידת מסך -->
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <span>אפקט רעידה</span>
+                        <span class="setting-label-desc">הרעדה קלה כשנפגעים מענן</span>
+                    </div>
+                    <div class="setting-control">
+                        <label class="switch">
+                            <input type="checkbox" id="setting-shake" checked onchange="applySettingsFromUI()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- כפתור סגירה ושמירה -->
+            <button onclick="closeSettings()" class="btn secular">
+                ↩️ שמור וחזור לתפריט
+            </button>
+
+            <!-- תיבת הקרדיט הנדרשת -->
+            <div class="credit-box">
+                <span>📱</span>
+                <span>האתר פותח ע''י ישראל לויטין 0556753097</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- חלון חנות ייעודי -->
+    <div id="shopModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-circle-decor"></div>
+            <span class="modal-emoji">🛒</span>
+            <h1 class="modal-title">חנות השדרוגים</h1>
+            <p class="modal-desc">
+                השתמש בשקלים החדשים (₪) שצברת כדי לשדרג את הדבורה שלך ולקנות מגיני הגנה מפני הפרעות!
+            </p>
+
+            <div class="shop-section-title">🍯 הדבורים והשדרוגים הזמינים</div>
+            <div class="shop-grid">
+                <!-- דבורה קלאסית -->
+                <div class="shop-item equipped" id="shop-classic" onclick="buyOrEquip('classic')">
+                    <span class="shop-item-emoji">🐝</span>
+                    <span class="shop-item-name">דבורה פשוטה</span>
+                    <span class="shop-item-equipped-lbl" id="lbl-classic">פעיל</span>
+                </div>
+                <!-- דבורת הזהב -->
+                <div class="shop-item" id="shop-gold" onclick="buyOrEquip('gold')">
+                    <span class="shop-item-emoji">👑</span>
+                    <span class="shop-item-name">דבורת המלכות</span>
+                    <span class="shop-item-price" id="lbl-gold">₪ 50</span>
+                </div>
+                <!-- דבורת הברק -->
+                <div class="shop-item" id="shop-lightning" onclick="buyOrEquip('lightning')">
+                    <span class="shop-item-emoji">⚡</span>
+                    <span class="shop-item-name">דבורת הברק</span>
+                    <span class="shop-item-price" id="lbl-lightning">₪ 120</span>
+                </div>
+                <!-- מגן קסם -->
+                <div class="shop-item" id="shop-shield" onclick="buyOrEquip('shield')">
+                    <span class="shop-item-emoji">🛡️</span>
+                    <span class="shop-item-name">מגן קסום (פעמי)</span>
+                    <span class="shop-item-price" id="lbl-shield">₪ 30</span>
+                </div>
+            </div>
+
+            <!-- כפתור חזרה לתפריט -->
+            <button onclick="closeShop()" class="btn btn-secondary secular">
+                ↩️ חזרה לתפריט
+            </button>
+
+            <!-- תיבת הקרדיט הנדרשת -->
+            <div class="credit-box">
+                <span>📱</span>
+                <span>האתר פותח ע''י ישראל לויטין 0556753097</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- חלון יומן המצוות והמידות הקסום -->
+    <div id="journalModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-circle-decor"></div>
+            <span class="modal-emoji">📖</span>
+            <h1 class="modal-title">ספר המצוות שלי</h1>
+            <p class="modal-desc">
+                מעשים טובים שאספתם במהלך הטיסה נפתחים כאן! קראו על חשיבות המידות הללו בחיים האמיתיים:
+            </p>
+
+            <div id="journalList" class="journal-grid">
+                <!-- כרטיסי המצוות ייווצרו פה דינמית -->
+            </div>
+
+            <!-- כפתור חזרה לתפריט -->
+            <button onclick="closeJournal()" class="btn btn-secondary secular">
+                ↩️ חזרה לתפריט
+            </button>
+
+            <!-- תיבת הקרדיט הנדרשת -->
+            <div class="credit-box">
+                <span>📱</span>
+                <span>האתר פותח ע''י ישראל לויטין 0556753097</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- חלון סיום משחק / מעבר שלב -->
+    <div id="endModal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <span id="endEmoji" class="modal-emoji">🍯</span>
+            <h2 id="endTitle" class="modal-title">צנצנת הדבש מלאה!</h2>
+            <p id="endDesc" class="modal-desc"></p>
+
+            <div class="score-result">
+                <div>
+                    <span class="score-lbl">נקודות מעשים:</span>
+                    <span id="endScore" class="score-num">0</span>
+                </div>
+                <div>
+                    <span class="score-lbl">יתרת ארנק:</span>
+                    <span id="endCoins" class="score-num">₪ 0</span>
+                </div>
+            </div>
+
+            <button onclick="goToMenu()" class="btn secular">
+                המשך לחנות ולשלב הבא! 🛒➡️
+            </button>
+            
+            <button onclick="restartCurrentLevel()" class="btn btn-secondary secular">
+                נסה שוב את השלב הנוכחי 🔁
+            </button>
+
+            <!-- תיבת הקרדיט במסך סיום -->
+            <div class="credit-box">
+                <span>📱</span>
+                <span>האתר פותח ע''י ישראל לויטין 0556753097</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- סקריפט המשחק העצמאי והבטוח לאופליין מוחלט -->
+    <script>
+        // --- רשימות המילים והאלמנטים ---
+        const FLOWERS = ['🌸', '🌹', '🌻', '🌼', '🌷', '🌺'];
+        
+        // יומן מעשים ומידות טובות עם הסברים חינוכיים וערכיים מותאמים (מורחב למעל 30 מצוות!)
+        const GOOD_DEEDS = {
+            'חיוך': { emoji: '🌸', desc: 'חיוך קטן ממיס לבבות, עושה הרגשה טובה לכולם ומקרב בין חברים!' },
+            'עזרה': { emoji: '🌹', desc: 'להושיט יד למי שצריך עושה את העולם שלנו טוב, מלוכד ואוהב יותר.' },
+            'תפילה': { emoji: '🌻', desc: 'חיבור פנימי, הבעת תודה על הקיים ובקשת ברכה על המשך הדרך.' },
+            'אמונה': { emoji: '🌼', desc: 'ביטחון פנימי חזק שהכל מסתדר לטובה ומחשבה חיובית תמיד מנצחת!' },
+            'שלום': { emoji: '🌷', desc: 'השכנת שלום וויתור על מחלוקות מביאים שלווה וברכה אמיתית לבית.' },
+            'כיבוד הורים': { emoji: '🌺', desc: 'הוקרת תודה, הקשבה וכבוד להורים היקרים שנותנים לנו את הכל.' },
+            'צדקה': { emoji: '🎁', desc: 'שיתוף וחלוקה מהשפע שלנו עם אלו שיש להם קצת פחות.' },
+            'ויתור': { emoji: '🤝', desc: 'להיות חכם ולא רק צודק! ויתור לחבר מונע מריבה ומחזק את הידידות.' },
+            'לימוד': { emoji: '📚', desc: 'סקרנות, רכישת חוכמה והבנת דברים חדשים מעשירים את הנשמה.' },
+            'הודיה': { emoji: '🙏', desc: 'לומר תודה על הדברים הקטנים והגדולים בחיים הופך אותנו למאושרים.' },
+            'אדיבות': { emoji: '💖', desc: 'דיבור מנומס, דרך ארץ והתחשבות ברגשות של הזולת בכל מקום.' },
+            'ביקור חולים': { emoji: '🤒', desc: 'לבקר חבר או קרוב משפחה שלא מרגיש טוב, לשמח אותו ולעזור לו להחלים.' },
+            'הכנסת אורחים': { emoji: '🏡', desc: 'לקבל אורחים בשמחה ובמאור פנים, להציע להם כיבוד ולתת להם להרגיש בבית.' },
+            'צער בעלי חיים': { emoji: '🐾', desc: 'להתנהג ברחמים ובאהבה לחיות, לדאוג להן למזון ומים ולא להציק להן בשום אופן.' },
+            'שמירת הלשון': { emoji: '🤐', desc: 'לדבר רק דברים טובים ומעודדים על אחרים, ולהימנע מרכילות או דיבורים פוגעים.' },
+            'אמת': { emoji: '☀️', desc: 'לומר תמיד רק את האמת, להיות ישרים ואמינים בכל מעשה ודיבור שלנו.' },
+            'ענווה': { emoji: '🌾', desc: 'להיות צנועים, לא להשוויץ בכישרונות שלנו ולזכור שכל הצלחה היא מתנה מבורא עולם.' },
+            'אהבת ישראל': { emoji: '🫂', desc: 'לאהוב כל אדם כמו שאנחנו אוהבים את עצמנו, לרצות בטובתו ולעזור לו תמיד.' },
+            'ציצית': { emoji: '🎽', desc: 'ללבוש בגד עם ציציות שמזכיר לנו את המצוות ושומר עלינו בכל רגע ביום.' },
+            'נטילת ידיים': { emoji: '🧼', desc: 'לנקות את הידיים בנטילה חגיגית בבוקר ולפני האוכל לשמירה על טוהר ובריאות.' },
+            'ברכות': { emoji: '🍎', desc: 'לברך לפני שאוכלים או שותים, לשים לב לטעמים הנפלאים ולהודות על השפע.' },
+            'השבת אבידה': { emoji: '🔑', desc: 'למצוא חפץ שמישהו איבד ולהשתדל מאוד להחזיר אותו לבעליו הנרגשים.' },
+            'שלום בית': { emoji: '👪', desc: 'לוותר, לעזור ולשמח את האחים וההורים כדי שתמיד תהיה אהבה ושלווה בתוך הבית.' },
+            'עשיית שלום': { emoji: '🕊️', desc: 'לעזור לשני חברים או בני משפחה שהתווכחו להשלים ולחזור להיות חברים טובים.' },
+            'סבלנות': { emoji: '⏳', desc: 'לדעת להמתין ברוגע, להקשיב למי שמדבר בלי להתפרץ ולשלוט בכעס.' },
+            'שמירת הטבע': { emoji: '🌳', desc: 'לא ללכלך את הסביבה, לשמור על הניקיון, לא לקטוף פרחים מוגנים ולשמור על העולם היפה.' },
+            'שמחת חיים': { emoji: '🎈', desc: 'להיות תמיד בשמחה, לראות את האור בכל מצב ולשמח את האנשים שסביבנו.' },
+            'נטילת לולב': { emoji: '🌴', desc: 'לנענע את ארבעת המינים בסוכות המאחדים את כל סוגי האנשים יחד באהבה.' },
+            'מתן בסתר': { emoji: '🪙', desc: 'לתת צדקה בצורה מכובדת וצנועה, כדי לעזור לנזקקים בלי לבייש אותם חלילה.' },
+            'הדרת פנים': { emoji: '👵', desc: 'לכבד מבוגרים וקשישים, לפנות להם מקום ישיבה, להקשיב להם ולעזור להם בעת הצורך.' },
+            'חביב אדם': { emoji: '🤩', desc: 'להתייחס לכל אדם בכבוד ובחביבות, להאיר פנים לכל אחד ולגלות דרך ארץ.' },
+            'תשובה': { emoji: '💖', desc: 'כאשר טועים או עושים מעשה לא יפה, לבקש סליחה מעומק הלב ולהבטיח להשתדל להשתפר.' }
+        };
+
+        const GOOD_DEEDS_KEYS = Object.keys(GOOD_DEEDS);
+        
+        const BAD_CLOUDS = ['☁️', '⛈️', '💨'];
+        const BAD_TRAITS = ['כעס', 'עצלות', 'מחלוקת', 'לשון הרע', 'עצבות', 'גאווה'];
+
+        const LEVEL_NAMES = [
+            "גינת החסד", "שדה הותרנות", "פרדס השלום", "הר הענווה", "נחל המצוות",
+            "עמק האמונה", "שביל השמחה", "מעיין ההודיה", "בוסתן החברות", "נאות הצדקה"
+        ];
+
+        // --- משתני מצב המשחק ---
+        let score = 0;
+        let honeyProgress = 0;
+        let isPlaying = false;
+        let soundEnabled = true;
+        let gameLoopId = null;
+        let spawnLoopId = null;
+        let items = [];
+        
+        let coins = 0;
+        let currentLevel = 1;
+
+        // חנות ושדרוגים
+        let unlockedSkins = ['classic'];
+        let activeSkin = 'classic';
+        let hasShield = false; 
+
+        const PRICES = {
+            gold: 50,
+            lightning: 120,
+            shield: 30
+        };
+
+        const BEE_SKINS = {
+            classic: '🐝',
+            gold: '👑',
+            lightning: '⚡'
+        };
+
+        // הגדרות ברירת מחדל הניתנות להתאמה
+        let settings = {
+            skyTheme: 'day',
+            difficulty: 'medium',
+            beeSize: 'medium',
+            trailStyle: 'stars',
+            shakeEnabled: true
+        };
+
+        // --- מערכת שדרוגים (Power-ups בזמן אמת) ---
+        let powerups = {
+            magnet: { active: false, timer: 0, duration: 10000, emoji: '🧲', label: 'מגנט חסד' },
+            slowmo: { active: false, timer: 0, duration: 10000, emoji: '⏱️', label: 'רוגע ושלווה' },
+            double: { active: false, timer: 0, duration: 10000, emoji: '🌟', label: 'מצווה כפולה' }
+        };
+
+        // --- מערכת רצף (Combo Streak) ---
+        let mitzvahStreak = 0;
+
+        // --- יומן המצוות והמידות הפתוחות ---
+        let unlockedMitzvot = ['חיוך']; // 'חיוך' פתוח כברירת מחדל לכולם
+
+        // --- מערכת משימות יומיות ---
+        let missions = [
+            { id: 1, text: "אסוף 5 מעשים טובים בשלב זה", target: 5, current: 0, reward: 20, done: false, type: 'collect_any' },
+            { id: 2, text: "הגע לרצף (קומבו) של 4 מעשים", target: 4, current: 0, reward: 30, done: false, type: 'streak' },
+            { id: 3, text: "השלם את צנצנת הדבש של השלב", target: 100, current: 0, reward: 25, done: false, type: 'complete_honey' }
+        ];
+
+        let beeY = window.innerHeight / 2;
+        let targetY = window.innerHeight / 2;
+        let trailFrameCounter = 0; // מונה ליצירת שובל נוצץ
+
+        // משתני Firebase
+        let db = null;
+        let auth = null;
+        let userId = null;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'bee-mitzvah-persistence';
+
+        // --- מנגנון מנגינת רקע (Background Music Loop) ---
+        let musicIntervalId = null;
+        let melodyIndex = 0;
+
+        const melody = [
+            329.63, 392.00, 440.00, 392.00, // E4, G4, A4, G4
+            329.63, 293.66, 261.63, 293.66, // E4, D4, C4, D4
+            329.63, 329.63, 293.66, 293.66, // E4, E4, D4, D4
+            329.63, 392.00, 392.00, 392.00, // E4, G4, G4, G4
+            392.00, 440.00, 523.25, 440.00, // G4, A4, C5, A4
+            392.00, 329.63, 293.66, 329.63  // G4, E4, D4, E4
+        ];
+
+        function startBackgroundMusic() {
+            if (musicIntervalId) clearInterval(musicIntervalId);
+            melodyIndex = 0;
+            musicIntervalId = setInterval(() => {
+                if (!soundEnabled || !isPlaying) return;
+                playMusicNote(melody[melodyIndex]);
+                melodyIndex = (melodyIndex + 1) % melody.length;
+            }, 450); // קצב פעימה קבוע ומרגיע
+        }
+
+        function stopBackgroundMusic() {
+            if (musicIntervalId) {
+                clearInterval(musicIntervalId);
+                musicIntervalId = null;
+            }
+        }
+
+        function playMusicNote(freq) {
+            if (!audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.type = 'triangle'; // צליל רך ועגול המדמה סינתסייזר עדין
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                
+                gain.gain.setValueAtTime(0.025, audioCtx.currentTime); 
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+                
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            } catch (e) {}
+        }
+
+        // --- טעינה דינמית עצמאית של Firebase לנטרול קריסות באופליין ---
+        const initFirebase = async () => {
+            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                try {
+                    const { initializeApp } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js");
+                    const { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js");
+                    const { getFirestore, doc, getDoc, setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+
+                    const firebaseConfig = JSON.parse(__firebase_config);
+                    const app = initializeApp(firebaseConfig);
+                    auth = getAuth(app);
+                    db = getFirestore(app);
+
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+
+                    onAuthStateChanged(auth, async (user) => {
+                        if (user) {
+                            userId = user.uid;
+                            await loadUserData();
+                        }
+                    });
+                } catch (e) {
+                    console.warn("המשחק פועל במצב לא מקוון מקומי (Offline Mode). שומר מקומית בדפדפן.");
+                    loadLocalData();
+                }
+            } else {
+                loadLocalData();
+            }
+        };
+
+        // --- מנגנון שמירה מקומי (לא מקוון) ---
+        function loadLocalData() {
+            try {
+                const localSave = localStorage.getItem('bee_game_local_save');
+                if (localSave) {
+                    const data = JSON.parse(localSave);
+                    coins = data.coins !== undefined ? data.coins : 0;
+                    currentLevel = data.currentLevel !== undefined ? data.currentLevel : 1;
+                    unlockedSkins = data.unlockedSkins || ['classic'];
+                    activeSkin = data.activeSkin || 'classic';
+                    hasShield = data.hasShield || false;
+                    unlockedMitzvot = data.unlockedMitzvot || ['חיוך'];
+                    
+                    if (data.settings) {
+                        settings = { ...settings, ...data.settings };
+                    }
+                    if (data.missions) {
+                        missions = data.missions;
+                    }
+
+                    updateUI();
+                    refreshShopUI();
+                    applySettingsToUIAndGame();
+                }
+            } catch (e) {
+                console.warn("מצב שמירה מקומי לא זמין, המשחק ירוץ בזיכרון המשתנה הנוכחי בלבד.");
+            }
+        }
+
+        function saveLocalData() {
+            try {
+                const saveData = {
+                    coins: coins,
+                    currentLevel: currentLevel,
+                    unlockedSkins: unlockedSkins,
+                    activeSkin: activeSkin,
+                    hasShield: hasShield,
+                    settings: settings,
+                    unlockedMitzvot: unlockedMitzvot,
+                    missions: missions
+                };
+                localStorage.setItem('bee_game_local_save', JSON.stringify(saveData));
+            } catch (e) {
+                // התעלמות משגיאות מקומיות בדפדפנים מוגבלים
+            }
+        }
+
+        // טעינת נתונים מאובטחת מהענן (אם זמין)
+        async function loadUserData() {
+            if (!db || !userId) return;
+            try {
+                const { getDoc, doc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+                const docRef = doc(db, 'artifacts', appId, 'users', userId, 'gameSave', 'progress');
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    coins = data.coins !== undefined ? data.coins : 0;
+                    currentLevel = data.currentLevel !== undefined ? data.currentLevel : 1;
+                    unlockedSkins = data.unlockedSkins || ['classic'];
+                    activeSkin = data.activeSkin || 'classic';
+                    hasShield = data.hasShield || false;
+                    unlockedMitzvot = data.unlockedMitzvot || ['חיוך'];
+                    
+                    if (data.settings) {
+                        settings = { ...settings, ...data.settings };
+                    }
+                    if (data.missions) {
+                        missions = data.missions;
+                    }
+                    
+                    updateUI();
+                    refreshShopUI();
+                    applySettingsToUIAndGame();
+                }
+            } catch (e) {
+                loadLocalData();
+            }
+        }
+
+        // שמירת נתונים מאובטחת בענן (ובמקביל גיבוי מקומי לאופליין)
+        async function saveUserData() {
+            saveLocalData(); // גיבוי מיידי מקומי
+            if (!db || !userId) return;
+            try {
+                const { setDoc, doc } = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js");
+                const docRef = doc(db, 'artifacts', appId, 'users', userId, 'gameSave', 'progress');
+                await setDoc(docRef, {
+                    coins: coins,
+                    currentLevel: currentLevel,
+                    unlockedSkins: unlockedSkins,
+                    activeSkin: activeSkin,
+                    hasShield: hasShield,
+                    settings: settings,
+                    unlockedMitzvot: unlockedMitzvot,
+                    missions: missions
+                }, { merge: true });
+            } catch (e) {
+                // שגיאת ענן - נשמר כבר מקומית בהצלחה
+            }
+        }
+
+        // --- מנוע שמע עצמאי (Web Audio API - פועל תמיד באופליין) ---
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled || !audioCtx) return;
+            try {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'good') {
+                    const now = audioCtx.currentTime;
+                    osc.frequency.setValueAtTime(392.00, now); // G4
+                    osc.frequency.setValueAtTime(523.25, now + 0.08); // C5
+                    osc.type = 'sine';
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                    osc.start();
+                    osc.stop(now + 0.32);
+                } else if (type === 'bad') {
+                    osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.25);
+                    osc.type = 'triangle';
+                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.28);
+                } else if (type === 'shield-break') {
+                    const now = audioCtx.currentTime;
+                    osc.frequency.setValueAtTime(800, now);
+                    osc.frequency.linearRampToValueAtTime(150, now + 0.4);
+                    osc.type = 'sawtooth';
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                    osc.start();
+                    osc.stop(now + 0.42);
+                } else if (type === 'powerup') {
+                    const now = audioCtx.currentTime;
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(554, now + 0.1);
+                    osc.frequency.setValueAtTime(659, now + 0.2);
+                    osc.type = 'triangle';
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                    osc.start();
+                    osc.stop(now + 0.42);
+                } else if (type === 'victory') {
+                    const now = audioCtx.currentTime;
+                    const melody = [523.25, 659.25, 783.99, 1046.50];
+                    melody.forEach((freq, idx) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.frequency.setValueAtTime(freq, now + idx * 0.08);
+                        o.type = 'sine';
+                        g.gain.setValueAtTime(0.15, now + idx * 0.08);
+                        g.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.08 + 0.3);
+                        o.start(now + idx * 0.08);
+                        o.stop(now + idx * 0.08 + 0.35);
+                    });
+                }
+            } catch (e) {
+                // מניעת קריסות שמע בדפדפנים מוגבלים
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundToggleBtn').textContent = soundEnabled ? '🔊' : '🔇';
+            if (!soundEnabled) {
+                stopBackgroundMusic();
+            } else if (isPlaying) {
+                startBackgroundMusic();
+            }
+        }
+
+        // --- בקרת תנועה (עכבר ומגע) ---
+        const gameArea = document.getElementById('gameArea');
+        const bee = document.getElementById('bee');
+        const beeShield = document.getElementById('beeShield');
+        const comboBadge = document.getElementById('comboBadge');
+
+        function onMove(clientY) {
+            if (!isPlaying) return;
+            const rect = gameArea.getBoundingClientRect();
+            let relativeY = clientY - rect.top;
+            
+            relativeY = Math.max(40, Math.min(relativeY, rect.height - 40));
+            targetY = relativeY;
+        }
+
+        gameArea.addEventListener('mousemove', (e) => onMove(e.clientY));
+        gameArea.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) {
+                onMove(e.touches[0].clientY);
+            }
+        });
+
+        // --- שובל חלקיקים נוצץ מותאם אישית מאחורי הדבורה ---
+        function createTrailParticle(x, y) {
+            const p = document.createElement('div');
+            p.className = 'trail-particle';
+            
+            let emojiList = ['✨', '⭐', '✨', '💛']; // ברירת מחדל: stars
+            if (settings.trailStyle === 'hearts') {
+                emojiList = ['💖', '❤️', '🧡', '🤍'];
+            } else if (settings.trailStyle === 'bubbles') {
+                emojiList = ['🫧', '🫧', '⚪', '🫧'];
+            } else if (settings.trailStyle === 'nectar') {
+                emojiList = ['🍯', '🍯', '💧', '💛'];
+            }
+
+            p.textContent = emojiList[Math.floor(Math.random() * emojiList.length)];
+            p.style.left = `${x}px`;
+            p.style.top = `${y}px`;
+            gameArea.appendChild(p);
+            setTimeout(() => p.remove(), 600);
+        }
+
+        // --- גלגול ויצירת משימות יומיות חדשות לשלב הנוכחי ---
+        function generateMissionsForLevel() {
+            const index = (currentLevel - 1) % LEVEL_NAMES.length;
+            const name = LEVEL_NAMES[index];
+            
+            missions = [
+                { id: 1, text: `אסוף 5 מעשים טובים ב"${name}"`, target: 5, current: 0, reward: 20 + currentLevel, done: false, type: 'collect_any' },
+                { id: 2, text: `הגע לרצף (קומבו) של ${3 + Math.min(5, Math.floor(currentLevel/2))} מעשים`, target: 3 + Math.min(5, Math.floor(currentLevel/2)), current: 0, reward: 30 + currentLevel * 2, done: false, type: 'streak' },
+                { id: 3, text: `השלם את שלב ${currentLevel} ללא פגיעה במגן`, target: 1, current: 1, reward: 25 + currentLevel, done: false, type: 'no_shield_break' }
+            ];
+            saveUserData();
+        }
+
+        // עדכון התקדמות המשימות
+        function updateMissionProgress(type, value) {
+            missions.forEach(mission => {
+                if (mission.done) return;
+                
+                if (mission.type === type) {
+                    if (type === 'collect_any') {
+                        mission.current += value;
+                    } else if (type === 'streak') {
+                        if (value > mission.current) {
+                            mission.current = value;
+                        }
+                    } else if (type === 'complete_honey') {
+                        mission.current = value;
+                    }
+
+                    if (mission.current >= mission.target) {
+                        mission.done = true;
+                        coins += mission.reward;
+                        playSound('victory');
+                        createScoreText(window.innerWidth / 2, window.innerHeight / 2, `✨ משימה הושלמה! +₪${mission.reward}`);
+                        saveUserData();
+                    }
+                }
+            });
+        }
+
+        // --- התחלת המשחק ---
+        function startGame() {
+            initAudio();
+            document.getElementById('menuModal').classList.add('hidden');
+            document.getElementById('shopModal').classList.add('hidden');
+            document.getElementById('settingsModal').classList.add('hidden');
+            document.getElementById('journalModal').classList.add('hidden');
+            document.getElementById('endModal').classList.add('hidden');
+
+            score = 0;
+            honeyProgress = 0;
+            mitzvahStreak = 0;
+            comboBadge.style.display = 'none';
+            items.forEach(item => item.element.remove());
+            items = [];
+
+            // איפוס בונוסים
+            Object.keys(powerups).forEach(key => {
+                powerups[key].active = false;
+                powerups[key].timer = 0;
+            });
+            document.getElementById('powerupIndicator').innerHTML = '';
+            
+            isPlaying = true;
+            updateUI();
+
+            bee.querySelector('span').textContent = BEE_SKINS[activeSkin] || '🐝';
+            
+            if (hasShield) {
+                beeShield.style.display = 'block';
+            } else {
+                beeShield.style.display = 'none';
+            }
+
+            const rect = gameArea.getBoundingClientRect();
+            beeY = rect.height / 2;
+            targetY = rect.height / 2;
+            bee.style.top = `${beeY}px`;
+
+            gameLoopId = requestAnimationFrame(updateGame);
+            
+            // תזמון הופעת אלמנטים לפי רמת קושי
+            let difficultyModifier = 0;
+            if (settings.difficulty === 'easy') difficultyModifier = 250;
+            if (settings.difficulty === 'hard') difficultyModifier = -150;
+
+            const spawnInterval = Math.max(400, 1000 - (currentLevel * 15) + difficultyModifier);
+            spawnLoopId = setInterval(spawnElement, spawnInterval);
+            
+            // הפעלת מנגינת הרקע וסאונד הפתיחה
+            startBackgroundMusic();
+            playSound('good');
+        }
+
+        function goToMenu() {
+            stopBackgroundMusic();
+            document.getElementById('endModal').classList.add('hidden');
+            document.getElementById('shopModal').classList.add('hidden');
+            document.getElementById('settingsModal').classList.add('hidden');
+            document.getElementById('journalModal').classList.add('hidden');
+            document.getElementById('menuModal').classList.remove('hidden');
+            buildMenuMissionsList();
+            refreshShopUI();
+        }
+
+        function restartCurrentLevel() {
+            startGame();
+        }
+
+        function openShop() {
+            initAudio();
+            document.getElementById('menuModal').classList.add('hidden');
+            document.getElementById('shopModal').classList.remove('hidden');
+            refreshShopUI();
+        }
+
+        function closeShop() {
+            initAudio();
+            document.getElementById('shopModal').classList.add('hidden');
+            document.getElementById('menuModal').classList.remove('hidden');
+            buildMenuMissionsList();
+        }
+
+        function openSettings() {
+            initAudio();
+            document.getElementById('menuModal').classList.add('hidden');
+            document.getElementById('settingsModal').classList.remove('hidden');
+            
+            document.getElementById('setting-sky-theme').value = settings.skyTheme;
+            document.getElementById('setting-difficulty').value = settings.difficulty;
+            document.getElementById('setting-bee-size').value = settings.beeSize;
+            document.getElementById('setting-trail').value = settings.trailStyle;
+            document.getElementById('setting-shake').checked = settings.shakeEnabled;
+        }
+
+        function applySettingsFromUI() {
+            settings.skyTheme = document.getElementById('setting-sky-theme').value;
+            settings.difficulty = document.getElementById('setting-difficulty').value;
+            settings.beeSize = document.getElementById('setting-bee-size').value;
+            settings.trailStyle = document.getElementById('setting-trail').value;
+            settings.shakeEnabled = document.getElementById('setting-shake').checked;
+
+            applySettingsToUIAndGame();
+            saveLocalData(); 
+        }
+
+        function applySettingsToUIAndGame() {
+            const body = document.getElementById('gameBody');
+            body.className = ''; 
+            if (settings.skyTheme === 'day') body.classList.add('sky-day');
+            if (settings.skyTheme === 'sunset') body.classList.add('sky-sunset');
+            if (settings.skyTheme === 'night') body.classList.add('sky-night');
+
+            bee.className = ''; 
+            if (settings.beeSize === 'small') bee.classList.add('bee-small');
+            if (settings.beeSize === 'medium') bee.classList.add('bee-medium');
+            if (settings.beeSize === 'large') bee.classList.add('bee-large');
+        }
+
+        function closeSettings() {
+            initAudio();
+            applySettingsFromUI();
+            saveUserData();
+            document.getElementById('settingsModal').classList.add('hidden');
+            document.getElementById('menuModal').classList.remove('hidden');
+            buildMenuMissionsList();
+            playSound('good');
+        }
+
+        // --- ניהול יומן המצוות והמידות ---
+        function openJournal() {
+            initAudio();
+            document.getElementById('menuModal').classList.add('hidden');
+            document.getElementById('journalModal').classList.remove('hidden');
+            buildJournalUI();
+        }
+
+        function closeJournal() {
+            initAudio();
+            document.getElementById('journalModal').classList.add('hidden');
+            document.getElementById('menuModal').classList.remove('hidden');
+            buildMenuMissionsList();
+        }
+
+        function buildJournalUI() {
+            const list = document.getElementById('journalList');
+            list.innerHTML = '';
+
+            GOOD_DEEDS_KEYS.forEach(key => {
+                const item = GOOD_DEEDS[key];
+                const isUnlocked = unlockedMitzvot.includes(key);
+
+                const card = document.createElement('div');
+                card.className = `journal-card-item ${isUnlocked ? 'journal-unlocked' : ''}`;
+
+                if (isUnlocked) {
+                    card.innerHTML = `
+                        <div class="journal-emoji">${item.emoji}</div>
+                        <div class="journal-card-title">${key}</div>
+                        <div class="journal-card-desc">${item.desc}</div>
+                    `;
+                } else {
+                    card.innerHTML = `
+                        <div class="journal-emoji" style="filter: grayscale(1); opacity: 0.6;">🔒</div>
+                        <div class="journal-card-title" style="color: #94a3b8;">נעול</div>
+                        <div class="journal-card-desc">אספו את המצווה "${key}" במהלך הטיסה כדי לפתוח אותה בספר!</div>
+                    `;
+                }
+
+                list.appendChild(card);
+            });
+        }
+
+        function buildMenuMissionsList() {
+            const list = document.getElementById('menuMissionsList');
+            list.innerHTML = '';
+
+            missions.forEach(mission => {
+                const item = document.createElement('div');
+                item.className = `mission-item-row ${mission.done ? 'mission-done' : ''}`;
+                item.innerHTML = `
+                    <span>${mission.text} (${Math.min(mission.target, mission.current)}/${mission.target})</span>
+                    <span class="mission-reward-badge">${mission.done ? 'בוצע! ✅' : `₪ ${mission.reward}`}</span>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        // --- יצירת פרח, ענן או בועת בונוס ---
+        const SPARE_POWERUPS = ['🌟', '🧲', '🧘']; // סופר חסד, מגנט, רוגע
+        const POWER_LABELS = {
+            '🌟': 'סופר חסד',
+            '🧲': 'מגנט חסד',
+            '🧘': 'רוגע ושלווה'
+        };
+
+        function spawnElement() {
+            if (!isPlaying) return;
+
+            const rect = gameArea.getBoundingClientRect();
+            const areaHeight = rect.height;
+            const areaWidth = rect.width;
+
+            const roll = Math.random();
+            let itemType = '';
+            let emoji = '';
+            let text = '';
+
+            let baseCloudChance = 0.3;
+            if (settings.difficulty === 'easy') baseCloudChance = 0.2;
+            if (settings.difficulty === 'hard') baseCloudChance = 0.45;
+            const cloudChance = Math.min(0.65, baseCloudChance + (currentLevel * 0.01));
+
+            if (roll < cloudChance) {
+                // ענן מכשול
+                itemType = 'cloud';
+                emoji = BAD_CLOUDS[Math.floor(Math.random() * BAD_CLOUDS.length)];
+                text = BAD_TRAITS[Math.floor(Math.random() * BAD_TRAITS.length)];
+            } else if (roll < 0.90) {
+                // פרח טוב
+                itemType = 'flower';
+                text = GOOD_DEEDS_KEYS[Math.floor(Math.random() * GOOD_DEEDS_KEYS.length)];
+                emoji = GOOD_DEEDS[text].emoji;
+            } else {
+                // בועת בונוס קסומה (Power-up)
+                itemType = 'powerup';
+                text = SPARE_POWERUPS[Math.floor(Math.random() * SPARE_POWERUPS.length)];
+                emoji = text;
+            }
+
+            const itemEl = document.createElement('div');
+            itemEl.className = 'game-element';
+
+            if (itemType === 'flower') {
+                itemEl.innerHTML = `
+                    <span class="flower-item">${emoji}</span>
+                    <span class="flower-label">${text}</span>
+                `;
+            } else if (itemType === 'cloud') {
+                itemEl.innerHTML = `
+                    <span class="cloud-item">${emoji}</span>
+                    <span class="cloud-label">${text}</span>
+                `;
+            } else {
+                // בונוס קסום
+                itemEl.innerHTML = `
+                    <span class="powerup-bubble">${emoji}</span>
+                    <span class="powerup-label" style="background-color: #f0fdf4; border-color: #4ade80; color: #166534;">${POWER_LABELS[emoji]}</span>
+                `;
+            }
+
+            const randomY = Math.random() * (areaHeight - 120) + 60;
+            itemEl.style.left = `${areaWidth}px`;
+            itemEl.style.top = `${randomY}px`;
+
+            gameArea.appendChild(itemEl);
+
+            // מהירות
+            let speedModifier = 0;
+            if (settings.difficulty === 'easy') speedModifier = -1;
+            if (settings.difficulty === 'hard') speedModifier = 1.5;
+
+            let baseSpeed = 3 + Math.random() * 2 + speedModifier;
+            if (powerups.slowmo.active) {
+                baseSpeed *= 0.5; // הילוך איטי
+            }
+
+            const levelMultiplier = Math.min(5, currentLevel * 0.05);
+
+            items.push({
+                element: itemEl,
+                x: areaWidth,
+                y: randomY,
+                speed: Math.max(1.5, baseSpeed + levelMultiplier),
+                type: itemType,
+                text: text,
+                width: 80,
+                height: 80
+            });
+        }
+
+        // --- לולאת עדכון מיקומים וזיהוי פגיעות ---
+        function updateGame() {
+            if (!isPlaying) return;
+
+            const lerpFactor = activeSkin === 'lightning' ? 0.18 : 0.12;
+            beeY += (targetY - beeY) * lerpFactor;
+            bee.style.top = `${beeY}px`;
+
+            const beeX = window.innerWidth * 0.1;
+
+            // עדכון משכי זמן של בונוסים פעילים
+            updateActivePowerups();
+
+            // יצירת שובל כוכבים/לבבות נוצץ מאחורי הדבורה
+            trailFrameCounter++;
+            if (trailFrameCounter % 4 === 0) {
+                createTrailParticle(beeX - 10, beeY + (Math.random() - 0.5) * 20);
+            }
+
+            for (let i = items.length - 1; i >= 0; i--) {
+                const item = items[i];
+                
+                // --- מנגנון מגנט החסד (Magnet Power-up) ---
+                if (powerups.magnet.active && (item.type === 'flower' || item.type === 'powerup')) {
+                    const dy = beeY - item.y;
+                    const dx = beeX - item.x;
+                    item.y += dy * 0.08;
+                    item.x += dx * 0.08;
+                    item.element.style.top = `${item.y}px`;
+                } else {
+                    item.x -= item.speed;
+                }
+
+                item.element.style.left = `${item.x}px`;
+
+                // זיהוי פגיעה
+                const distY = Math.abs(item.y - beeY);
+                const distX = Math.abs(item.x - beeX);
+
+                let hitRangeX = 55;
+                let hitRangeY = 45;
+                if (settings.beeSize === 'small') {
+                    hitRangeX = 40;
+                    hitRangeY = 32;
+                } else if (settings.beeSize === 'large') {
+                    hitRangeX = 65;
+                    hitRangeY = 55;
+                }
+
+                if (distX < hitRangeX && distY < hitRangeY) {
+                    handleCollision(item);
+                    items.splice(i, 1);
+                    continue;
+                }
+
+                if (item.x < -120) {
+                    item.element.remove();
+                    items.splice(i, 1);
+                }
+            }
+
+            gameLoopId = requestAnimationFrame(updateGame);
+        }
+
+        // --- עדכון משך פעולה ורישום של בונוסים ---
+        function updateActivePowerups() {
+            const container = document.getElementById('powerupIndicator');
+            container.innerHTML = '';
+
+            Object.keys(powerups).forEach(key => {
+                const pw = powerups[key];
+                if (pw.active) {
+                    pw.timer -= 16.67; // מקורב ל-60FPS
+                    if (pw.timer <= 0) {
+                        pw.active = false;
+                        playSound('shield-break');
+                    } else {
+                        // הוספה חזותית של בועת הבונוס הפעיל
+                        const badge = document.createElement('div');
+                        badge.className = 'active-powerup-badge';
+                        badge.innerHTML = `<span>${pw.emoji}</span><span>${pw.label} (${Math.ceil(pw.timer / 1000)}ש')</span>`;
+                        container.appendChild(badge);
+                    }
+                }
+            });
+        }
+
+        // --- טיפול בהתנגשות ---
+        function handleCollision(item) {
+            item.element.remove();
+
+            if (item.type === 'flower') {
+                // תפיסת מעשה טוב
+                score += 10;
+                
+                // בדיקה ופתיחה של המצווה ביומן (אם היא עדיין נעולה)
+                if (!unlockedMitzvot.includes(item.text)) {
+                    unlockedMitzvot.push(item.text);
+                    createScoreText(window.innerWidth * 0.1, beeY, `📖 מידה חדשה נפתחה בספר! ${item.text}`);
+                }
+
+                // עדכון התקדמות משימות
+                updateMissionProgress('collect_any', 1);
+
+                // שדרוגים מיוחדים: דבורת הזהב או בונוס מכפיל
+                let coinReward = activeSkin === 'gold' ? 3 : 2;
+                if (powerups.double.active) {
+                    coinReward *= 2;
+                }
+
+                // רצף מצוות (Combo): ככל שאוספים יותר פרחים, מקבלים פי 2 שקלים!
+                if (score % 50 === 0 && score > 0) {
+                    coinReward *= 2;
+                    createScoreText(window.innerWidth * 0.1, beeY, `🔥 רצף מצוות! מכפיל 2X`, false);
+                }
+
+                coins += coinReward;
+                honeyProgress = Math.min(100, honeyProgress + 10);
+                
+                playSound('good');
+                createDropsEffect(window.innerWidth * 0.1, beeY, '#fbbf24');
+                createScoreText(window.innerWidth * 0.1, beeY, `+10 מעשים | +₪${coinReward}`);
+            } else if (item.type === 'cloud') {
+                // התנגשות בענן
+                if (hasShield) {
+                    hasShield = false;
+                    beeShield.style.display = 'none';
+                    playSound('shield-break');
+                    createDropsEffect(window.innerWidth * 0.1, beeY, '#38bdf8');
+                    createScoreText(window.innerWidth * 0.1, beeY, `🛡️ המגן נשבר!`, false, true);
+                } else {
+                    honeyProgress = Math.max(0, honeyProgress - 15);
+                    playSound('bad');
+                    createDropsEffect(window.innerWidth * 0.1, beeY, '#94a3b8');
+                    createScoreText(window.innerWidth * 0.1, beeY, `הפרעה! -15`, true);
+
+                    if (settings.shakeEnabled) {
+                        const gameBody = document.body;
+                        gameBody.classList.add('sky-dark', 'shake-screen');
+                        setTimeout(() => {
+                            gameBody.classList.remove('sky-dark', 'shake-screen');
+                        }, 350);
+                    }
+                }
+            } else if (item.type === 'powerup') {
+                // בונוסים מיוחדים (Magne, Double, Slowmo)
+                handlePowerUp(item);
+            }
+
+            updateUI();
+            saveUserData(); 
+            checkEndConditions();
+        }
+
+        // טיפול בבונוס
+        function handlePowerUp(item) {
+            playSound('powerup');
+            createDropsEffect(window.innerWidth * 0.1, beeY, '#fbbf24');
+
+            if (item.text === '🌟') {
+                activatePowerup('double');
+                createScoreText(window.innerWidth * 0.1, beeY, `🌟 סופר חסד פעיל! שקלים כפולים!`);
+            } else if (item.text === '🧲') {
+                activatePowerup('magnet');
+                createScoreText(window.innerWidth * 0.1, beeY, `🧲 מגנט החסד פעיל! מושך פרחים!`);
+            } else if (item.text === '🧘') {
+                activatePowerup('slowmo');
+                createScoreText(window.innerWidth * 0.1, beeY, `⏱️ רוגע ושלווה פעילים! הילוך איטי!`);
+                items.forEach(it => {
+                    it.speed *= 0.5;
+                });
+            }
+        }
+
+        function activatePowerup(key) {
+            powerups[key].active = true;
+            powerups[key].timer = powerups[key].duration;
+            updateActivePowerups();
+        }
+
+        // --- אפקט חלקיקים צבעוניים ---
+        function createDropsEffect(x, y, color) {
+            const count = 12;
+            const emojis = color === '#fbbf24' ? ['🍯', '✨', '💖', '🌸'] : (color === '#38bdf8' ? ['🛡️', '⚡', '✨'] : ['☁️', '⛈️', '💨']);
+            for (let i = 0; i < count; i++) {
+                const drop = document.createElement('span');
+                drop.className = 'honey-drop';
+                drop.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                drop.style.left = `${x}px`;
+                drop.style.top = `${y}px`;
+
+                const dx = (Math.random() - 0.5) * 180;
+                const dy = (Math.random() - 0.5) * 180;
+                drop.style.setProperty('--dx', `${dx}px`);
+                drop.style.setProperty('--dy', `${dy}px`);
+
+                gameArea.appendChild(drop);
+                setTimeout(() => drop.remove(), 700);
+            }
+        }
+
+        // --- טקסט צף לניקוד ---
+        function createScoreText(x, y, text, isBad = false, isShieldMsg = false) {
+            const el = document.createElement('div');
+            el.className = 'points-pop secular';
+            if (isBad) {
+                el.style.color = '#dc2626';
+                el.style.borderColor = '#fca5a5';
+            } else if (isShieldMsg) {
+                el.style.color = '#0284c7';
+                el.style.borderColor = '#bae6fd';
+            }
+            el.textContent = text;
+            el.style.left = `${x}px`;
+            el.style.top = `${y}px`;
+
+            gameArea.appendChild(el);
+            setTimeout(() => el.remove(), 1000);
+        }
+
+        // --- עדכון ממשק משתמש ---
+        function updateUI() {
+            document.getElementById('scoreVal').textContent = score;
+            document.getElementById('coinsVal').textContent = `₪ ${coins}`;
+            document.getElementById('honeyPercent').textContent = `${honeyProgress}%`;
+            document.getElementById('honeyBar').style.width = `${honeyProgress}%`;
+
+            const nameIndex = (currentLevel - 1) % LEVEL_NAMES.length;
+            const currentLevelName = `שלב ${currentLevel}: ${LEVEL_NAMES[nameIndex]}`;
+            document.getElementById('levelTitleLbl').textContent = currentLevelName;
+        }
+
+        // --- בדיקת סיום שלב ---
+        function checkEndConditions() {
+            if (honeyProgress >= 100) {
+                const prize = 15 + (currentLevel * 2); 
+                coins += prize;
+                
+                updateMissionProgress('complete_honey', 100);
+
+                const nameIndex = (currentLevel - 1) % LEVEL_NAMES.length;
+                endGame(true, `איזה יופי! השלמתם את שלב ${currentLevel} (${LEVEL_NAMES[nameIndex]}) וקיבלתם מענק של ₪${prize}! בואו נקדם את המעשים הטובים שלנו ונחקור שלבים חדשים!`);
+                currentLevel++; 
+                
+                generateMissionsForLevel();
+            }
+        }
+
+        // --- סיום המשחק והצגת חלון תוצאה ---
+        function endGame(isVictory, description) {
+            isPlaying = false;
+            clearInterval(spawnLoopId);
+            cancelAnimationFrame(gameLoopId);
+            stopBackgroundMusic(); 
+
+            document.getElementById('endScore').textContent = score;
+            document.getElementById('endCoins').textContent = `₪ ${coins}`;
+            document.getElementById('endDesc').textContent = description;
+
+            const endEmoji = document.getElementById('endEmoji');
+            const endTitle = document.getElementById('endTitle');
+
+            if (isVictory) {
+                endEmoji.textContent = '👑🍯🐝';
+                endTitle.textContent = "השלב הושלם בהצלחה!";
+                endTitle.style.color = "#d97706";
+                playSound('victory');
+            }
+
+            document.getElementById('endModal').classList.remove('hidden');
+        }
+
+        // --- מערכת קניות וציוד של החנות ---
+        function refreshShopUI() {
+            const itemsList = ['classic', 'gold', 'lightning', 'shield'];
+            itemsList.forEach(id => {
+                const element = document.getElementById(`shop-${id}`);
+                const label = document.getElementById(`lbl-${id}`);
+                
+                if (!element || !label) return;
+
+                element.classList.remove('equipped');
+
+                if (id === 'shield') {
+                    if (hasShield) {
+                        element.classList.add('equipped');
+                        label.textContent = "קנוי ופעיל 🛡️";
+                        label.className = "shop-item-equipped-lbl";
+                    } else {
+                        label.textContent = `₪ ${PRICES.shield}`;
+                        label.className = "shop-item-price";
+                    }
+                } else {
+                    if (activeSkin === id) {
+                        element.classList.add('equipped');
+                        label.textContent = "פעיל";
+                        label.className = "shop-item-equipped-lbl";
+                        
+                        document.getElementById('menuMainEmoji').textContent = BEE_SKINS[id];
+                    } else if (unlockedSkins.includes(id)) {
+                        label.textContent = "השתמש";
+                        label.className = "shop-item-equipped-lbl";
+                        label.style.color = "#4b5563"; 
+                    } else {
+                        label.textContent = `₪ ${PRICES[id]}`;
+                        label.className = "shop-item-price";
+                    }
+                }
+            });
+        }
+
+        function buyOrEquip(id) {
+            initAudio(); 
+
+            if (id === 'shield') {
+                if (hasShield) {
+                    createScoreText(window.innerWidth / 2, window.innerHeight / 2, "יש לך כבר מגן פעיל!", true);
+                    return;
+                }
+                if (coins >= PRICES.shield) {
+                    coins -= PRICES.shield;
+                    hasShield = true;
+                    playSound('victory');
+                    createScoreText(window.innerWidth / 2, window.innerHeight / 2, "🛡️ המגן נקנה בהצלחה!");
+                } else {
+                    playSound('bad');
+                    createScoreText(window.innerWidth / 2, window.innerHeight / 2, "אין מספיק שקלים חדשים (₪)!", true);
+                }
+            } else {
+                if (unlockedSkins.includes(id)) {
+                    activeSkin = id;
+                    playSound('good');
+                } else {
+                    const price = PRICES[id];
+                    if (coins >= price) {
+                        coins -= price;
+                        unlockedSkins.push(id);
+                        activeSkin = id;
+                        playSound('victory');
+                        createScoreText(window.innerWidth / 2, window.innerHeight / 2, "🐝 הדבורה נקנתה בהצלחה!");
+                    } else {
+                        playSound('bad');
+                        createScoreText(window.innerWidth / 2, window.innerHeight / 2, "אין מספיק שקלים חדשים (₪)!", true);
+                    }
+                }
+            }
+
+            document.getElementById('coinsVal').textContent = `₪ ${coins}`;
+            saveUserData();
+            refreshShopUI();
+        }
+
+        // חשיפת פונקציות לממשק ה-HTML
+        window.startGame = startGame;
+        window.toggleSound = toggleSound;
+        window.goToMenu = goToMenu;
+        window.restartCurrentLevel = restartCurrentLevel;
+        window.buyOrEquip = buyOrEquip;
+        window.openShop = openShop;
+        window.closeShop = closeShop;
+        window.openSettings = openSettings;
+        window.closeSettings = closeSettings;
+        window.applySettingsFromUI = applySettingsFromUI;
+        window.openJournal = openJournal;
+        window.closeJournal = closeJournal;
+
+        // הפעלה ראשונית
+        initFirebase();
+        refreshShopUI();
+    </script>
+</body>
+</html>

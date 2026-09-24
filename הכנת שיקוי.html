@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Neon Alchemist: Master Mixer</title>
+    <style>
+        :root { --bg: #050505; --panel: #111; --neon: #00ffcc; }
+        body { margin: 0; background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        
+        .lab-container { display: flex; gap: 40px; align-items: center; background: var(--panel); padding: 40px; border-radius: 30px; border: 2px solid #222; box-shadow: 0 0 60px rgba(0,0,0,0.5); }
+        
+        /* המבחנה המרכזית */
+        .beaker-wrap { position: relative; width: 120px; height: 250px; border: 4px solid #eee; border-top: none; border-radius: 0 0 50px 50px; background: rgba(255,255,255,0.05); overflow: hidden; box-shadow: inset 0 0 20px rgba(255,255,255,0.1); }
+        #liquid { position: absolute; bottom: 0; width: 100%; height: 0%; background: #fff; transition: height 0.3s, background-color 0.5s; box-shadow: 0 0 30px rgba(255,255,255,0.2); }
+        #bubbles { position: absolute; width: 100%; height: 100%; pointer-events: none; }
+
+        /* לוח הבקרה */
+        .controls { display: flex; flex-direction: column; gap: 15px; }
+        .tap { width: 60px; height: 60px; border-radius: 15px; border: none; cursor: pointer; transition: 0.2s; font-weight: bold; font-size: 20px; }
+        .tap:active { transform: scale(0.9); }
+        .red-tap { background: #ff0055; box-shadow: 0 0 15px #ff0055; }
+        .green-tap { background: #00ff66; box-shadow: 0 0 15px #00ff66; }
+        .blue-tap { background: #0088ff; box-shadow: 0 0 15px #0088ff; }
+
+        /* מערכת הזמנות */
+        .order-card { background: #1a1a1a; padding: 20px; border-radius: 20px; border-left: 5px solid var(--neon); width: 200px; text-align: center; }
+        #target-color { width: 80px; height: 80px; border-radius: 50%; margin: 15px auto; border: 3px solid #fff; box-shadow: 0 0 20px rgba(255,255,255,0.2); }
+        
+        .btn-action { margin-top: 20px; padding: 12px; border-radius: 10px; border: 1px solid var(--neon); background: transparent; color: var(--neon); cursor: pointer; font-weight: bold; }
+        .btn-action:hover { background: var(--neon); color: black; }
+        
+        #accuracy { font-size: 24px; font-weight: 900; color: var(--neon); margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <h1 style="margin-bottom: 30px; letter-spacing: 5px; text-shadow: 0 0 15px var(--neon);">NEON ALCHEMIST</h1>
+
+    <div class="lab-container">
+        <div class="order-card">
+            <div style="font-size: 14px; color: #888;">הזמנת הלקוח:</div>
+            <div id="target-color"></div>
+            <div id="order-name">שיקוי זרחן</div>
+            <button class="btn-action" onclick="checkMixture()">הגש שיקוי</button>
+            <button class="btn-action" style="border-color: #ff4444; color: #ff4444;" onclick="resetVial()">שפוך הכל</button>
+        </div>
+
+        <div class="beaker-wrap">
+            <div id="liquid"></div>
+            <canvas id="bubbles"></canvas>
+        </div>
+
+        <div class="controls">
+            <button class="tap red-tap" onmousedown="startPour('r')" onmouseup="stopPour()">R</button>
+            <button class="tap green-tap" onmousedown="startPour('g')" onmouseup="stopPour()">G</button>
+            <button class="tap blue-tap" onmousedown="startPour('b')" onmouseup="stopPour()">B</button>
+        </div>
+    </div>
+
+    <div id="accuracy"></div>
+
+    <script>
+        let currentRGB = { r: 0, g: 0, b: 0 };
+        let targetRGB = { r: 0, g: 0, b: 0 };
+        let totalLiquid = 0;
+        let isPouring = false;
+        let pourInterval;
+
+        const liquidEl = document.getElementById('liquid');
+        const targetEl = document.getElementById('target-color');
+        const accuracyEl = document.getElementById('accuracy');
+
+        function generateNewOrder() {
+            targetRGB = {
+                r: Math.floor(Math.random() * 256),
+                g: Math.floor(Math.random() * 256),
+                b: Math.floor(Math.random() * 256)
+            };
+            targetEl.style.backgroundColor = `rgb(${targetRGB.r}, ${targetRGB.g}, ${targetRGB.b})`;
+            accuracyEl.innerText = "";
+            resetVial();
+        }
+
+        function resetVial() {
+            currentRGB = { r: 0, g: 0, b: 0 };
+            totalLiquid = 0;
+            updateVial();
+        }
+
+        function startPour(color) {
+            isPouring = true;
+            pourInterval = setInterval(() => {
+                if (totalLiquid < 100) {
+                    totalLiquid += 1;
+                    if (color === 'r') currentRGB.r = Math.min(255, currentRGB.r + 5);
+                    if (color === 'g') currentRGB.g = Math.min(255, currentRGB.g + 5);
+                    if (color === 'b') currentRGB.b = Math.min(255, currentRGB.b + 5);
+                    updateVial();
+                }
+            }, 50);
+        }
+
+        function stopPour() {
+            clearInterval(pourInterval);
+            isPouring = false;
+        }
+
+        function updateVial() {
+            liquidEl.style.height = totalLiquid + "%";
+            // חישוב הצבע הנוכחי לפי היחס
+            let r = currentRGB.r;
+            let g = currentRGB.g;
+            let b = currentRGB.b;
+            liquidEl.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+            liquidEl.style.boxShadow = `0 0 40px rgb(${r}, ${g}, ${b})`;
+        }
+
+        function checkMixture() {
+            // חישוב מרחק בין צבעים (נוסחת דלתא)
+            const diffR = Math.abs(currentRGB.r - targetRGB.r);
+            const diffG = Math.abs(currentRGB.g - targetRGB.g);
+            const diffB = Math.abs(currentRGB.b - targetRGB.b);
+            
+            const accuracy = Math.max(0, 100 - ((diffR + diffG + diffB) / 7.65)).toFixed(1);
+            
+            if (accuracy > 90) {
+                accuracyEl.style.color = "#00ffcc";
+                accuracyEl.innerText = `מושלם! ${accuracy}% דיוק`;
+                setTimeout(generateNewOrder, 2000);
+            } else if (accuracy > 70) {
+                accuracyEl.style.color = "#fbbf24";
+                accuracyEl.innerText = `טוב מאוד: ${accuracy}%`;
+            } else {
+                accuracyEl.style.color = "#f43f5e";
+                accuracyEl.innerText = `כישלון: ${accuracy}% - נסה שוב`;
+            }
+        }
+
+        // אנימציית בועות
+        const canvas = document.getElementById('bubbles');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 120; canvas.height = 250;
+        let bubbles = [];
+
+        function animateBubbles() {
+            ctx.clearRect(0, 0, 120, 250);
+            if (totalLiquid > 5) {
+                if (Math.random() > 0.9) bubbles.push({ x: Math.random() * 100 + 10, y: 250, r: Math.random() * 4 + 2, s: Math.random() * 2 + 1 });
+                bubbles.forEach((b, i) => {
+                    b.y -= b.s;
+                    ctx.beginPath();
+                    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+                    ctx.fillStyle = "rgba(255,255,255,0.3)";
+                    ctx.fill();
+                    if (b.y < 250 - (totalLiquid * 2.5)) bubbles.splice(i, 1);
+                });
+            }
+            requestAnimationFrame(animateBubbles);
+        }
+
+        generateNewOrder();
+        animateBubbles();
+    </script>
+</body>
+</html>

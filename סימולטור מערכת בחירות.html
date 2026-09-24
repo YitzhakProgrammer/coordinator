@@ -1,0 +1,3005 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>הדרך ל-61: מהדורת העל 4.0</title>
+    <!-- Tailwind CSS for modern responsive design -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Heebo Font for clean, authoritative Hebrew typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Heebo', sans-serif;
+            background: linear-gradient(135deg, #05070c 0%, #0b111e 100%);
+        }
+        /* Custom premium animations */
+        @keyframes pulse-gold {
+            0%, 100% { box-shadow: 0 0 5px rgba(234, 179, 8, 0.2); }
+            50% { box-shadow: 0 0 20px rgba(234, 179, 8, 0.6); }
+        }
+        .pulse-gold-border {
+            animation: pulse-gold 2.5s infinite;
+        }
+        @keyframes marquee-fast {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .animate-marquee-fast {
+            animation: marquee-fast 20s linear infinite;
+        }
+        /* Scrollbar styling for retro/cyber feel */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col justify-between selection:bg-indigo-600 selection:text-white overflow-x-hidden">
+
+    <header class="border-b border-slate-800 bg-slate-950/95 backdrop-blur sticky top-0 z-40 px-4 py-3.5 shadow-2xl">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3 space-x-reverse">
+                <div class="bg-gradient-to-tr from-amber-500 to-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-500/10">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-black text-xl md:text-3xl tracking-tight bg-gradient-to-r from-amber-400 via-indigo-300 to-indigo-400 bg-clip-text text-transparent">הדרך ל-61 <span class="text-xs bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full mr-2 font-bold font-mono">V4.0 ULTIMATE</span></h1>
+                    <p class="text-[10px] md:text-xs text-slate-400 font-medium">סימולטור בחירות, אסטרטגיה תקשורתית, מו"מ קואליציוני וניהול קבינט חופשי</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3 space-x-reverse">
+                <button onclick="toggleSound()" id="sound-btn" class="bg-slate-900 hover:bg-slate-800 text-slate-300 px-3 py-1.5 rounded-xl border border-slate-850 text-xs transition font-bold">
+                    🔊 צלילים פעילים
+                </button>
+                <div id="game-phase-badge" class="bg-slate-900 text-amber-400 px-3.5 py-1.5 rounded-full text-xs font-bold border border-slate-800 shadow-inner">
+                    טוען מערכת...
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- מבזק חדשות חי וזז -->
+    <div class="bg-slate-950 border-b border-slate-900 py-2 overflow-hidden whitespace-nowrap flex items-center text-xs text-amber-400">
+        <span class="bg-red-600 text-white px-3 py-1 rounded-r font-black text-[10px] z-10 mr-4 shadow-md flex items-center gap-1"><span>●</span> מבזק ישיר</span>
+        <div class="w-full overflow-hidden relative">
+            <p id="news-marquee-text" class="inline-block animate-marquee-fast pr-[100%] hover:pause font-medium">
+                הבחירות בישראל החלו! גוש הימין וגוש המרכז-שמאל בקרב דרמטי ראש בראש על עתיד המדינה...
+            </p>
+        </div>
+    </div>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6 flex flex-col justify-start">
+        
+        <!-- ================= SETUP SCREEN ================= -->
+        <div id="screen-setup" class="bg-slate-900/90 border border-slate-800/80 rounded-3xl p-6 md:p-8 shadow-2xl space-y-8 animate-fadeIn">
+            <div class="text-center max-w-3xl mx-auto space-y-3">
+                <span class="bg-amber-500/10 text-amber-400 text-xs px-4 py-1.5 rounded-full font-extrabold border border-amber-500/20 uppercase tracking-widest font-mono">מהדורת הפורום הפוליטי והחרדי</span>
+                <h2 class="text-3xl md:text-5xl font-black text-slate-100 tracking-tight leading-tight">בחר מפלגה והקם ממשלה יציבה!</h2>
+                <p class="text-slate-400 text-sm md:text-base leading-relaxed">נהל קמפיין בחירות מתוחכם ומלא ספינים תקשורתיים במשך 8 שבועות, התייצב לעימותים קשוחים מול השמאל והתקשורת, נהל מו"מ קואליציוני אינטראקטיבי וחוקק חוקים משלך!</p>
+            </div>
+
+            <!-- Party Selection Panel -->
+            <div class="space-y-4">
+                <h3 class="text-lg font-bold text-slate-200 border-b border-slate-800 pb-2 flex items-center gap-2">
+                    <span>1. בחר את המפלגה שלך להובלת הקמפיין</span>
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="parties-selection-grid">
+                    <!-- Injected dynamically by JS -->
+                </div>
+            </div>
+
+            <!-- Customize Details -->
+            <div class="bg-slate-950/80 p-6 rounded-2xl border border-slate-850 space-y-4">
+                <h3 class="text-base font-bold text-slate-200">2. פרטי יו"ר המפלגה והרשימה</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-1.5">
+                        <label class="block text-xs text-slate-400 font-bold">שם המפלגה המעודכן:</label>
+                        <input type="text" id="input-party-name" class="w-full bg-slate-900 border border-slate-800 focus:border-amber-500 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none transition">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-xs text-slate-400 font-bold">שם ראש המפלגה (ראש הממשלה המיועד):</label>
+                        <input type="text" id="input-leader-name" class="w-full bg-slate-900 border border-slate-800 focus:border-amber-500 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none transition">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leaderboard / היכל התהילה -->
+            <div id="leaderboard-container" class="bg-slate-950/40 p-5 rounded-2xl border border-slate-850 space-y-3">
+                <h3 class="text-sm font-bold text-amber-400 flex items-center gap-2">👑 היכל התהילה של ראשי הממשלה (הישגים מקומיים)</h3>
+                <div id="leaderboard-table" class="text-xs space-y-2 text-slate-300">
+                    <p class="text-slate-500 italic">טרם נרשמו שיאים. השלם קדנציה של 12 שבועות כדי להיכנס להיכל!</p>
+                </div>
+            </div>
+
+            <!-- Resume Button -->
+            <div id="resume-game-container" class="hidden bg-indigo-950/30 p-4 rounded-xl border border-indigo-900/40 flex justify-between items-center text-sm">
+                <div class="flex items-center space-x-2 space-x-reverse">
+                    <span>💾</span>
+                    <p class="text-indigo-300 font-bold" id="resume-game-text">נמצא משחק פעיל שמור בזיכרון!</p>
+                </div>
+                <button onclick="loadSavedGame()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-black px-4 py-2 rounded-lg text-xs transition">שחזר משחק שמור 🔄</button>
+            </div>
+
+            <div class="flex justify-center pt-2">
+                <button onclick="startGame()" class="pulse-gold-border bg-gradient-to-r from-amber-500 via-amber-600 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-slate-950 hover:text-slate-900 font-black text-lg px-14 py-4 rounded-2xl shadow-xl transform active:scale-95 transition-all">
+                    התחל קמפיין בחירות! 🚀
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= STAGE 1: CAMPAIGN SCREEN ================= -->
+        <div id="screen-campaign" class="hidden space-y-6 animate-fadeIn">
+            <!-- Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center space-x-3 space-x-reverse shadow">
+                    <div class="bg-amber-500/10 p-3 rounded-xl text-amber-400">⏱️</div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold">זמן לסיום הקמפיין</p>
+                        <p id="camp-weeks-left" class="text-base font-black text-slate-100 font-mono">שבוע 1 מתוך 8</p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center space-x-3 space-x-reverse shadow">
+                    <div class="bg-emerald-500/10 p-3 rounded-xl text-emerald-400">₪</div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold">תקציב קמפיין נותר</p>
+                        <p id="camp-budget" class="text-base font-black text-emerald-400 font-mono">₪500,000</p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center space-x-3 space-x-reverse shadow">
+                    <div class="bg-blue-500/10 p-3 rounded-xl text-blue-400">🗳️</div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold">מנדטים למפלגה</p>
+                        <p id="camp-party-seats" class="text-base font-black text-blue-400 font-mono">18 מנדטים</p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center space-x-3 space-x-reverse shadow">
+                    <div class="bg-indigo-500/10 p-3 rounded-xl text-indigo-400">🏛️</div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold">מנדטים לגוש (יעד: 61)</p>
+                        <p id="camp-bloc-seats" class="text-base font-black text-indigo-400 font-mono">56 מנדטים</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Action Column -->
+                <div class="lg:col-span-2 space-y-6">
+                    
+                    <!-- Advanced Marketing & Spins Panel -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                            <h3 class="text-sm font-bold text-slate-200">פעולות שטח ומהלכים אסטרטגיים</h3>
+                            <span class="text-xs bg-amber-500/10 text-amber-400 border border-amber-500/25 px-2 py-0.5 rounded-full font-bold">מטה בחירות פעיל</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <!-- Action 1 -->
+                            <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 flex flex-col justify-between space-y-3">
+                                <div>
+                                    <h4 class="text-xs font-bold text-slate-200">קמפיין דיגיטל וסושיאל</h4>
+                                    <p class="text-[11px] text-slate-400 mt-1">מודעות ממוקדות וסרטונים חדים להלהבת הקהל.</p>
+                                </div>
+                                <div class="space-y-2">
+                                    <div class="text-xs flex justify-between text-slate-500">
+                                        <span>עלות:</span>
+                                        <span class="text-emerald-400 font-bold font-mono">₪120,000</span>
+                                    </div>
+                                    <button onclick="executeCampaignAction('ads')" class="w-full bg-slate-900 hover:bg-indigo-600 text-slate-100 text-xs py-2 rounded-lg font-bold transition">הרץ דיגיטל</button>
+                                </div>
+                            </div>
+
+                            <!-- Action 2 -->
+                            <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 flex flex-col justify-between space-y-3">
+                                <div>
+                                    <h4 class="text-xs font-bold text-slate-200">כנסים ופעילות שטח</h4>
+                                    <p class="text-[11px] text-slate-400 mt-1">כנסים בערים ופריסת פעילים לשטח ולצמתים.</p>
+                                </div>
+                                <div class="space-y-2">
+                                    <div class="text-xs flex justify-between text-slate-500">
+                                        <span>עלות:</span>
+                                        <span class="text-emerald-400 font-bold font-mono">₪75,000</span>
+                                    </div>
+                                    <button onclick="executeCampaignAction('field')" class="w-full bg-slate-900 hover:bg-indigo-600 text-slate-100 text-xs py-2 rounded-lg font-bold transition">צא לשטח</button>
+                                </div>
+                            </div>
+
+                            <!-- Action 3 -->
+                            <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 flex flex-col justify-between space-y-3">
+                                <div>
+                                    <h4 class="text-xs font-bold text-slate-200">קמפיין ספין תקשורתי</h4>
+                                    <p class="text-[11px] text-slate-400 mt-1">הדלפת מסמך או ספין מתוחכם לערעור מפלגות השמאל.</p>
+                                </div>
+                                <div class="space-y-2">
+                                    <div class="text-xs flex justify-between text-slate-500">
+                                        <span>עלות:</span>
+                                        <span class="text-emerald-400 font-bold font-mono">₪100,000</span>
+                                    </div>
+                                    <button onclick="executeCampaignAction('spin')" class="w-full bg-slate-900 hover:bg-indigo-600 text-slate-100 text-xs py-2 rounded-lg font-bold transition">שחרר ספין</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Donation system -->
+                        <div class="bg-slate-950 p-4 rounded-xl border border-dashed border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4">
+                            <div class="text-right">
+                                <h4 class="text-xs font-bold text-slate-200">גיוס תרומות ממוקד מהתומכים</h4>
+                                <p class="text-[11px] text-slate-400">גיוס תרומות מעלה את התקציב אך גורר מתקפות תקשורתיות מהאופוזיציה.</p>
+                            </div>
+                            <button onclick="fundraiseCampaign()" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 text-xs px-5 py-2.5 rounded-lg font-bold transition w-full sm:w-auto font-mono">גייס תרומות (+₪180k)</button>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Campaign Clash Event -->
+                    <div id="campaign-event-box" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                        <div class="flex items-center space-x-2 space-x-reverse text-red-400">
+                            <span class="text-lg">⚔️</span>
+                            <h3 class="font-bold text-sm">עימות חזיתי מול מנהיגי השמאל והתקשורת</h3>
+                        </div>
+                        <div class="bg-slate-950 p-5 rounded-xl border border-slate-850 space-y-3">
+                            <h4 id="camp-event-title" class="text-sm font-bold text-slate-200">ריאיון טעון באולפן שישי</h4>
+                            <p id="camp-event-desc" class="text-xs text-slate-400 leading-relaxed font-medium">המראיין מטיח בך שהרשימה שלך תגרור את המדינה לקריסה תקציבית. איך תגיב?</p>
+                            
+                            <div id="camp-event-choices" class="space-y-2 pt-2">
+                                <!-- Choices loaded via script -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Polls side panel -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-5">
+                    <h3 class="text-sm font-bold text-slate-200 border-b border-slate-850 pb-3 flex justify-between items-center">
+                        <span>סקר המנדטים היומי</span>
+                        <span class="text-[10px] text-amber-400 animate-pulse font-mono">● LIVE UPDATES</span>
+                    </h3>
+                    <div id="polls-list" class="space-y-4">
+                        <!-- Poll bars inserted by JS -->
+                    </div>
+
+                    <!-- Advise box -->
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 text-xs text-slate-400 leading-relaxed space-y-1">
+                        <h4 class="font-bold text-amber-400">💡 עצה מיועץ הספינים הבכיר שלך:</h4>
+                        <p>ספינים תקשורתיים וקמפניין דיגיטל חזק הם המפתח להעלאת גוש המנדטים שלך לקראת המדגמים הגורליים!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= STAGE 2: ELECTION NIGHT SCREEN ================= -->
+        <div id="screen-election" class="hidden max-w-2xl mx-auto w-full bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl text-center space-y-8 animate-fadeIn">
+            <div class="space-y-2">
+                <span class="bg-red-500/10 text-red-400 text-xs px-3 py-1 rounded-full font-bold border border-red-500/20 uppercase animate-pulse">משדר בחירות חי ודרמטי</span>
+                <h2 class="text-2xl md:text-3xl font-black text-slate-100">דרמת מדגמי הקלפיות באולפנים</h2>
+                <p class="text-xs text-slate-400">מדגמי הבחירות נפתחים כעת. הציבור במתח חסר תקדים. האם הגעתם ל-61 מנדטים להקמת ממשלה?</p>
+            </div>
+
+            <div class="bg-slate-950 rounded-2xl p-6 border-4 border-slate-800 shadow-inner relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-500/5 to-transparent pointer-events-none"></div>
+                
+                <div class="space-y-6">
+                    <div class="flex justify-between text-[10px] text-slate-500 font-bold">
+                        <span>ועדת הבחירות המרכזית</span>
+                        <span>ספירת קולות ארצית: <span id="election-percent" class="text-amber-400 font-mono">0%</span></span>
+                    </div>
+
+                    <!-- Visual results -->
+                    <div class="space-y-4 pt-2">
+                        <!-- Your Bloc -->
+                        <div class="space-y-1 text-right">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-slate-200" id="election-your-bloc-title">הגוש שלך</span>
+                                <span class="text-xl font-black text-indigo-400 font-mono" id="election-your-bloc-seats">0 מנדטים</span>
+                            </div>
+                            <div class="w-full bg-slate-900 h-6 rounded-full overflow-hidden border border-slate-800">
+                                <div id="election-your-bloc-bar" class="bg-gradient-to-r from-blue-500 to-indigo-600 h-full w-0 transition-all duration-300"></div>
+                            </div>
+                        </div>
+
+                        <!-- Target line indicator at 61 -->
+                        <div class="relative w-full h-2 flex justify-end">
+                            <div class="absolute right-[50.8%] -top-4 bottom-0 w-0.5 bg-dashed bg-red-500 h-10 flex flex-col justify-end">
+                                <span class="text-[9px] text-red-400 font-bold whitespace-nowrap mt-4">יעד: 61 מנדטים להקמה</span>
+                            </div>
+                        </div>
+
+                        <!-- Rival Bloc -->
+                        <div class="space-y-1 text-right pt-2 border-t border-slate-900/40">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-slate-400">הגוש היריב (שמאל ואופוזיציה)</span>
+                                <span class="text-lg font-bold text-slate-400 font-mono" id="election-rival-bloc-seats">0 מנדטים</span>
+                            </div>
+                            <div class="w-full bg-slate-900 h-4 rounded-full overflow-hidden border border-slate-800">
+                                <div id="election-rival-bloc-bar" class="bg-slate-600 h-full w-0 transition-all duration-300"></div>
+                            </div>
+                        </div>
+
+                        <!-- Your specific party seats -->
+                        <div class="space-y-1 text-right pt-2 border-t border-slate-900">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-slate-400 font-bold" id="election-your-party-title">מפלגתך</span>
+                                <span class="text-xs font-extrabold text-slate-200 font-mono" id="election-your-party-seats">0 מנדטים</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="election-result-actions" class="space-y-4 hidden">
+                <div class="p-4 rounded-xl text-xs" id="election-feedback-box">
+                    <!-- Loaded dynamically -->
+                </div>
+                <div class="flex justify-center gap-4">
+                    <button id="btn-election-continue" onclick="startNegotiationsStage()" class="hidden bg-gradient-to-r from-amber-500 to-indigo-600 text-slate-950 hover:text-slate-900 font-black text-sm px-8 py-3.5 rounded-xl transition">המשך לניהול משא ומתן קואליציוני 🤝</button>
+                    <button id="btn-election-retry" onclick="resetGame()" class="hidden bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs px-8 py-3.5 rounded-xl transition">נסה שוב בקמפיין חדש 🔄</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= STAGE 2.5: COALITION NEGOTIATIONS ================= -->
+        <div id="screen-negotiations" class="hidden max-w-6xl mx-auto w-full bg-slate-900/95 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl space-y-6 animate-fadeIn">
+            <div class="text-center space-y-2">
+                <span class="bg-indigo-500/15 text-indigo-400 text-xs px-3 py-1 rounded-full font-bold border border-indigo-500/20">חדר משא ומתן קואליציוני סגור</span>
+                <h2 class="text-2xl md:text-4xl font-black text-slate-100">סגירת הסכמים קואליציוניים ✍️</h2>
+                <p class="text-xs md:text-sm text-slate-400">חלק תיקים ומשאבים כספיים. שרי המפלגות מנהלים דיונים סוערים בשידור חי בצ'אט ומגיבים לקנאה וסיפוק על כל החלטה!</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <!-- Left Column: Live Negotiation Chat Board (Knesset Members Trading) -->
+                <div class="lg:col-span-5 flex flex-col justify-between h-[450px] bg-slate-950 border border-slate-850 rounded-2xl overflow-hidden shadow-2xl">
+                    <div class="bg-slate-900 px-4 py-3 border-b border-slate-850 flex justify-between items-center">
+                        <span class="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                            <span class="animate-pulse">●</span>
+                            <span>דיוני חדר המו"מ החסוי</span>
+                        </span>
+                        <span class="text-[10px] text-slate-500 font-mono" id="nego-member-count">4 נציגים בחדר</span>
+                    </div>
+
+                    <!-- Negotiation messages list -->
+                    <div id="nego-chat-messages" class="flex-grow p-4 overflow-y-auto space-y-3.5 text-xs">
+                        <!-- Instantiated at start of negotiations -->
+                    </div>
+
+                    <div class="p-3 bg-slate-900/40 border-t border-slate-850 text-[11px] text-slate-400 italic text-center">
+                        כל הקצאת תיק או תקציב לשותף תגרור תגובות מיידיות משאר נציגי הגוש בקבוצה.
+                    </div>
+                </div>
+
+                <!-- Right Column: Interactive Partner Cards -->
+                <div class="lg:col-span-7 space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="negotiation-partners-grid">
+                        <!-- Partner cards loaded dynamically -->
+                    </div>
+
+                    <!-- CSS Knesset Seating Grid Mockup for immersive feel -->
+                    <div class="bg-slate-950 p-4 rounded-2xl border border-slate-850 space-y-2">
+                        <h4 class="text-[10px] font-bold text-slate-400 text-center uppercase tracking-wider">מפת מושבי המליאה העתידית בגוש שלך</h4>
+                        <div class="flex flex-wrap justify-center gap-1 max-w-sm mx-auto" id="knesset-seating-chart">
+                            <!-- Populated with 120 visual seat blocks -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Bottom Control Panel -->
+            <div class="bg-slate-950 p-4 rounded-2xl border border-slate-850 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs md:text-sm">
+                <div>
+                    <span class="text-slate-400">תקציב קואליציוני שנותר לחלוקה:</span>
+                    <span id="nego-budget-display" class="font-bold text-emerald-400 mr-2 font-mono">₪500,000</span>
+                </div>
+                <button onclick="finalizeCoalitionAndGovern()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black px-8 py-3 rounded-xl transition shadow-lg shadow-emerald-500/10">
+                    סגור הסכמים והקם ממשלה! 🏛️
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= STAGE 3: GOVERNANCE SCREEN ================= -->
+        <div id="screen-governance" class="hidden space-y-6 animate-fadeIn">
+            <!-- Stats Bar -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center space-x-3 space-x-reverse shadow-lg">
+                    <div class="bg-amber-500/10 p-3 rounded-xl text-amber-400 font-mono">👑</div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold">מעמד ראש הממשלה</p>
+                        <p id="gov-leader-title-display" class="text-xs font-black text-slate-100">ממשלה</p>
+                        <span id="gov-weeks" class="text-[10px] text-indigo-400 font-bold font-mono">שבוע 1 בתפקיד</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center space-x-3 space-x-reverse shadow-lg">
+                    <div class="bg-emerald-500/10 p-3 rounded-xl text-emerald-400 font-mono">🛡️</div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold">יציבות קואליציה</p>
+                        <p id="gov-stability" class="text-base font-black text-emerald-400 font-mono">80%</p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center space-x-3 space-x-reverse shadow-lg">
+                    <div class="bg-indigo-500/10 p-3 rounded-xl text-indigo-400 font-mono">👥</div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold">תמיכת הציבור</p>
+                        <p id="gov-support" class="text-base font-black text-indigo-400 font-mono">65%</p>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center space-x-3 space-x-reverse shadow-lg">
+                    <div class="bg-pink-500/10 p-3 rounded-xl text-pink-400 font-mono">📢</div>
+                    <div>
+                        <p class="text-[10px] text-slate-400 font-bold">סטטוס משק</p>
+                        <p id="gov-status-text" class="text-xs font-black text-slate-200">שקט ויציב</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prime Minister Cabinet Convene Banner -->
+            <div class="bg-slate-900 border-2 border-indigo-600/30 p-5 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 shadow-xl">
+                <div class="flex items-center space-x-4 space-x-reverse">
+                    <span class="text-3xl animate-pulse">🏛️</span>
+                    <div>
+                        <h4 class="font-black text-slate-200 text-sm">לשכת ראש הממשלה והקבינט הלאומי</h4>
+                        <p class="text-xs text-slate-400 mt-1">כנס את שרי הקואליציה לחדר דיונים דחוף ומאובטח. הקלד מסרים חופשיים וקבל מענה אמיתי ומדויק מהשותפים!</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-3 w-full md:w-auto justify-end">
+                    <button onclick="openCabinetModal()" class="pulse-gold-border bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-400 hover:to-indigo-500 text-slate-950 font-black text-xs px-6 py-3.5 rounded-xl transition shadow-md whitespace-nowrap">
+                        כנס קבינט חירום 🚨
+                    </button>
+                    <button onclick="openPoliticalNegotiationModal()" class="bg-slate-850 hover:bg-slate-800 text-slate-200 border border-slate-700 font-black text-xs px-6 py-3.5 rounded-xl transition shadow-md whitespace-nowrap flex items-center gap-1.5">
+                        <span>🤝</span> חדר מו"מ פוליטי והסכמים
+                    </button>
+                </div>
+            </div>
+
+            <!-- Strike Alert Banner -->
+            <div id="strike-warning-banner" class="hidden bg-gradient-to-r from-red-950/80 to-slate-900 border-2 border-red-800 p-5 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 shadow-xl animate-bounce">
+                <div class="flex items-start space-x-4 space-x-reverse">
+                    <span class="text-2xl font-mono">⚠️</span>
+                    <div>
+                        <h4 class="font-bold text-red-400 text-sm">שביתת ענק פוליטית במשק!</h4>
+                        <p class="text-xs text-slate-400 mt-1">ההסתדרות וועדי השמאל השביתו את המשק במחאה על מדיניות הממשלה. השביתה פוגעת ב-<span class="text-red-400 font-bold">-8% יציבות בכל שבוע</span>. פתור זאת בהקדם!</p>
+                    </div>
+                </div>
+                <button onclick="resolveStrike()" class="bg-red-600 hover:bg-red-500 text-white text-xs px-5 py-3 rounded-xl font-bold transition whitespace-nowrap shadow-md">חתום על הסכם פשרה וסיום שביתה (עלות: ₪150k)</button>
+            </div>
+
+            <!-- MAIN 3-COLUMN WORKSTATION LAYOUT -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- COLUMN 1: CRISIS BOARD & STATS -->
+                <div class="space-y-6">
+                    <div id="governance-crisis-box" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                        <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                            <div class="flex items-center space-x-2 space-x-reverse text-pink-400">
+                                <span class="text-lg">🚨</span>
+                                <h3 class="font-black text-sm" id="crisis-box-title">חדר המצב: משבר משילות קריטי</h3>
+                            </div>
+                            <span id="turn-display-label" class="text-xs bg-slate-950 px-2 py-1 rounded border border-slate-800 text-slate-400 font-bold font-mono">שבוע 1</span>
+                        </div>
+                        <div class="bg-slate-950 p-5 rounded-xl border border-slate-850 space-y-3">
+                            <h4 id="gov-crisis-title" class="text-sm font-bold text-slate-200">לחץ של האופוזיציה</h4>
+                            <p id="gov-crisis-desc" class="text-xs text-slate-400 leading-relaxed font-medium">השמאל מאשים את הממשלה בפילוג חברתי עקב חקיקה לא שוויונית ומאיים בבג\"ץ.</p>
+                            
+                            <div id="gov-crisis-choices" class="space-y-3 pt-2">
+                                <!-- Choices generated on runtime -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fixed Coalition Laws -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                        <div class="flex items-center space-x-2 space-x-reverse text-blue-400">
+                            <span class="text-lg">⚖️</span>
+                            <h3 class="font-black text-sm">הצעות חוק מובנות של הקואליציה</h3>
+                        </div>
+                        <div class="grid grid-cols-1 gap-4" id="laws-container">
+                            <!-- Injected by script -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COLUMN 2: DEDICATED LAW FORMULATION PANEL -->
+                <div class="space-y-6">
+                    <div class="bg-slate-900 border border-indigo-900/40 rounded-2xl p-6 shadow-xl space-y-5">
+                        <div class="flex items-center space-x-2 space-x-reverse text-indigo-400 border-b border-slate-850 pb-3">
+                            <span class="text-lg">📜</span>
+                            <h3 class="font-black text-sm">ניסוח והגשת הצעת חוק חופשית למליאה</h3>
+                        </div>
+                        
+                        <p class="text-xs text-slate-400 leading-relaxed">
+                            הקלד כאן ידנית כל חוק שתרצה להעביר במליאת הכנסת. המערכת תנתח באופן חכם אם מדובר בחוק הגיוני וריאלי או בחוק שנוגד את שותפיך ויביא למשבר חריף.
+                        </p>
+
+                        <div class="bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl text-[11px] text-amber-400 leading-normal space-y-1">
+                            <h5 class="font-bold">⚠️ דגשים לחקיקה אחראית:</h5>
+                            <p>חוקים הפוגעים בעולם התורה או סותרים את ערכי יהדות התורה וש\"ס יידחו במליאה, יפגעו קשות ביציבות ועלולים לפרק את הממשלה מיידית!</p>
+                        </div>
+                        
+                        <div class="space-y-3 bg-slate-950 p-4 rounded-xl border border-slate-850">
+                            <label class="block text-xs text-slate-300 font-bold">נוסח הצעת החוק שלך:</label>
+                            <textarea id="custom-law-input" rows="3" placeholder="למשל: חוק סבסוד ספרי לימוד בפריפריה, או חוק להגדלת התקציבים למוסדות תורה..." class="w-full bg-slate-900 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-3 text-xs text-slate-200 focus:outline-none transition resize-none"></textarea>
+                            
+                            <!-- Action Submit Button -->
+                            <button onclick="submitCustomLaw()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-xs py-3 rounded-xl font-bold transition shadow-md flex items-center justify-center gap-2">
+                                <span>הגש הצעת חוק להצבעה חיה! 🗳️</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COLUMN 3: PARTNERS & LOYALTY -->
+                <div class="space-y-6">
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-6">
+                        <h3 class="text-sm font-bold text-slate-200 border-b border-slate-850 pb-3 flex justify-between items-center">
+                            <span>ניהול השותפים ויציבותם</span>
+                            <span class="text-xs bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded border border-indigo-500/20 font-bold" id="gov-bloc-type">גוש הימין</span>
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">מדד שביעות רצון ושותפים:</h4>
+                            <div id="partners-list" class="space-y-3">
+                                <!-- Partner list dynamic elements -->
+                            </div>
+                        </div>
+
+                        <!-- Advise box -->
+                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 text-xs text-slate-400 leading-relaxed space-y-2">
+                            <h4 class="font-bold text-amber-400">💡 עצה מיועץ הספינים הבכיר:</h4>
+                            <p>עקוב באופן הדוק אחר רמת הנאמנות של המפלגות החרדיות והדתיות. חוקים לא מתאימים יגררו וטו מיידי ויסכנו את הממשלה!</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ================= CABINET MODAL PANEL ================= -->
+    <div id="cabinet-modal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-indigo-500/40 max-w-4xl w-full rounded-3xl p-6 md:p-8 shadow-2xl flex flex-col md:flex-row gap-6 relative max-h-[90vh] overflow-hidden">
+            
+            <button onclick="closeCabinetModal()" class="absolute top-4 left-4 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-full p-2 text-xs transition font-black">✕ סגור קבינט</button>
+
+            <!-- Right side: Visual Roundtable & Seating -->
+            <div class="md:w-1/2 flex flex-col justify-between space-y-4">
+                <div class="text-right">
+                    <span class="text-amber-400 text-xs font-bold uppercase tracking-wide">קבינט משילות מורחב</span>
+                    <h2 class="text-xl md:text-2xl font-black text-slate-100 mt-1">שולחן הממשלה העגול 🏛️</h2>
+                    <p class="text-[11px] text-slate-400 mt-1">השרים הבכירים מחכים להנחיות שלכם. לחצו עליהם לראות את עמדתם או הקלידו הודעה בצ'אט הישיר.</p>
+                </div>
+
+                <!-- Circular visual table mock -->
+                <div class="relative bg-slate-950 rounded-2xl p-6 border border-slate-800 flex items-center justify-center h-64 shadow-inner">
+                    <div class="absolute w-24 h-24 rounded-full bg-indigo-950/50 border-4 border-dashed border-indigo-500/30 flex items-center justify-center text-[10px] text-indigo-300 font-bold text-center p-2">
+                        קבינט המצב
+                    </div>
+
+                    <!-- MK circular position points -->
+                    <div class="absolute top-4 flex flex-col items-center cursor-pointer hover:scale-105 transition" onclick="clickMKOnTable('bibi')">
+                        <span class="text-xl font-mono">👑</span>
+                        <span class="text-[9px] font-bold text-indigo-400 bg-slate-900/90 px-1.5 py-0.5 rounded-full">נתניהו</span>
+                    </div>
+                    <div class="absolute right-4 top-1/3 flex flex-col items-center cursor-pointer hover:scale-105 transition" onclick="clickMKOnTable('deri')">
+                        <span class="text-xl font-mono">🕌</span>
+                        <span class="text-[9px] font-bold text-amber-400 bg-slate-900/90 px-1.5 py-0.5 rounded-full">דרעי</span>
+                    </div>
+                    <div class="absolute right-12 bottom-4 flex flex-col items-center cursor-pointer hover:scale-105 transition" onclick="clickMKOnTable('gold')">
+                        <span class="text-xl font-mono">📜</span>
+                        <span class="text-[9px] font-bold text-blue-300 bg-slate-900/90 px-1.5 py-0.5 rounded-full">גולדקנופף</span>
+                    </div>
+                    <div class="absolute left-4 top-1/3 flex flex-col items-center cursor-pointer hover:scale-105 transition" onclick="clickMKOnTable('gvir')">
+                        <span class="text-xl font-mono">🛡️</span>
+                        <span class="text-[9px] font-bold text-red-400 bg-slate-900/90 px-1.5 py-0.5 rounded-full">בן גביר</span>
+                    </div>
+                    <div class="absolute left-12 bottom-4 flex flex-col items-center cursor-pointer hover:scale-105 transition" onclick="clickMKOnTable('smotrich')">
+                        <span class="text-xl font-mono">🏔️</span>
+                        <span class="text-[9px] font-bold text-orange-400 bg-slate-900/90 px-1.5 py-0.5 rounded-full">סמוטריץ'</span>
+                    </div>
+                </div>
+
+                <!-- Cabinet Status Cards -->
+                <div class="bg-indigo-950/20 p-3.5 rounded-xl border border-indigo-900/30 text-xs text-slate-400 leading-normal" id="cabinet-quick-stance">
+                    <strong>לחצו על שר סביב השולחן</strong> כדי לשמוע את דעתו והשפעתו על יציבות הממשלה בזמן אמת.
+                </div>
+            </div>
+
+            <!-- Left side: Interactive Reactive Chat Frame -->
+            <div class="md:w-1/2 flex flex-col justify-between h-[65vh] bg-slate-950 border border-slate-850 rounded-2xl overflow-hidden shadow-2xl">
+                <div class="bg-slate-900 px-4 py-3 border-b border-slate-850 flex justify-between items-center">
+                    <span class="text-xs font-bold text-slate-200">ערוץ דיונים מאובטח</span>
+                    <span class="text-[10px] bg-emerald-500/15 text-emerald-400 px-2 py-0.5 rounded-full font-bold animate-pulse font-mono">● חי ומקודד</span>
+                </div>
+
+                <!-- Chat message list -->
+                <div id="cabinet-chat-messages" class="flex-grow p-4 overflow-y-auto space-y-4 text-xs">
+                    <!-- Dynamic chat messages injected here -->
+                </div>
+
+                <!-- Chat Input controls -->
+                <div class="p-3 border-t border-slate-850 bg-slate-900/80 flex gap-2">
+                    <input type="text" id="cabinet-user-message" placeholder="כתבו לקבינט (גיוס, תורה, לבנון, ביטחון, כסף, חוצפן...)" class="flex-grow bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none transition" onkeydown="handleChatKeyDown(event)">
+                    <button onclick="sendCabinetUserMessage()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-5 py-2.5 rounded-xl font-bold transition">שלח 💬</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ================= POLITICAL NEGOTIATION MODAL PANEL ================= -->
+    <div id="political-negotiation-modal" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-emerald-500/40 max-w-5xl w-full rounded-3xl p-6 md:p-8 shadow-2xl flex flex-col md:flex-row gap-6 relative max-h-[90vh] overflow-hidden">
+            
+            <button onclick="closePoliticalNegotiationModal()" class="absolute top-4 left-4 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-full p-2 text-xs transition font-black">✕ סגור חדר מו"מ</button>
+
+            <!-- Right side: Partner Status & Budgets -->
+            <div class="md:w-1/2 flex flex-col justify-between space-y-4 overflow-y-auto pr-1">
+                <div class="text-right">
+                    <span class="text-emerald-400 text-xs font-bold uppercase tracking-wide">חדר הסכמים שוטף קואליציוני</span>
+                    <h2 class="text-xl md:text-2xl font-black text-slate-100 mt-1">משא ומתן פוליטי שוטף 🤝</h2>
+                    <p class="text-[11px] text-slate-400 mt-1">חלק תקציבים סיעתיים ספציפיים ונהל את דרישות המפתח של המפלגות. חתימה על הסכם מחזקת את יציבות המפלגה אך פוגעת בתקציב הממשלה הכללי או בציבור.</p>
+                </div>
+
+                <!-- Live stats inside negotiation room -->
+                <div class="grid grid-cols-2 gap-3 bg-slate-950 p-3 rounded-xl border border-slate-850 text-xs">
+                    <div>
+                        <span class="text-slate-400 block text-[10px]">תקציב הממשלה הכללי:</span>
+                        <span id="nego-room-gov-budget" class="font-bold text-emerald-400 font-mono">₪0</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block text-[10px]">יציבות קואליציה:</span>
+                        <span id="nego-room-gov-stability" class="font-bold text-indigo-400 font-mono">0%</span>
+                    </div>
+                </div>
+
+                <!-- Interactive Partner Cards for ongoing negotiation -->
+                <div class="space-y-3 max-h-[40vh] overflow-y-auto pr-1" id="ongoing-nego-partners-list">
+                    <!-- Loaded dynamically -->
+                </div>
+
+                <!-- Custom Appointments Section (Attorney General etc.) -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-850 space-y-3">
+                    <h4 class="text-xs font-bold text-amber-400 flex items-center gap-1.5">⚖️ מינוי יועץ משפטי לממשלה (יועמ"ש) ושופטים</h4>
+                    <p class="text-[10px] text-slate-400 leading-normal">הכתרת יועמ\"ש תגדיר את יחסי הממשלה מול מערכת החוק. החלטה זו תעבור הצבעה מהירה בין שותפי הגוש בצ'אט!</p>
+                    
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="proposeAppointment('conservative')" class="bg-slate-900 hover:bg-amber-600/20 border border-slate-800 hover:border-amber-500 text-[10px] text-right p-2 rounded-lg transition font-medium">
+                            <span class="font-bold block text-amber-400">יועמ"ש שמרן (תומך ימין)</span>
+                            <span class="text-[9px] text-slate-500">עלות: ₪100k | מעלה יציבות, מוריד פופולריות</span>
+                        </button>
+                        <button onclick="proposeAppointment('liberal')" class="bg-slate-900 hover:bg-indigo-600/20 border border-slate-800 hover:border-indigo-500 text-[10px] text-right p-2 rounded-lg transition font-medium">
+                            <span class="font-bold block text-indigo-400">יועמ"ש פשרה (ממלכתי)</span>
+                            <span class="text-[9px] text-slate-500">עלות: ₪50k | מאוזן לכולם, מונע שביתות</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Left side: Interactive Reactive Chat Frame -->
+            <div class="md:w-1/2 flex flex-col justify-between h-[65vh] bg-slate-950 border border-slate-850 rounded-2xl overflow-hidden shadow-2xl">
+                <div class="bg-slate-900 px-4 py-3 border-b border-slate-850 flex justify-between items-center">
+                    <span class="text-xs font-bold text-slate-200">ערוץ המשא ומתן וההסכמים</span>
+                    <span class="text-[10px] bg-emerald-500/15 text-emerald-400 px-2 py-0.5 rounded-full font-bold animate-pulse font-mono">● דיון סיעתי פעיל</span>
+                </div>
+
+                <!-- Chat message list -->
+                <div id="political-negotiation-chat-messages" class="flex-grow p-4 overflow-y-auto space-y-4 text-xs">
+                    <!-- Dynamic chat messages injected here -->
+                </div>
+
+                <!-- Chat Input controls -->
+                <div class="p-3 border-t border-slate-850 bg-slate-900/80 flex gap-2">
+                    <input type="text" id="political-negotiation-user-message" placeholder="הקלידו דרישה, חוק או הצעה (למשל: תקציב, גיוס, יועמש, לתקוף לבנון, חוצפנים...)" class="flex-grow bg-slate-950 border border-slate-800 focus:border-indigo-500 rounded-xl px-4 py-2.5 text-xs text-slate-200 focus:outline-none transition" onkeydown="handleNegoChatKeyDown(event)">
+                    <button onclick="sendPoliticalNegotiationUserMessage()" class="bg-emerald-600 hover:bg-emerald-500 text-slate-950 text-xs px-5 py-2.5 rounded-xl font-bold transition">שלח 💬</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ================= KNESSET VOTING OVERLAY MODAL ================= -->
+    <div id="knesset-voting-overlay" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex flex-col justify-center items-center p-4 hidden">
+        <div class="max-w-3xl w-full text-center space-y-8 animate-scaleUp">
+            
+            <!-- Proposed Law Header Text -->
+            <div class="space-y-3">
+                <span class="bg-amber-500/10 text-amber-400 text-xs px-3 py-1 rounded-full font-bold border border-amber-500/20 uppercase tracking-widest animate-pulse font-mono">הצבעה גורלית במליאת הכנסת</span>
+                <h1 id="voting-law-title" class="text-2xl md:text-4xl font-black text-white px-4 leading-tight italic">
+                    חוק: חוק שמסביר לחרדים להפגין בבתים של נציגי המשטרה
+                </h1>
+                <p class="text-slate-400 text-xs md:text-sm">מזכירות הכנסת מנהלת את ההצבעה האלקטרונית ברגעים אלו. חברי הכנסת מגיעים להצביע.</p>
+            </div>
+
+            <!-- Live MK Reactions Feed during voting -->
+            <div class="bg-slate-900/95 border border-slate-800/80 rounded-2xl p-4 max-w-xl mx-auto text-right space-y-2 shadow-2xl">
+                <h4 class="text-[11px] font-bold text-slate-400 border-b border-slate-850 pb-1.5 flex items-center gap-1.5">
+                    <span>📢</span>
+                    <span>תגובות חברי הכנסת במליאה בזמן אמת:</span>
+                </h4>
+                <div id="voting-mk-reactions" class="space-y-2 max-h-24 overflow-y-auto text-[11px] text-slate-300">
+                    <!-- Reacting dynamically -->
+                </div>
+            </div>
+
+            <!-- Vote Counter Boxes (directly styled from 1777487922364.png) -->
+            <div class="flex justify-center items-center gap-8 md:gap-16 pt-4 relative">
+                
+                <!-- Against Box -->
+                <div class="bg-red-950/80 border-4 border-red-850 rounded-3xl p-8 w-36 h-36 md:w-48 md:h-48 flex flex-col justify-center items-center space-y-2 shadow-2xl">
+                    <span id="vote-against-count" class="text-5xl md:text-7xl font-black text-red-500 font-mono">0</span>
+                    <span class="text-slate-400 font-extrabold text-sm md:text-base tracking-widest">נגד</span>
+                </div>
+
+                <!-- For Box -->
+                <div class="bg-emerald-950/80 border-4 border-emerald-850 rounded-3xl p-8 w-36 h-36 md:w-48 md:h-48 flex flex-col justify-center items-center space-y-2 shadow-2xl">
+                    <span id="vote-for-count" class="text-5xl md:text-7xl font-black text-emerald-400 font-mono">0</span>
+                    <span class="text-slate-400 font-extrabold text-sm md:text-base tracking-widest">בעד</span>
+                </div>
+
+            </div>
+
+            <!-- Voting Result Status Display (styled from 1777487922364.png) -->
+            <div id="voting-status-announcement" class="invisible space-y-4">
+                <p id="voting-result-text" class="text-3xl md:text-5xl font-black text-emerald-400">חוק עבר!</p>
+                <p id="voting-result-subtext" class="text-slate-400 text-xs md:text-sm max-w-md mx-auto">מזל טוב! הצעת החוק עברה את הרוב הנדרש של 61 חברי כנסת במליאה!</p>
+                <div class="pt-4">
+                    <button onclick="closeKnessetVotingOverlay()" class="bg-white hover:bg-slate-100 text-slate-900 font-black px-12 py-4 rounded-full shadow-2xl shadow-white/10 transition-all hover:scale-105">
+                        חזרה ללשכה
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- NOTIFICATION MODALS -->
+    <div id="modal-container" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 max-w-md w-full rounded-2xl p-6 shadow-2xl text-center space-y-4">
+            <div id="modal-icon" class="text-4xl">🎉</div>
+            <h3 id="modal-title" class="text-base font-black text-slate-100">פעולה הושלמה!</h3>
+            <p id="modal-body" class="text-xs text-slate-400 leading-relaxed">תיאור מלא יוצג פה.</p>
+            <button onclick="closeModal()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2.5 rounded-xl transition text-xs">סגור והמשך</button>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-slate-850 bg-slate-950/40 py-4 text-center text-xs text-slate-500">
+        <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <p>© 2026 הדרך ל-61: מהדורת העל 4.0. פיתוח ושדרוג מלא מבוסס תמונה `1777487922364.png`.</p>
+            <p class="text-slate-600">גרסה 4.0.0 • מנתח חוקים דינמי, חדר מצב, ושמירת הישגים מקומית</p>
+        </div>
+    </footer>
+
+    <!-- ================= SCRIPTS ================= -->
+    <script>
+        // Real political parties in Israel
+        const realParties = [
+            { id: 'shas', name: 'ש"ס', leader: 'אריה דרעי', bloc: 'right', seats: 11, budget: 600000, support: 75, description: 'דאגה לחלשים, קצבאות למשפחות ברוכות ילדים וחיזוק עולם התורה הספרדי.' },
+            { id: 'likud', name: 'הליכוד', leader: 'בנימין נתניהו', bloc: 'right', seats: 28, budget: 700000, support: 60, description: 'מפלגת שלטון מסורתית-לאומית, כלכלה חופשית וביטחון חזק.' },
+            { id: 'gimel', name: 'יהדות התורה', leader: 'יצחק גולדקנופף', bloc: 'right', seats: 8, budget: 500000, support: 80, description: 'שמירה על הסטטוס קוו הדתי, חוק גיוס מוסדר וחינוך עצמאי.' },
+            { id: 'smotrich', name: 'הציונות הדתית', leader: 'בצלאל סמוטריץ\'', bloc: 'right', seats: 7, budget: 450000, support: 70, description: 'חיזוק ההתיישבות, פיתוח הכלכלה וזהותה היהודית של המדינה.' },
+            { id: 'gvir', name: 'עוצמה יהודית', leader: 'איתמר בן גביר', bloc: 'right', seats: 6, budget: 400000, support: 65, description: 'משילות אגרסיבית, ביטחון לאומי וחיזוק נחישות המשטרה.' },
+            { id: 'lapid', name: 'יש עתיד', leader: 'יאיר לפיד', bloc: 'center', seats: 17, budget: 650000, support: 60, description: 'מפלגה ליברלית, מעמד הביניים, גיוס לכולם ומאבק על הדמוקרטיה.' },
+            { id: 'gantz', name: 'המחנה הממלכתי', leader: 'בני גנץ', bloc: 'center', seats: 14, budget: 600000, support: 70, description: 'ממלכתיות, אחדות העם, מנהיגות מקצועית ויציבות חוקתית.' },
+            { id: 'liberman', name: 'ישראל ביתנו', leader: 'אביגדור ליברמן', bloc: 'center', seats: 6, budget: 550000, support: 75, description: 'ימין חילוני, מלחמה בסחטנות פוליטית, חוק גיוס מלא.' }
+        ];
+
+        // Global State variables
+        const state = {
+            currentStage: 'setup', 
+            selectedPartyId: 'shas',
+            bloc: 'right', 
+            partyName: '',
+            leaderName: '',
+            isSoundMuted: false,
+            
+            // Campaign
+            week: 1,
+            budget: 500000,
+            partySeats: 18,
+            blocSeats: 56,
+            actionsTaken: 0,
+            
+            // Governance
+            govWeek: 1,
+            stability: 80,
+            publicSupport: 65,
+            isStrikeActive: false,
+            lawsPassedCount: 0,
+            lawCooldown: 0,
+            
+            // Partners
+            partners: []
+        };
+
+        const blocPartners = {
+            right: [
+                { id: 'gimel', name: 'יהדות התורה', leader: 'יצחק גולדקנופף', seats: 8, demand: 'הגנה מוחלטת על חוק הגיוס ותקציבים למוסדות דת', affinity: 50, portfolio: 'אין תיק', colorClass: 'text-blue-300' },
+                { id: 'likud', name: 'הליכוד', leader: 'בנימין נתניהו', seats: 28, demand: 'תיק האוצר, המשפטים ותכנון לאומי', affinity: 55, portfolio: 'אין תיק', colorClass: 'text-indigo-400' },
+                { id: 'smotrich', name: 'הציונות הדתית', leader: 'בצלאל סמוטריץ\'', seats: 7, demand: 'פיתוח שטחי יהודה ושומרון ותפקיד שר האוצר', affinity: 50, portfolio: 'אין תיק', colorClass: 'text-orange-400' },
+                { id: 'gvir', name: 'עוצמה יהודית', leader: 'איתמר בן גביר', seats: 6, demand: 'תיק הביטחון הלאומי ומשילות משטרתית מורחבת', affinity: 45, portfolio: 'אין תיק', colorClass: 'text-red-400' }
+            ],
+            center: [
+                { id: 'lapid', name: 'יש עתיד', leader: 'יאיר לפיד', seats: 17, demand: 'תיק החוץ, שוויון מלא בנטל וליברליזם אזרחי', affinity: 55, portfolio: 'אין תיק', colorClass: 'text-cyan-400' },
+                { id: 'gantz', name: 'המחנה הממלכתי', leader: 'בני גנץ', seats: 14, demand: 'תיק הביטחון, מנהיגות ממלכתית ורסן למערכת המשפט', affinity: 60, portfolio: 'אין תיק', colorClass: 'text-emerald-400' },
+                { id: 'liberman', name: 'ישראל ביתנו', leader: 'אביגדור ליברמן', seats: 6, demand: 'תיק האוצר וגיוס מלא של לומדי התורה', affinity: 50, portfolio: 'אין תיק', colorClass: 'text-slate-400' }
+            ]
+        };
+
+        const headlines = [
+            "סקרים אחרונים מראים על מהפך אפשרי ברגעי האמת!",
+            "האופוזיציה של השמאל מזהירה: \"ממשלת ימין תרמוס את זכויותינו\"",
+            "מתלבטים רבים בשכונות הפריפריה נוטים לתמוך בגוש השמרני",
+            "ראש מועצת חכמי התורה קורא לתגבור מערכי השטח של המפלגה",
+            "יו\"ר האופוזיציה מתראיין בחדשות: \"הממשלה הנוכחית היא אסון כלכלי\"",
+            "גיוסי הון עצומים במגזר ההייטק תומכים במפלגות השמאל-מרכז",
+            "בכירים בגוש: \"הפעם לא נתפשר, נביא 61 מנדטים נקיים\"",
+            "מתחזקת הדרישה הציבורית להעברת חוק מילואים מוגדל"
+        ];
+
+        // MK Database with customized personas and avatars
+        const mkDatabase = {
+            'bibi': { name: 'בנימין נתניהו', party: 'הליכוד', avatar: '👑', color: 'text-indigo-400', stance: "אני מוביל קו חיובי, שקול ואחראי למען המדינה כולה." },
+            'deri': { name: 'אריה דרעי', party: 'ש"ס', avatar: '🕌', color: 'text-amber-400', stance: "עולם התורה הספרדי והדאגה לחלשים הם הדברים החשובים ביותר. עלינו לעמוד חזק!" },
+            'gold': { name: 'יצחק גולדקנופף', party: 'יהדות התורה', avatar: '📜', color: 'text-blue-300', stance: "השמירה על הסטטוס קוו ועל תקציבי החינוך היא תנאי בל יעבור לקיומנו פה." },
+            'gvir': { name: 'איתמר בן גביר', party: 'עוצמה יהודית', avatar: '🛡️', color: 'text-red-400', stance: "חייבים יד קשה, ענישה, ומשילות ברחובות. הבטחנו את זה לעם!" },
+            'smotrich': { name: 'בצלאל סמוטריץ\'', party: 'הציונות הדתית', color: 'text-orange-400', avatar: '🏔️', stance: "פיתוח יישובים ושמירה על המסורת היהודית יחד עם תקציב מאוזן וחזק." },
+            'lapid': { name: 'יאיר לפיד', party: 'יש עתיד', avatar: '📺', color: 'text-cyan-400', stance: "ממשלה קטנה, מאבק בשחיתות, גיוס לכולם ושמירה מוחלטת על הליברליזם." },
+            'gantz': { name: 'בני גנץ', party: 'המחנה הממלכתי', avatar: '🎖️', color: 'text-emerald-400', stance: "האינטרס של המדינה מעל הכל, שמירה על מערכת המשפט ושיח ממלכתי תקין." },
+            'liberman': { name: 'אביגדור ליברמן', party: 'ישראל ביתנו', avatar: '🐻', color: 'text-slate-400', stance: "מאבק בסחטנות פוליטית, חוק גיוס שוויוני ללא הנחות או תירוצים." }
+        };
+
+        const campaignEvents = [
+            {
+                title: "ריאיון לוחמני באולפן שישי מול דני קושמרו",
+                desc: "המראיין מטיח בך באגרסיביות: \"התוכניות שלכם יובילו לפילוג חסר תקדים, לפגיעה בהייטק ולקריסה כלכלית, בעוד שהשמאל מציג חזית ליברלית מאוחדת\". איך תגיב?",
+                choices: [
+                    {
+                        text: "תקוף את התקשורת החד-צדדית! הוכח שהייטקיסטים ופריפריה זקוקים למשילות ולא להפגנות (בייס המפלגה באקסטזה: +2 מנדטים)",
+                        effect: function() {
+                            state.partySeats += 2;
+                            state.blocSeats += 1;
+                            showModal("מתקפה מוצלחת באולפן!", "הבייס והפריפריה התלהבו מהעמידה האיתנה שלך מול המראיין. עליתם במנדטים!", "🔥");
+                        }
+                    },
+                    {
+                        text: "הצג נתונים מדויקים על צמיחה, רפורמות וסיוע חברתי שיטיב עם כולם (מנדטים לגוש +2, תקציב: -₪40,000)",
+                        effect: function() {
+                            state.budget -= 40000;
+                            state.blocSeats += 2;
+                            showModal("הסבר מקצועי משכנע", "מתלבטים מהמרכז השתכנעו שאתם מציגים אלטרנטיבה אחראית וממלכתית.", "📊");
+                        }
+                    }
+                ]
+            },
+            {
+                title: "עימות פומבי ישיר מול יאיר לפיד בטוויטר (X)",
+                desc: "יאיר לפיד מעלה סרטון וטוען: \"המפלגה שלכם מוכרת את עתיד המדינה לקבוצות לחץ ומחריבה את השוויון בנטל\". הציוץ צובר תאוצה אדירה ברשת.",
+                choices: [
+                    {
+                        text: "שחרר סרטון תגובה עם הוכחות על הבטחות העבר שהשמאל הפר בשלטון (מפלגה: +2 מנדטים)",
+                        effect: function() {
+                            state.partySeats += 2;
+                            showModal("הקרב הוויראלי הוכרע!", "הסרטון שלך הפך לוויראלי וחשף את הצביעות של האופוזיציה. תמיכת הציבור עולה!", "📱");
+                        }
+                    },
+                    {
+                        text: "התעלם מהמתקפה והשקע את הכסף בקמפיין פרסום מסיבי ביוטיוב (מנדטים לגוש: +2, תקציב: -₪80,000)",
+                        effect: function() {
+                            state.budget -= 80000;
+                            state.blocSeats += 2;
+                            showModal("עקיפת התקשורת ישירות לקהל", "קמפיין הווידאו הממוקד צבר מיליוני צפיות וגייס קהלים חדשים.", "📺");
+                        }
+                    }
+                ]
+            },
+            {
+                title: "הפגנת פעילי שמאל מחוץ לביתך הפרטי",
+                desc: "עשרות פעילי שמאל קיצוני מפגינים עם מגפונים ושלטים מחוץ לשער הבית שלך, תוך שהם מאשימים אותך ב\"דיקטטורה ושחיתות\". התקשורת מגיעה לסקר בשידור חי.",
+                choices: [
+                    {
+                        text: "צא אליהם עם דגל ישראל, הצע להם כוס מים והכרז: \"נשמור על הדמוקרטיה ועל ביטחון המדינה של כולנו\" (מנדטים לגוש +2)",
+                        effect: function() {
+                            state.blocSeats += 2;
+                            showModal("תמונת ניצחון ממלכתית!", "ההתנהלות המכובדת והמתונה שלך הוציאה את העוקץ מההפגנה והביאה אהדה גדולה מהמרכז.", "🇮🇱");
+                        }
+                    },
+                    {
+                        text: "דרוש מהמשטרה לפנות אותם מיידית והשתמש בצילומים כדי להראות כיצד מנסים להלך עליך אימים (מפלגה: +3 מנדטים)",
+                        effect: function() {
+                            state.partySeats += 3;
+                            showModal("הבייס נזעק להגנה!", "התומכים שלך ראו בכך רדיפה אישית והתגייסו בהמוניהם לתמוך בקלפי.", "🛡️");
+                        }
+                    }
+                ]
+            },
+            {
+                title: "שאלת כתב \"הארץ\" על המגזר החרדי והתקציבים",
+                desc: "כתב עיתון הארץ שואל אותך במסיבת עיתונאים: \"כיצד אתה מצדיק העברת מיליארדים למוסדות דת וישיבות בעוד שמערכת הבריאות והפריפריה קורסות?\"",
+                choices: [
+                    {
+                        text: "הסבר שחינוך חרדי ודתי הוא זכות יסוד שוויונית לכל ילד יהודי, בדיוק כמו כל חינוך אחר במדינה (מפלגה +2 מנדטים)",
+                        effect: function() {
+                            state.partySeats += 2;
+                            showModal("הסברה שוויונית מנצחת", "דבריך חיזקו מאוד את השותפות הדתית והחרדית בקואליציה העתידית.", "🕌");
+                        }
+                    },
+                    {
+                        text: "הצג תוכנית לשילוב חרדים בתעסוקה יחד עם הגדלת תקציבי הפריפריה והבריאות (מנדטים לגוש +2, עלות: ₪50k)",
+                        effect: function() {
+                            state.budget -= 50000;
+                            state.blocSeats += 2;
+                            showModal("תוכנית כלכלית מקיפה", "הצגת חזון כלכלי רחב שמשלב את כלל המגזרים באחריות לאומית.", "🏗️");
+                        }
+                    }
+                ]
+            },
+            {
+                title: "בני גנץ מציג \"תוכנית חירום לאומית לשיקום הדמוקרטיה\"",
+                desc: "במסיבת עיתונאים דרמטית, בני גנץ מציג תוכנית שמציגה את הממשלה הבאה שלכם כסכנה חוקתית וקורא לכל מתלבטי המרכז להצביע עבורו.",
+                choices: [
+                    {
+                        text: "התקשר לגנץ בשידור והצע לו להצטרף לממשלת אחדות לאומית בראשותך לאחר הבחירות (מנדטים לגוש: +2)",
+                        effect: function() {
+                            state.blocSeats += 2;
+                            showModal("מהלך פוליטי מבריק", "הצעת האחדות שלך הציגה אותך כנהיג השקול והאחראי בשטח, והחלישה את הקמפיין הלוחמני שלו.", "🤝");
+                        }
+                    },
+                    {
+                        text: "חשוף את חוסר היציבות של הגוש שלו המסתמך על מפלגות קיצוניות באופוזיציה (מפלגה: +2 מנדטים)",
+                        effect: function() {
+                            state.partySeats += 2;
+                            showModal("חשיפת ערוות האופוזיציה", "הבהרת לציבור שהאלטרנטיבה היא ממשלה לא יציבה שתלויה במפלגות אנטי-ציוניות.", "🗳️");
+                        }
+                    }
+                ]
+            }
+        ];
+
+        let usedEvents = [];
+
+        function generateCampaignEvent() {
+            let availableEvents = campaignEvents.filter(e => !usedEvents.includes(e.title));
+            if (availableEvents.length === 0) {
+                usedEvents = [];
+                availableEvents = campaignEvents;
+            }
+            const randIndex = Math.floor(Math.random() * availableEvents.length);
+            const currentEvent = availableEvents[randIndex];
+            usedEvents.push(currentEvent.title);
+
+            document.getElementById('camp-event-title').innerText = currentEvent.title;
+            document.getElementById('camp-event-desc').innerText = currentEvent.desc;
+
+            const choicesContainer = document.getElementById('camp-event-choices');
+            choicesContainer.innerHTML = '';
+
+            currentEvent.choices.forEach((choice, index) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-right bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-amber-500 text-xs text-slate-200 p-3 rounded-xl transition font-medium leading-relaxed shadow-sm";
+                btn.innerText = choice.text;
+                btn.onclick = function() {
+                    playSound('click');
+                    choice.effect();
+                    nextCampaignWeek();
+                };
+                choicesContainer.appendChild(btn);
+            });
+        }
+
+        function executeCampaignAction(actionType) {
+            playSound('click');
+            if (actionType === 'ads') {
+                if (state.budget < 120000) {
+                    showModal("אין תקציב מספיק!", "עליך לגייס תרומות כדי לממן פעולה זו.", "❌");
+                    playSound('fail');
+                    return;
+                }
+                state.budget -= 120000;
+                const gainedSeats = Math.random() > 0.4 ? 2 : 1;
+                state.partySeats += gainedSeats;
+                state.blocSeats += gainedSeats;
+                showModal("קמפיין דיגיטלי מוצלח", `סרטוני הדיגיטל צברו מיליוני צפיות. זכית ב-${gainedSeats} מנדטים נוספים!`, "📱");
+            } else if (actionType === 'field') {
+                if (state.budget < 75000) {
+                    showModal("אין תקציב מספיק!", "עליך לגייס תרומות כדי לממן פעולה זו.", "❌");
+                    playSound('fail');
+                    return;
+                }
+                state.budget -= 75000;
+                const gainedSeats = Math.random() > 0.5 ? 2 : 1;
+                state.partySeats += gainedSeats;
+                state.blocSeats += gainedSeats;
+                showModal("פעילות שטח אינטנסיבית", `פעילי המפלגה פתחו מוקדי הסברה בכל רחבי הארץ. הוספת ${gainedSeats} מנדטים לגוש!`, "🎪");
+            } else if (actionType === 'spin') {
+                if (state.budget < 100000) {
+                    showModal("אין תקציב מספיק!", "עליך לגייס תרומות כדי לממן פעולה זו.", "❌");
+                    playSound('fail');
+                    return;
+                }
+                state.budget -= 100000;
+                const success = Math.random() > 0.35;
+                if (success) {
+                    state.partySeats += 1;
+                    state.blocSeats += 3;
+                    showModal("הספין עבר בהצלחה!", "הדלפת המסמך גרמה למבוכה רבה במחנה השמאל-מרכז. גוש המנדטים שלכם עלה ב-3 מנדטים של מתלבטים!", "🎯");
+                } else {
+                    state.partySeats = Math.max(5, state.partySeats - 1);
+                    state.blocSeats = Math.max(45, state.blocSeats - 1);
+                    showModal("הספין התפוצץ בפנים!", "התקשורת הוכיחה כי מדובר בפייק ניוז והאשימה אתכם בקמפיין מלוכלך. מנדט אחד עבר לשמאל.", "💥");
+                }
+            }
+            nextCampaignWeek();
+        }
+
+        function fundraiseCampaign() {
+            playSound('success');
+            state.budget += 180000;
+            if (Math.random() > 0.6) {
+                state.blocSeats = Math.max(45, state.blocSeats - 1);
+                showModal("גיוס כספים מוצלח", "הוספת ₪180,000 לקמפיין. עם זאת, התקשורת של השמאל תקפה את דרך גיוס התרומות, ומנדט אחד עבר למרכז-שמאל.", "💵");
+            } else {
+                showModal("גיוס כספים מוצלח ללא פגיעה", "הוספת ₪180,000 לקופת הקמפיין בהצלחה גמורה!", "💰");
+            }
+            updateCampaignStatsUI();
+        }
+
+        function nextCampaignWeek() {
+            state.week++;
+            saveGameLocally();
+            if (state.week > 8) {
+                startElectionStage();
+            } else {
+                setPhaseBadge(`שלב הקמפיין • שבוע ${state.week}`);
+                updateCampaignStatsUI();
+                generateCampaignEvent();
+            }
+        }
+
+        function updateCampaignStatsUI() {
+            document.getElementById('camp-weeks-left').innerText = `שבוע ${state.week} מתוך 8`;
+            document.getElementById('camp-budget').innerText = `₪${state.budget.toLocaleString()}`;
+            document.getElementById('camp-party-seats').innerText = `${state.partySeats} מנדטים`;
+            document.getElementById('camp-bloc-seats').innerText = `${state.blocSeats} מנדטים`;
+            updatePollsUI();
+        }
+
+        function updatePollsUI() {
+            const pollsList = document.getElementById('polls-list');
+            if(!pollsList) return;
+            pollsList.innerHTML = '';
+
+            let opponentBloc = 120 - state.blocSeats;
+
+            const pollData = [
+                { name: `מפלגתך (${state.partyName})`, seats: state.partySeats, color: 'bg-indigo-500', isOwn: true },
+                { name: `שאר שותפי הגוש שלך`, seats: Math.max(0, state.blocSeats - state.partySeats), color: 'bg-blue-600', isOwn: false },
+                { name: `גוש השמאל והאופוזיציה`, seats: opponentBloc, color: 'bg-red-500', isOwn: false }
+            ];
+
+            pollData.forEach(item => {
+                const widthPercent = (item.seats / 120) * 100;
+                const pollItem = document.createElement('div');
+                pollItem.className = "space-y-1.5";
+                pollItem.innerHTML = `
+                    <div class="flex justify-between text-xs">
+                        <span class="font-bold ${item.isOwn ? 'text-indigo-400' : 'text-slate-300'}">${item.name}</span>
+                        <span class="font-extrabold ${item.isOwn ? 'text-indigo-400' : 'text-slate-200'}">${item.seats} מנדטים</span>
+                    </div>
+                    <div class="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden border border-slate-800">
+                        <div class="${item.color} h-full rounded-full transition-all duration-500" style="width: ${widthPercent}%"></div>
+                    </div>
+                `;
+                pollsList.appendChild(pollItem);
+            });
+        }
+
+        function startElectionStage() {
+            state.currentStage = 'election';
+            setPhaseBadge("ליל הבחירות באולפנים");
+            document.getElementById('screen-campaign').classList.add('hidden');
+            document.getElementById('screen-election').classList.remove('hidden');
+
+            document.getElementById('election-your-party-title').innerText = `מפלגתך: ${state.partyName}`;
+            document.getElementById('election-your-bloc-title').innerText = state.bloc === 'right' ? 'גוש הימין' : 'גוש המרכז-שמאל';
+
+            let currentPercent = 0;
+            const interval = setInterval(() => {
+                currentPercent += 5;
+                playSound('tick');
+                if (currentPercent > 100) currentPercent = 100;
+
+                const currentYourBlocSeats = Math.round((state.blocSeats * (currentPercent / 100)));
+                const currentPartySeats = Math.round((state.partySeats * (currentPercent / 100)));
+                const currentRivalBlocSeats = Math.round(((120 - state.blocSeats) * (currentPercent / 100)));
+
+                document.getElementById('election-percent').innerText = `${currentPercent}%`;
+                document.getElementById('election-your-bloc-seats').innerText = `${currentYourBlocSeats} מנדטים`;
+                document.getElementById('election-your-party-seats').innerText = `${currentPartySeats} מנדטים`;
+                document.getElementById('election-rival-bloc-seats').innerText = `${currentRivalBlocSeats} מנדטים`;
+
+                document.getElementById('election-your-bloc-bar').style.width = `${(currentYourBlocSeats / 120) * 100}%`;
+                document.getElementById('election-rival-bloc-bar').style.width = `${(currentRivalBlocSeats / 120) * 100}%`;
+
+                if (currentPercent === 100) {
+                    clearInterval(interval);
+                    showElectionResult();
+                }
+            }, 80);
+        }
+
+        function showElectionResult() {
+            const feedbackBox = document.getElementById('election-feedback-box');
+            const btnContinue = document.getElementById('btn-election-continue');
+            const btnRetry = document.getElementById('btn-election-retry');
+            const resultActions = document.getElementById('election-result-actions');
+
+            resultActions.classList.remove('hidden');
+
+            if (state.blocSeats >= 61) {
+                playSound('success');
+                feedbackBox.className = "p-5 rounded-xl text-xs bg-emerald-950/60 border border-emerald-800 text-emerald-200 space-y-2 text-right";
+                feedbackBox.innerHTML = `
+                    <h4 class="font-extrabold text-sm">ניצחון סוחף! יש לכם גוש של ${state.blocSeats} מנדטים! 🎉</h4>
+                    <p class="text-[11px]">הנשיא הטיל עליך, ראש הממשלה המיועד <strong>${state.leaderName}</strong>, את מלאכת הרכבת הממשלה הבאה. כעת עליך להבטיח את הסכמי השותפים במו"מ מהיר!</p>
+                `;
+                btnContinue.classList.remove('hidden');
+                btnRetry.classList.add('hidden');
+            } else {
+                playSound('fail');
+                feedbackBox.className = "p-5 rounded-xl text-xs bg-red-950/60 border border-red-800/80 text-red-200 space-y-2 text-right";
+                feedbackBox.innerHTML = `
+                    <h4 class="font-extrabold text-sm">אין הכרעה... הגעתם ל-${state.blocSeats} מנדטים בלבד.</h4>
+                    <p class="text-[11px]">הגוש שלך לא חצה את קו ה-61. השמאל הצליח לבלום אתכם והמדינה נגררת לבחירות נוספות מתישות. נסו שוב ושפרו את אסטרטגיית הקמפיין!</p>
+                `;
+                btnContinue.classList.add('hidden');
+                btnRetry.classList.remove('hidden');
+            }
+        }
+
+        let negoBudget = 500000;
+
+        function startNegotiationsStage() {
+            state.currentStage = 'negotiations';
+            setPhaseBadge("מו\"מ קואליציוני חסוי");
+            document.getElementById('screen-election').classList.add('hidden');
+            document.getElementById('screen-negotiations').classList.remove('hidden');
+            
+            negoBudget = 500000;
+            initNegotiationChat();
+            updateNegoUI();
+            generateKnessetChart();
+        }
+
+        function generateKnessetChart() {
+            const chart = document.getElementById('knesset-seating-chart');
+            if(!chart) return;
+            chart.innerHTML = '';
+            
+            const yourBlocTotal = state.blocSeats;
+            const rivalTotal = 120 - yourBlocTotal;
+            
+            for (let i = 0; i < yourBlocTotal; i++) {
+                const seat = document.createElement('div');
+                seat.className = "w-4 h-4 rounded-full bg-indigo-500 shadow-sm animate-pulse";
+                chart.appendChild(seat);
+            }
+            for (let i = 0; i < rivalTotal; i++) {
+                const seat = document.createElement('div');
+                seat.className = "w-4 h-4 rounded-full bg-slate-800 border border-slate-700";
+                chart.appendChild(seat);
+            }
+        }
+
+        function initNegotiationChat() {
+            const container = document.getElementById('nego-chat-messages');
+            if(!container) return;
+            container.innerHTML = `
+                <div class="bg-indigo-950/20 border border-indigo-900/30 p-2.5 rounded-xl text-center text-[10px] text-indigo-300">
+                     המתווכים נכנסו לחדר המו"מ החסוי. ראש הממשלה המיועד <strong>${state.leaderName}</strong> מנהל את הדיון.
+                </div>
+            `;
+            
+            // Initial demands from partners
+            state.partners.forEach((partner, idx) => {
+                setTimeout(() => {
+                    addNegoChatMessage(partner.leader, partner.name, `${partner.demand}! אנו מצפים לקבל יחס הולם לכוחנו הפוליטי של ${partner.seats} מנדטים.`, partner.colorClass);
+                }, (idx + 1) * 1000);
+            });
+        }
+
+        function addNegoChatMessage(leader, party, text, colorClass = 'text-slate-300') {
+            const container = document.getElementById('nego-chat-messages');
+            if(!container) return;
+            
+            const msgEl = document.createElement('div');
+            msgEl.className = "bg-slate-900/60 border border-slate-850 p-2.5 rounded-xl text-right animate-fadeIn space-y-0.5";
+            msgEl.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-[10px] ${colorClass}">${leader} (${party})</span>
+                    <span class="text-[9px] text-slate-500 font-mono">נציג סיעה</span>
+                </div>
+                <p class="text-[11px] text-slate-300 leading-normal mt-0.5">${text}</p>
+            `;
+            container.appendChild(msgEl);
+            container.scrollTop = container.scrollHeight;
+            playSound('tick');
+        }
+
+        function updateNegoUI() {
+            document.getElementById('nego-budget-display').innerText = `₪${negoBudget.toLocaleString()}`;
+            const grid = document.getElementById('negotiation-partners-grid');
+            grid.innerHTML = '';
+
+            state.partners.forEach(partner => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-950 p-4 rounded-2xl border border-slate-850 space-y-3 flex flex-col justify-between";
+                
+                card.innerHTML = `
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between items-center border-b border-slate-850 pb-1.5">
+                            <span class="text-xs font-black text-slate-200">${partner.name}</span>
+                            <span class="text-[10px] bg-slate-900 border border-slate-800 px-2 py-0.5 rounded text-indigo-400 font-extrabold font-mono">${partner.seats} מנדטים</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 leading-normal"><strong class="text-slate-300">דרישת ליבה:</strong> ${partner.demand}</p>
+                        <p class="text-[10px] text-slate-400"><strong class="text-slate-300">נאמנות שותף:</strong> <span class="font-bold text-indigo-400 font-mono">${partner.affinity}%</span></p>
+                        <p class="text-[10px] text-slate-400"><strong class="text-slate-300">תיק ממשלתי:</strong> <span class="font-bold text-emerald-400">${partner.portfolio}</span></p>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-900">
+                        <button onclick="negoAssignPortfolio('${partner.id}', 'בכיר')" class="bg-indigo-600/20 hover:bg-indigo-600 border border-indigo-500/30 text-[9px] font-bold py-1.5 rounded transition">תיק שר בכיר (+20%)</button>
+                        <button onclick="negoOfferBudget('${partner.id}')" class="bg-emerald-600/20 hover:bg-emerald-500 border border-emerald-500/30 text-[9px] font-bold py-1.5 rounded transition font-mono">תקציב קואליציוני (+15%)</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            
+            // Update active member count
+            document.getElementById('nego-member-count').innerText = `${state.partners.length} נציגים בחדר`;
+        }
+
+        function negoAssignPortfolio(partnerId, level) {
+            playSound('success');
+            const partner = state.partners.find(p => p.id === partnerId);
+            if (partner) {
+                partner.portfolio = level === 'בכיר' ? 'שר בכיר' : 'שר רגיל';
+                partner.affinity = Math.min(100, partner.affinity + 20);
+                
+                // Add positive message
+                addNegoChatMessage(partner.leader, partner.name, `תודה רבה לאדוני ראש הממשלה על האמון המלא בנו! תיק השר הבכיר ישרת אותנו נאמנה להגשמת עקרונותינו.`, partner.colorClass);
+                
+                // Trigger jealousy reactions from other partners
+                triggerJealousyReaction(partnerId, 'portfolio');
+                updateNegoUI();
+            }
+        }
+
+        function negoOfferBudget(partnerId) {
+            if (negoBudget < 150000) {
+                showModal("אין מספיק תקציב!", "לא נותרו משאבים פנויים לחלק לשותף זה.", "❌");
+                playSound('fail');
+                return;
+            }
+            playSound('success');
+            const partner = state.partners.find(p => p.id === partnerId);
+            if (partner) {
+                negoBudget -= 150000;
+                partner.affinity = Math.min(100, partner.affinity + 15);
+                
+                // Add positive message
+                addNegoChatMessage(partner.leader, partner.name, `אנו מברכים על הבטחת התקציב למען הנושאים החשובים לבוחרים שלנו. זהו צעד חיוני לשמירה על שלמות הממשלה.`, partner.colorClass);
+                
+                // Trigger jealousy reactions
+                triggerJealousyReaction(partnerId, 'budget');
+                updateNegoUI();
+            }
+        }
+
+        function triggerJealousyReaction(activePartnerId, type) {
+            // Find other partners
+            const rivals = state.partners.filter(p => p.id !== activePartnerId);
+            if (rivals.length === 0) return;
+            
+            // Randomly pick one or two rivals to express concern/jealousy
+            const randRival = rivals[Math.floor(Math.random() * rivals.length)];
+            
+            setTimeout(() => {
+                let reactionText = "";
+                if (type === 'portfolio') {
+                    reactionText = `חברים, מדוע ${state.partners.find(p => p.id === activePartnerId).name} מקבלים תיק שר בכיר לפני כולם? מה לגבי הדרישות המרכזיות שלנו? אנו דורשים השוואת תנאים בהקדם!`;
+                } else {
+                    reactionText = `אנו רואים את הזרמת הכספים הקואליציוניים לטובת המגזר שלהם. אם לא נקבל הבטחה תקציבית מקבילה – הממשלה הזו לא תחזיק מעמד אפילו שבוע!`;
+                }
+                
+                // Slightly reduce rival's affinity due to jealousy
+                randRival.affinity = Math.max(15, randRival.affinity - 5);
+                addNegoChatMessage(randRival.leader, randRival.name, reactionText, randRival.colorClass);
+                updateNegoUI();
+            }, 1200);
+        }
+
+        function finalizeCoalitionAndGovern() {
+            const lowLoyalty = state.partners.find(p => p.affinity < 50);
+            if (lowLoyalty) {
+                showModal("שותפים לא מרוצים!", `מפלגת "${lowLoyalty.name}" מסרבת לחתום על הסכם קואליציוני עם פחות מ-50% נאמנות. הענק להם תיק בכיר או הבטח תקציב!`, "⚠️");
+                playSound('fail');
+                return;
+            }
+            proceedToGovernanceStage();
+        }
+
+        function proceedToGovernanceStage() {
+            state.currentStage = 'governance';
+            setPhaseBadge("שלב המשילות • ראש הממשלה");
+            document.getElementById('screen-negotiations').classList.add('hidden');
+            document.getElementById('screen-governance').classList.remove('hidden');
+
+            state.govWeek = 1;
+            state.stability = 80;
+            state.publicSupport = 65;
+            state.isStrikeActive = false;
+            state.lawsPassedCount = 0;
+            state.lawCooldown = 0;
+
+            document.getElementById('gov-leader-title-display').innerText = `ממשלת ${state.partyName} | בראשות ${state.leaderName}`;
+            document.getElementById('gov-bloc-type').innerText = state.bloc === 'right' ? 'גוש הימין' : 'גוש המרכז-שמאל';
+
+            saveGameLocally();
+            updateGovernanceStatsUI();
+            generateGovernanceCrisis();
+            renderLaws();
+            renderPartners();
+            
+            // Welcome system message in the cabinet chat
+            initCabinetChat();
+        }
+
+        function openCabinetModal() {
+            playSound('success');
+            document.getElementById('cabinet-modal').classList.remove('hidden');
+        }
+
+        function closeCabinetModal() {
+            playSound('click');
+            document.getElementById('cabinet-modal').classList.add('hidden');
+        }
+
+        function openPoliticalNegotiationModal() {
+            playSound('success');
+            document.getElementById('political-negotiation-modal').classList.remove('hidden');
+            updateOngoingNegoUI();
+            initPoliticalNegoChat();
+        }
+
+        function closePoliticalNegotiationModal() {
+            playSound('click');
+            document.getElementById('political-negotiation-modal').classList.add('hidden');
+        }
+
+        function updateOngoingNegoUI() {
+            document.getElementById('nego-room-gov-budget').innerText = `₪${state.budget.toLocaleString()}`;
+            document.getElementById('nego-room-gov-stability').innerText = `${state.stability}%`;
+
+            const container = document.getElementById('ongoing-nego-partners-list');
+            if (!container) return;
+            container.innerHTML = '';
+
+            state.partners.forEach(partner => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-900 p-4 rounded-2xl border border-slate-800 space-y-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3";
+                
+                let demandBadge = `<span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded text-[10px]">ממתין להסכם</span>`;
+                if (partner.demandStatus === 'satisfied') {
+                    demandBadge = `<span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded text-[10px]">הסכם נחתם ✓</span>`;
+                } else if (partner.demandStatus === 'rejected') {
+                    demandBadge = `<span class="bg-red-500/10 text-red-400 border border-red-500/20 px-2 py-0.5 rounded text-[10px]">נדחה ✕</span>`;
+                }
+
+                card.innerHTML = `
+                    <div class="space-y-1 max-w-sm text-right">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-black text-slate-100">${partner.name}</span>
+                            ${demandBadge}
+                        </div>
+                        <p class="text-[10px] text-slate-400 leading-normal"><strong class="text-slate-300">דרישה אידיאולוגית:</strong> ${partner.activeDemand}</p>
+                        <div class="text-[9px] text-slate-500 flex gap-3 font-mono">
+                            <span>עלות: ₪${partner.demandCost.toLocaleString()}</span>
+                            <span>נאמנות שותף: ${partner.affinity}%</span>
+                            <span>תקציב סיעתי: ₪${partner.partyBudget.toLocaleString()}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+                        <button onclick="satisfyPartnerDemand('${partner.id}')" ${partner.demandStatus !== 'pending' ? 'disabled' : ''} class="flex-grow sm:flex-none bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 text-slate-950 font-bold text-[9px] px-3 py-1.5 rounded-lg transition">חתום הסכם</button>
+                        <button onclick="rejectPartnerDemand('${partner.id}')" ${partner.demandStatus !== 'pending' ? 'disabled' : ''} class="flex-grow sm:flex-none bg-red-600/20 hover:bg-red-600 border border-red-500/20 disabled:bg-slate-800 disabled:border-none text-red-400 disabled:text-slate-500 text-[9px] px-3 py-1.5 rounded-lg transition">סרב לדרישה</button>
+                        <button onclick="allocatePartyBudget('${partner.id}')" class="flex-grow sm:flex-none bg-indigo-600/20 hover:bg-indigo-600 border border-indigo-500/30 text-[9px] font-bold text-indigo-300 hover:text-white px-3 py-1.5 rounded-lg transition font-mono">תקציב סיעתי (+₪50k)</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function satisfyPartnerDemand(partnerId) {
+            const partner = state.partners.find(p => p.id === partnerId);
+            if (!partner) return;
+
+            if (state.budget < partner.demandCost) {
+                showModal("אין תקציב מספיק!", "תקציב הממשלה אינו מספיק לחתימה על הסכם זה.", "❌");
+                playSound('fail');
+                return;
+            }
+
+            playSound('success');
+            state.budget -= partner.demandCost;
+            partner.affinity = Math.min(100, partner.affinity + 25);
+            state.stability = Math.min(100, state.stability + partner.demandStabilityEffect + 10);
+            state.publicSupport = Math.max(0, state.publicSupport - 8);
+            partner.demandStatus = 'satisfied';
+
+            addOngoingNegoChatMessage(partner.leader, partner.name, `אני מודה לראש הממשלה על חתימת ההסכם ההיסטורי בנושא "${partner.activeDemand}". אנו שותפים נאמנים!`, partner.colorClass);
+            
+            // Dynamic objection from other partners if they are in coalition and get jealous
+            triggerObjectionEvent(partnerId, 'demand');
+            
+            updateOngoingNegoUI();
+            updateGovernanceStatsUI();
+            saveGameLocally();
+        }
+
+        function rejectPartnerDemand(partnerId) {
+            const partner = state.partners.find(p => p.id === partnerId);
+            if (!partner) return;
+
+            playSound('fail');
+            partner.affinity = Math.max(0, partner.affinity - 20);
+            state.stability = Math.max(0, state.stability - 10);
+            partner.demandStatus = 'rejected';
+
+            addOngoingNegoChatMessage(partner.leader, partner.name, `אני מזהיר את ראש הממשלה: סירובכם לדרישתנו הצודקת בנושא "${partner.activeDemand}" יגרור השלכות חמורות על שלמות הממשלה!`, partner.colorClass);
+            updateOngoingNegoUI();
+            updateGovernanceStatsUI();
+            saveGameLocally();
+        }
+
+        function allocatePartyBudget(partnerId) {
+            const amount = 50000;
+            if (state.budget < amount) {
+                showModal("אין תקציב מספיק!", "תקציב הממשלה אינו מספיק להקצאת תקציב סיעתי נוסף.", "❌");
+                playSound('fail');
+                return;
+            }
+
+            playSound('success');
+            const partner = state.partners.find(p => p.id === partnerId);
+            if (partner) {
+                state.budget -= amount;
+                partner.partyBudget += amount;
+                partner.affinity = Math.min(100, partner.affinity + 12);
+                
+                addOngoingNegoChatMessage(partner.leader, partner.name, `קיבלנו בסיעה את ההעברה התקציבית הנוספת בסך ₪${amount.toLocaleString()}. אנו מוקירים את המנהיגות האחראית של ראש הממשלה!`, partner.colorClass);
+                
+                // Jealousy trigger for budget allocation
+                triggerObjectionEvent(partnerId, 'budget');
+                
+                updateOngoingNegoUI();
+                updateGovernanceStatsUI();
+                saveGameLocally();
+            }
+        }
+
+        function triggerObjectionEvent(activePartnerId, type) {
+            const otherPartners = state.partners.filter(p => p.id !== activePartnerId);
+            if (otherPartners.length === 0) return;
+
+            const jealousPartner = otherPartners[Math.floor(Math.random() * otherPartners.length)];
+            
+            setTimeout(() => {
+                let stmt = "";
+                if (type === 'budget') {
+                    if (['lapid', 'gantz', 'liberman'].includes(jealousPartner.id)) {
+                        stmt = `אנו מתנגדים נחרצות להזרמת כספים אלו המנציחים את אי השוויון! אם ההסכמים הסקטוריאליים הלא שוויוניים האלה יימשכו, נשקול פרישה מיידית.`;
+                        jealousPartner.affinity = Math.max(10, jealousPartner.affinity - 15);
+                    } else {
+                        stmt = `סליחה?! למה המגזר שלהם מקבל עוד ₪50,000 ועל הסיעה שלנו פשוט מדלגים? אנחנו דורשים העברה תקציבית זהה מייד!`;
+                        jealousPartner.affinity = Math.max(10, jealousPartner.affinity - 10);
+                    }
+                } else {
+                    stmt = `החתימה שלכם על ההסכם מול "${state.partners.find(p => p.id === activePartnerId).name}" מקפחת את המצע של שאר חברות הקואליציה. נדרוש פיצוי הולם בחוק הבא.`;
+                }
+
+                addOngoingNegoChatMessage(jealousPartner.leader, jealousPartner.name, stmt, jealousPartner.colorClass);
+                updateOngoingNegoUI();
+                updateGovernanceStatsUI();
+            }, 1200);
+        }
+
+        function proposeAppointment(type) {
+            let cost = type === 'conservative' ? 100000 : 50000;
+            if (state.budget < cost) {
+                showModal("אין תקציב מספיק!", "תקציב הממשלה אינו מספיק למהלך מינוי זה.", "❌");
+                playSound('fail');
+                return;
+            }
+
+            playSound('click');
+            const title = type === 'conservative' ? 'יועמ"ש שמרן (תומך ימין)' : 'יועמ"ש פשרה (ממלכתי)';
+            
+            const chatContainer = document.getElementById('political-negotiation-chat-messages');
+            const announceEl = document.createElement('div');
+            announceEl.className = "bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl text-center text-[10px] text-amber-400";
+            announceEl.innerText = `🚨 ראש הממשלה מציע למנות את: ${title}. הצבעה סיעתית החלה בקבינט!`;
+            chatContainer.appendChild(announceEl);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            runCoalitionVoteTally(type, title, cost);
+        }
+
+        function runCoalitionVoteTally(type, title, cost) {
+            let votesFor = 1; // Player
+            let votesAgainst = 0;
+            let counter = 0;
+
+            const chatContainer = document.getElementById('political-negotiation-chat-messages');
+
+            state.partners.forEach((partner, idx) => {
+                setTimeout(() => {
+                    let supports = false;
+                    let stmt = "";
+
+                    if (type === 'conservative') {
+                        if (['shas', 'gimel', 'gvir', 'smotrich', 'likud'].includes(partner.id)) {
+                            supports = true;
+                            if (partner.id === 'likud') {
+                                stmt = "כמפלגת שלטון, הליכוד תומך במינוי משפטי שמרן שישחרר את כבלי המשילות וימנע פקידות מעכבת.";
+                            } else if (partner.id === 'shas') {
+                                stmt = "אנו בש\"ס בעד לחלוטין! הגיע הזמן שבית המשפט יפסיק לפסול את נציגי הציבור הנבחרים.";
+                            } else if (partner.id === 'gimel') {
+                                stmt = "יהדות התורה תומכת! יועמ\"ש שמרן ישמור על הסטטוס קוו ויגן על עולם התורה של הציבור החרדי.";
+                            } else if (partner.id === 'smotrich') {
+                                stmt = "זהו מהלך חיוני להשבת הריבונות לעם ולנבחריו. הציונות הדתית מברכת ומצביעה בעד!";
+                            } else if (partner.id === 'gvir') {
+                                stmt = "עוצמה יהודית תומכת בכל הכוח! חייבים יועמ\"ש חזק שלא יקשור את הידיים של המשטרה והלוחמים שלנו!";
+                            } else {
+                                stmt = "אנו תומכים בצעד זה לטובת חיזוק המשילות הימנית.";
+                            }
+                        } else {
+                            supports = false;
+                            if (partner.id === 'lapid') {
+                                stmt = "אנו מתנגדים נחרצות! מינוי יועמ\"ש שמרן חד-צדדי הוא קץ הדמוקרטיה וריסוק שלטון החוק.";
+                            } else if (partner.id === 'gantz') {
+                                stmt = "המחנה הממלכתי יצביע נגד. זהו צעד פוליטי קיצוני שפוגע בממלכתיות של מוסד היועמ\"ש.";
+                            } else {
+                                stmt = "אנו מתנגדים למינוי שמפר את האיזון הקיים במערכת המשפט.";
+                            }
+                        }
+                    } else { // liberal / compromise
+                        if (['lapid', 'gantz', 'liberman'].includes(partner.id)) {
+                            supports = true;
+                            if (partner.id === 'lapid') {
+                                stmt = "אנו מברכים על הבחירה הממלכתית. זהו יועמ\"ש מקצועי שישמור על מערכת החוק ללא פניות.";
+                            } else if (partner.id === 'gantz') {
+                                stmt = "זוהי פשרה ראויה וממלכתית שתמנע קרע קשה בעם ותשמור על מערכת המשפט. אנו בעד.";
+                            } else if (partner.id === 'liberman') {
+                                stmt = "ישראל ביתנו בעד יועמ\"ש ממלכתי ומקצועי שאינו נתון ללחצים סקטוריאליים.";
+                            } else {
+                                stmt = "אנו מברכים על הבחירה הממלכתית.";
+                            }
+                        } else {
+                            supports = Math.random() > 0.45;
+                            if (supports) {
+                                if (partner.id === 'shas') {
+                                    stmt = "זוהי פשרה כואבת, אך למען שלמות הקואליציה ומניעת בחירות נסכים למינוי.";
+                                } else {
+                                    stmt = "נצביע בעד כפשרה הכרחית לשמירה על יציבות הממשלה.";
+                                }
+                            } else {
+                                if (partner.id === 'gvir') {
+                                    stmt = "מתנגד! אנו לא מוכנים לפשרות רופסות מול השמאל. הבטחנו שינוי אמיתי לבוחרים שלנו!";
+                                } else if (partner.id === 'smotrich') {
+                                    stmt = "הציונות הדתית תצביע נגד. העם בחר בימין כדי להוביל מדיניות ימין, לא פשרות פקידותיות.";
+                                } else {
+                                    stmt = "אנו מתנגדים למינוי שלא מייצג את ערכי הבוחרים שלנו.";
+                                }
+                            }
+                        }
+                    }
+
+                    if (supports) votesFor++; else votesAgainst++;
+                    addOngoingNegoChatMessage(partner.leader, partner.name, stmt, partner.colorClass);
+
+                    counter++;
+                    if (counter === state.partners.length) {
+                        setTimeout(() => {
+                            const resultEl = document.createElement('div');
+                            resultEl.className = "p-3 rounded-xl text-center text-xs font-bold " + (votesFor >= votesAgainst ? "bg-emerald-950/50 text-emerald-400 border border-emerald-800" : "bg-red-950/50 text-red-400 border border-red-800");
+                            
+                            if (votesFor >= votesAgainst) {
+                                state.budget -= cost;
+                                if (type === 'conservative') {
+                                    state.publicSupport = Math.max(0, state.publicSupport - 15);
+                                    state.stability = Math.min(100, state.stability + 20);
+                                    state.partners.forEach(p => {
+                                        if (['shas', 'gimel', 'gvir', 'smotrich', 'likud'].includes(p.id)) p.affinity = Math.min(100, p.affinity + 15);
+                                    });
+                                    resultEl.innerText = `✓ המינוי אושר ברוב קואליציוני של ${votesFor} בעד מול ${votesAgainst} נגד! יציבות הממשלה עלתה, אך גל מחאות התעורר בציבור.`;
+                                    triggerStrike(); 
+                                } else {
+                                    state.publicSupport = Math.min(100, state.publicSupport + 12);
+                                    state.stability = Math.min(100, state.stability + 10);
+                                    if (state.isStrikeActive) {
+                                        resolveStrike();
+                                    }
+                                    resultEl.innerText = `✓ המינוי אושר ברוב של ${votesFor} בעד מול ${votesAgainst} נגד! הממלכתיות שלכם זכתה לתגובות נלהבות בציבור.`;
+                                }
+                            } else {
+                                resultEl.innerText = `✕ המינוי נדחה ברוב קואליציוני של ${votesAgainst} נגד מול ${votesFor} בעד. המינוי בוטל ולא נגרע תקציב.`;
+                            }
+
+                            chatContainer.appendChild(resultEl);
+                            chatContainer.scrollTop = chatContainer.scrollHeight;
+                            
+                            updateOngoingNegoUI();
+                            updateGovernanceStatsUI();
+                            saveGameLocally();
+                        }, 1000);
+                    }
+
+                }, (idx + 1) * 1200);
+            });
+        }
+
+        function initPoliticalNegoChat() {
+            const container = document.getElementById('political-negotiation-chat-messages');
+            if(!container) return;
+            container.innerHTML = `
+                <div class="bg-indigo-950/20 border border-indigo-900/30 p-2.5 rounded-xl text-center text-[10px] text-indigo-300">
+                    🤝 חדר המשא ומתן הפוליטי פעיל. הקלידו את הצעותיכם כדי לדון עם סיעות הקואליציה והשמאל.
+                </div>
+            `;
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function addOngoingNegoChatMessage(leader, party, text, colorClass = 'text-slate-300') {
+            const container = document.getElementById('political-negotiation-chat-messages');
+            if(!container) return;
+            
+            const msgEl = document.createElement('div');
+            msgEl.className = "bg-slate-900/60 border border-slate-850 p-2.5 rounded-xl text-right animate-fadeIn space-y-0.5";
+            msgEl.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-[10px] ${colorClass}">${leader} (${party})</span>
+                    <span class="text-[9px] text-slate-500 font-mono">נציג סיעה</span>
+                </div>
+                <p class="text-[11px] text-slate-300 leading-normal mt-0.5">${text}</p>
+            `;
+            container.appendChild(msgEl);
+            container.scrollTop = container.scrollHeight;
+            playSound('tick');
+        }
+
+        function handleNegoChatKeyDown(event) {
+            if (event.key === 'Enter') {
+                sendPoliticalNegotiationUserMessage();
+            }
+        }
+
+        function sendPoliticalNegotiationUserMessage() {
+            const input = document.getElementById('political-negotiation-user-message');
+            if (!input) return;
+            const text = input.value.trim();
+            if (!text) return;
+
+            playSound('click');
+            const container = document.getElementById('political-negotiation-chat-messages');
+            
+            const userMsgEl = document.createElement('div');
+            userMsgEl.className = "flex items-start space-x-2 space-x-reverse justify-end animate-fadeIn mb-3";
+            userMsgEl.innerHTML = `
+                <div class="bg-indigo-950/40 border border-indigo-900/50 p-2 rounded-2xl max-w-[85%] text-left">
+                    <span class="font-bold text-[10px] text-indigo-400">ראש הממשלה (${state.leaderName})</span>
+                    <p class="text-[11px] text-slate-200 leading-relaxed font-medium text-right mt-1">${text}</p>
+                </div>
+                <div class="bg-indigo-600 p-1.5 rounded-xl text-sm text-slate-950 font-mono">👑</div>
+            `;
+            container.appendChild(userMsgEl);
+            container.scrollTop = container.scrollHeight;
+            input.value = '';
+
+            setTimeout(() => {
+                processNegotiationChatInput(text);
+            }, 1000);
+        }
+
+        function processNegotiationChatInput(inputText) {
+            const text = inputText.trim();
+            const lowerText = text.toLowerCase();
+            const container = document.getElementById('political-negotiation-chat-messages');
+            if (!container) return;
+
+            let responses = [];
+
+            // 1. Check for Opposition / Unity Negotiations
+            if (lowerText.includes("אחדות") || lowerText.includes("שמאל") || lowerText.includes("לפיד") || lowerText.includes("גנץ") || lowerText.includes("הסכם")) {
+                responses = [
+                    { mkid: 'gantz', text: "כראש המחנה הממלכתי, המדינה לפני הכל. אנו מוכנים להיכנס לממשלת אחדות לאומית שקולה כדי לחזק את הביטחון. כתוב 'אשר אחדות עם גנץ' כדי לחתום על הסכם!" },
+                    { mkid: 'lapid', text: "אנחנו מוכנים להסכם אחדות שיציל את הכלכלה, בתנאי אחד ברור: חוק גיוס שוויוני מלא ללא פשרות, וביטול תקציבים סקטוריאליים. כתוב 'אשר אחדות עם לפיד' לחתימה!" },
+                    { mkid: 'gvir', text: "הסכם עם השמאל?! זו כניעה מוחלטת! אם תחתמו איתם על הסכם ותכניסו אותם לממשלה - עוצמה יהודית תפרוש מיידית ותפיל את הקואליציה!" },
+                    { mkid: 'deri', text: "הסכמי אחדות הם דבר מבורך למניעת קרע בעם, אך עלינו לוודא שאף גורם בשמאל לא יפגע בקדושת השבת ובתקציבי עולם התורה." }
+                ];
+            }
+            // 2. Signing unity agreement
+            else if (lowerText.includes("אשר אחדות עם גנץ") || lowerText.includes("אשר אחדות עם לפיד") || (lowerText.includes("מאשר אחדות") && (lowerText.includes("גנץ") || lowerText.includes("לפיד")))) {
+                const targetId = lowerText.includes("לפיד") ? "lapid" : "gantz";
+                const targetName = lowerText.includes("לפיד") ? "יאיר לפיד (יש עתיד)" : "בני גנץ (המחנה הממלכתי)";
+                
+                setTimeout(() => {
+                    triggerUnityAgreement(targetId, targetName);
+                }, 1500);
+
+                responses = [
+                    { mkid: 'bibi', text: `אני מברך על ההחלטה הדרמטית של ראש הממשלה לחתום על הסכם היסטורי עם ${targetName}. אנו מחויבים לאחדות העם בשעת חירום זו.` },
+                    { mkid: 'gvir', text: "סכין בגב של בוחרי הימין! כפי שהזהרנו, אנו מפסיקים מיידית את השותפות, עוצמה יהודית מחוץ לממשלה השמאלנית הזו!" }
+                ];
+            }
+            else if (lowerText.includes("יועמש") || lowerText.includes("יועמ\"ש") || lowerText.includes("יועץ משפטי")) {
+                responses = [
+                    { mkid: 'gvir', text: "הגיע הזמן למנות יועמ\"ש שיישר איתנו קו ויאפשר לשרים לממש את המשילות שלהם ברחובות!" },
+                    { mkid: 'deri', text: "מינוי יועמ\"ש שמרן ישקיט את כל הרדיפה הפוליטית של הפרקליטות נגד נציגי הציבור. אנו תומכים." },
+                    { mkid: 'bibi', text: "אני תומך בבחירת מועמד ממלכתי שיעשה סדר במערכות, אך כזה שנוכל לעבוד איתו בתיאום ללא התנגשויות תכופות." },
+                    { mkid: 'smotrich', text: "הנושא המשפטי הוא קריטי. נגבה כל מינוי יועמ\"ש שיתחיל את השבת המשילות והאיזון הנדרש מול הרשות השופטת." }
+                ];
+            } else if (lowerText.includes("תקציב") || lowerText.includes("כסף") || lowerText.includes("מפלגה") || lowerText.includes("קצבאות")) {
+                responses = [
+                    { mkid: 'gold', text: "ההבטחות התקציביות למוסדות החינוך שלנו ולמעונות הן תנאי בל יעבור. העברת תקציבים סיעתיים מראה על נאמנות הדדית!" },
+                    { mkid: 'smotrich', text: "כשר אוצר אחראי, אני שמח לחלק משאבים באופן מאוזן, אך אנו חייבים לוודא שלא נפרוץ את מסגרת התקציב של המדינה." },
+                    { mkid: 'deri', text: "מטרתנו המרכזית היא לדאוג למשפחות ברוכות הילדים ולשכבות החלשות, ההסכמים התקציביים האלו מחזיקים את הקואליציה הזו בחיים." }
+                ];
+            } else if (lowerText.includes("לבנון") || lowerText.includes("לתקוף") || lowerText.includes("צפון") || lowerText.includes("מלחמה")) {
+                responses = [
+                    { mkid: 'gvir', text: "די עם התירוצים והסחבת! חובה לפתוח במערכה צבאית ישירה בלבנון, להחריב את תשתיות חיזבאללה ולהשיב את המשילות המלאה בצפון!" },
+                    { mkid: 'bibi', text: "תקיפה בלבנון מחייבת שיקול דעת אסטרטגוגי כולל, הכנת העורף והבטחת קווי אספקה. נפעל באחריות ובעוצמה מירבית בזמן הנכון." },
+                    { mkid: 'deri', text: "רבותיי, מלחמה בצפון פירושה שפיכות דמים חסרת תקדים. ההחלטה על יציאה למערכה צריכה לעבור דיון קבינט שקט וסגור ולא להתנהל בצ'אטים הפומביים." }
+                ];
+            } else if (lowerText.includes("גיוס") || lowerText.includes("צבא") || lowerText.includes("מילואים")) {
+                responses = [
+                    { mkid: 'gold', text: "שלא תעזו לדבר איתנו על גיוס בכפייה של בני הישיבות! לומדי התורה הם חומת המגן האמיתית של עם ישראל. פגיעה בהם היא קו אדום!" },
+                    { mkid: 'deri', text: "המגזר החרדי פתוח להסדרי פשרה הוגנים שיאפשרו למי שאינם לומדים לשרת, אך חלילה מלהפריע למי שתורתו אומנותו." },
+                    { mkid: 'smotrich', text: "הציונות הדתית משלבת בצורה מופלאה בין תורה למילואים. אנו תומכים בנשיאה משותפת בנטל בצורה מכבדת והדרגתית." }
+                ];
+            } else if (lowerText.includes("חוצפן") || lowerText.includes("חוצפנים") || lowerText.includes("שקט") || lowerText.includes("תשתקו")) {
+                responses = [
+                    { mkid: 'gvir', text: "סליחה?! חבריי ואני עושים הכל כדי שהממשלה הזו תהיה יציבה ואתה מעז לקרוא לנו חוצפנים? אם ככה אתה מתייחס אלינו – שלמות הקואליציה בסכנה!" },
+                    { mkid: 'deri', text: "אני קורא לכולם לרסן את הטונים. אנו צריכים לפעול יחד באחדות למען עם ישראל, לא לריב כמו ילדים קטנים." },
+                    { mkid: 'bibi', text: "בואו לא ניתן לשמאל ולתקשורת את התענוג לראות אותנו רבים. אנו גוש מאוחד וחזק, ובשיח מכובד נפתור הכל." }
+                ];
+                state.stability = Math.max(0, state.stability - 6);
+            } else {
+                responses = [
+                    { mkid: 'bibi', text: `לגבי הצעתך בנושא "${text.substring(0, 30)}..." - אנו צריכים לבדוק את כל היבטיה המשפטיים והביטחוניים בקבינט המלא, אך אנו פתוחים לדיון.` },
+                    { mkid: 'smotrich', text: "כל הצעה חדשה מחייבת בדיקה מקצועית של האוצר כדי לוודא שאין פה נזק כלכלי מצטבר לממשלה." },
+                    { mkid: 'gvir', text: "הבטחנו לבוחרים שלנו מעשים ולא דיבורים! אם זה יחזק את הביטחון של תושבי המדינה - אנו נהיה הראשונים לתמוך." }
+                ];
+            }
+
+            // Filter out player
+            responses = responses.filter(r => {
+                const mk = mkDatabase[r.mkid];
+                if (!mk) return true;
+                return mk.name !== state.leaderName && mk.party !== state.partyName;
+            });
+
+            responses.forEach((msg, idx) => {
+                setTimeout(() => {
+                    const mk = mkDatabase[msg.mkid] || { name: 'שר בקבינט', avatar: '👤', color: 'text-slate-300' };
+                    const msgEl = document.createElement('div');
+                    msgEl.className = "flex items-start space-x-2 space-x-reverse animate-fadeIn mb-2.5";
+                    msgEl.innerHTML = `
+                        <div class="bg-slate-900 border border-slate-800 p-1.5 rounded-xl text-sm font-mono">${mk.avatar}</div>
+                        <div class="bg-slate-900/60 border border-slate-850 p-2 rounded-2xl max-w-[85%] text-right">
+                            <span class="font-bold text-[10px] ${mk.color}">${mk.name} (${mk.party})</span>
+                            <p class="text-[11px] text-slate-300 leading-normal mt-1">${msg.text}</p>
+                        </div>
+                    `;
+                    container.appendChild(msgEl);
+                    container.scrollTop = container.scrollHeight;
+                    playSound('tick');
+                    updateOngoingNegoUI();
+                }, idx * 1000);
+            });
+        }
+
+        function triggerUnityAgreement(partnerId, partnerName) {
+            playSound('success');
+            
+            const partnerInfo = partnerId === 'lapid' 
+                ? { id: 'lapid', name: 'יש עתיד', leader: 'יאיר לפיד', seats: 17, demand: 'שוויון בנטל', affinity: 90, portfolio: 'שר החוץ', colorClass: 'text-cyan-400', partyBudget: 100000, activeDemand: 'שוויון מלא בנטל וגיוס חרדים', demandCost: 50000, demandStabilityEffect: 10, demandStatus: 'satisfied' }
+                : { id: 'gantz', name: 'המחנה הממלכתי', leader: 'בני גנץ', seats: 14, demand: 'ממלכתיות', affinity: 95, portfolio: 'שר הביטחון', colorClass: 'text-emerald-400', partyBudget: 120000, activeDemand: 'מנהיגות ממלכתית', demandCost: 60000, demandStabilityEffect: 15, demandStatus: 'satisfied' };
+
+            // Check if already in coalition, if not add
+            if (!state.partners.some(p => p.id === partnerId)) {
+                state.partners.push(partnerInfo);
+            }
+
+            // Extreme right partners (Gvir / Smotrich) get angry and their loyalty drops or they leave
+            state.partners.forEach(p => {
+                if (p.id === 'gvir' || p.id === 'smotrich') {
+                    p.affinity = Math.max(0, p.affinity - 50); 
+                }
+                if (p.id === 'shas' || p.id === 'gimel') {
+                    p.affinity = Math.max(15, p.affinity - 30); 
+                }
+            });
+
+            // Adjust overall government scores due to wide consensus government
+            state.stability = Math.min(100, state.stability + 20);
+            state.publicSupport = Math.min(100, state.publicSupport + 25); 
+
+            // Kick out any partners whose loyalty dropped to 0%
+            const activePartners = state.partners.filter(p => p.affinity > 0);
+            state.partners = activePartners;
+
+            showModal("הסכם אחדות היסטורי נחתם! 🇮🇱", `חתמתם על הסכם הצטרפות לממשלה עם ${partnerName}. מפלגות מרכז הצטרפו לקבינט, הפופולריות הציבורית זינקה, אך מפלגות ימין קיצוניות זעמו ופרשו מהממשלה!`, "🏆");
+            updateGovernanceStatsUI();
+            renderPartners();
+            saveGameLocally();
+        }
+
+        function initCabinetChat() {
+            const container = document.getElementById('cabinet-chat-messages');
+            if(!container) return;
+            container.innerHTML = `
+                <div class="bg-indigo-950/20 border border-indigo-900/30 p-3 rounded-xl text-center text-[10px] text-indigo-300">
+                    👑 ראש הממשלה <strong>${state.leaderName}</strong> כינס את ישיבת הקבינט המיוחדת לשבוע זה.
+                </div>
+                <div class="flex items-start space-x-2 space-x-reverse animate-fadeIn">
+                    <div class="bg-slate-900 border border-slate-800 p-1.5 rounded-xl text-sm font-mono">👑</div>
+                    <div class="bg-slate-900/60 border border-slate-850 p-2 rounded-2xl max-w-[85%] text-right">
+                        <span class="font-bold text-[10px] text-indigo-400">בנימין נתניהו (הליכוד)</span>
+                        <p class="text-[11px] text-slate-300 leading-normal mt-1">שלום לראש הממשלה ולכל שרי הקבינט הגיבורים שלנו. יחד נשמור על יציבות ונוביל את ביטחון ישראל באחריות.</p>
+                    </div>
+                </div>
+            `;
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function clickMKOnTable(mkId) {
+            playSound('click');
+            const mk = mkDatabase[mkId];
+            if (!mk) return;
+            
+            const stanceBox = document.getElementById('cabinet-quick-stance');
+            stanceBox.innerHTML = `
+                <div class="flex items-center gap-2 mb-1 text-right">
+                    <span class="text-sm font-mono">${mk.avatar}</span>
+                    <strong class="${mk.color}">${mk.name} (${mk.party})</strong>
+                </div>
+                <p class="text-[11px] text-slate-300 text-right">"${mk.stance}"</p>
+            `;
+
+            // MK also posts directly to chat when clicked
+            const container = document.getElementById('cabinet-chat-messages');
+            const row = document.createElement('div');
+            row.className = "flex items-start space-x-2 space-x-reverse animate-fadeIn";
+            row.innerHTML = `
+                <div class="bg-slate-900 border border-slate-800 p-1.5 rounded-xl text-sm font-mono">${mk.avatar}</div>
+                <div class="bg-slate-900/60 border border-slate-850 p-2 rounded-2xl max-w-[85%] text-right">
+                    <span class="font-bold text-[10px] ${mk.color}">${mk.name} (${mk.party})</span>
+                    <p class="text-[11px] text-slate-300 leading-normal mt-1">אדוני ראש הממשלה: "${mk.stance}"</p>
+                </div>
+            `;
+            container.appendChild(row);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function handleChatKeyDown(event) {
+            if (event.key === 'Enter') {
+                sendCabinetUserMessage();
+            }
+        }
+
+        function sendCabinetUserMessage() {
+            const input = document.getElementById('cabinet-user-message');
+            if (!input) return;
+            const text = input.value.trim();
+            if (!text) return;
+
+            playSound('click');
+            const container = document.getElementById('cabinet-chat-messages');
+            
+            const userMsgEl = document.createElement('div');
+            userMsgEl.className = "flex items-start space-x-2 space-x-reverse justify-end animate-fadeIn";
+            userMsgEl.innerHTML = `
+                <div class="bg-indigo-950/40 border border-indigo-900/50 p-2 rounded-2xl max-w-[85%] text-left">
+                    <span class="font-bold text-[10px] text-indigo-400">ראש הממשלה (${state.leaderName})</span>
+                    <p class="text-[11px] text-slate-200 leading-relaxed font-medium text-right mt-1">${text}</p>
+                </div>
+                <div class="bg-indigo-600 p-1.5 rounded-xl text-sm text-slate-950 font-mono">👑</div>
+            `;
+            container.appendChild(userMsgEl);
+            container.scrollTop = container.scrollHeight;
+            input.value = '';
+
+            // Analyze input for reactive responses
+            setTimeout(() => {
+                processUserChatInput(text);
+            }, 1000);
+        }
+
+        function processUserChatInput(inputText) {
+            const text = inputText.trim();
+            const lowerText = text.toLowerCase();
+            const container = document.getElementById('cabinet-chat-messages');
+            if (!container) return;
+            
+            // נרמול חכם של שגיאות כתיב, קיצורים וסלנג ביטחוני פוליטי
+            let normalized = lowerText
+                .replace(/ניצה/g, "נצא")
+                .replace(/ביוש/g, "יו\"ש")
+                .replace(/יוש/g, "יו\"ש")
+                .replace(/ביו\"ש/g, "יו\"ש")
+                .replace(/ערביים/g, "ערבים")
+                .replace(/לבנון/g, "לבנון")
+                .replace(/איראן/g, "איראן")
+                .replace(/אירן/g, "איראן");
+
+            let responses = [];
+
+            // 1. איום הגרעין והתקיפה באיראן
+            if (normalized.includes("איראן") || normalized.includes("אירן") || normalized.includes("טהרן") || normalized.includes("גרעין")) {
+                responses = [
+                    { mkid: 'gvir', text: "חובה להכות בראש הנחש באיראן! די להילחם רק בזרועות של חיזבאללה וחמאס. הגיע הזמן להראות נחישות ישראלית אמיתית ולהסיר את האיום הקיומי הזה!" },
+                    { mkid: 'smotrich', text: "מניעת איראן גרעינית היא כורח קיומי עבורנו. עלינו לפעול בנחישות אסטרטגית, אך תוך תיאום מלא והכנת המשק והעורף למערכה רב-זירתית ממושכת." },
+                    { mkid: 'bibi', text: "אני מוביל את המאבק הלאומי והבינלאומי בגרעין האיראני כבר שנים רבות. נפעל בכל מקום ובכל זמן כדי להבטיח שבאיראן לא יהיה נשק גרעיני, אך נעשה זאת בתיאום אסטרטגי עמוק ובאחריות עליונה." },
+                    { mkid: 'deri', text: "תקיפה ישירה באיראן היא מהלך הרה גורל שיכול להביא למלחמה אזורית חסרת תקדים. זהו פיקוח נפש ממש! אסור לפעול בפזיזות פוליטית, אלא רק בתיאום ביטחוני מוחלט ולאחר התייעצות עם גדולי התורה." }
+                ];
+                state.publicSupport = Math.min(100, state.publicSupport + 3);
+                state.stability = Math.max(0, state.stability - 2);
+            }
+            // 2. תקיפה והסלמה בלבנון
+            else if (normalized.includes("לבנון") || normalized.includes("חיזבאללה") || normalized.includes("צפון") || normalized.includes("דאחיה")) {
+                responses = [
+                    { mkid: 'gvir', text: "חובה להנחית מכת מנע מוחצת בלבנון! להחזיר את חיזבאללה ואת מדינת לבנון לתקופת האבן. די עם ההססנות וההכלה של השמאל!" },
+                    { mkid: 'smotrich', text: "אני תומך לחלוטין. הגיע הזמן להקמת רצועת ביטחון בדרום לבנון ולהשמדת תשתיות הטרור שלהם. התקציב יגבה את זה במלואו." },
+                    { mkid: 'bibi', text: "חברים, אני שומע את רוח הקרב שלכם, אבל תקיפה יזומה בלבנון מחייבת לגיטימציה בינלאומית, מוכנות מלאה של העורף ותיאום הדוק עם ארה\"ב. נפעל בעוצמה רבה אך בשקילות ובאחריות." },
+                    { mkid: 'deri', text: "רבותיי, מלחמה בצפון היא עניין של פיקוח נפש חמור ואלפי טילים על ערי ישראל. אסור לנו לנהוג בפזיזות! חובה עלינו להתייעץ קודם עם גדולי ישראל ולקבל את ברכתם." }
+                ];
+                state.publicSupport = Math.min(100, state.publicSupport + 4);
+                state.stability = Math.max(0, state.stability - 3);
+            }
+            // 3. מבצע רחב ביהודה ושומרון (יוש / יו"ש)
+            else if (normalized.includes("יו\"ש") || normalized.includes("יהודה ושומרון") || normalized.includes("שומרון") || normalized.includes("ג'נין") || normalized.includes("שכם") || normalized.includes("חברון") || normalized.includes("מבצע") || normalized.includes("נצא") || normalized.includes("ערבים")) {
+                responses = [
+                    { mkid: 'gvir', text: "מבצע צבאי רחב ביהודה ושומרון הוא צו השעה! חובה לנקות את קני הטרור בג'נין, שכם וחברון. אסור לנו לחכות לפיגוע הבא. צה\"ל צריך להיכנס בכל הכוח, להרוס בתי מחבלים ולעצור כל מי שמסייע להם!" },
+                    { mkid: 'smotrich', text: "חיזוק הביטחון ביו\"ש הוא המפתח לשקט בכל הארץ. לצד המבצע הצבאי הנדרש למיגור קיני המחבלים, עלינו להסדיר את ההתיישבות הצעירה ולהעמיק את אחיזתנו בשטח. האוצר יתמוך במלואו בכל פעילות ביטחונית נחוצה." },
+                    { mkid: 'bibi', text: "כוחות הביטחון פועלים ביו\"ש כל הזמן באופן מדויק ונחרץ. מבצע רחב היקף ייבחן על ידי ראשי מערכת הביטחון בפורום הקבינט הסגור. נפעל בעוצמה רבה ובראייה אסטרטגית כוללת." },
+                    { mkid: 'deri', text: "הביטחון של תושבי יהודה ושומרון יקר לנו מאוד, וברור שחובה להגן עליהם מהטרור הנורא. עם זאת, מבצע צבאי גדול צריך להיעשות מתוך מחשבה, ולא מתוך תגובה אמוציונלית, כדי שלא להצית זירות נוספות חלילה." }
+                ];
+                state.publicSupport = Math.min(100, state.publicSupport + 5);
+                state.stability = Math.min(100, state.stability + 1);
+            }
+            // 4. לחימה בטרור, חיסול ומניעת מחבלים
+            else if (normalized.includes("מחבל") || normalized.includes("מחבלים") || normalized.includes("להרוג") || normalized.includes("חיסול") || normalized.includes("עונש מוות") || normalized.includes("סיכול")) {
+                responses = [
+                    { mkid: 'gvir', text: "אין פה שום שאלה בכלל! חובה לחסל כל מחבל מתועב שבא לרצוח יהודים. מחבלים לא צריכים לצאת חיים משום זירה, והגיע הזמן שנעביר סוף סוף את חוק עונש מוות למחבלים!" },
+                    { mkid: 'smotrich', text: "לחימה בטרור דורשת אפס סובלנות. חובה לחסל את המחבלים בשטח, להרוס את בתיהם, לגרש את משפחותיהם התומכות ולייצר הרתעה מוחצת שלא תשאיר שום תקווה לאויב." },
+                    { mkid: 'bibi', text: "צה\"ל, השב\"כ וכוחות הביטחון הגיבורים שלנו פועלים וימשיכו לפעול יום ולילה כדי לסכל כל פיגוע ולחסל כל מחבל שמרים את ידו נגד אזרחי ישראל. אנו נבצע את הסיכולים הממוקדים והמבצעים באחריות ובעוצמה מירבית." },
+                    { mkid: 'deri', text: "מבחינת ההלכה נפסק 'הבא להורגך השכם להורגו' – על מחבלים רוצחים שפלים אין שום רחמים. עם זאת, המדיניות וההחלטות על ענישה קיצונית כמו עונש מוות צריכות להתקבל בתוך הקבינט באופן שקול ולא בהצהרות לתקשורת, כדי למנוע הצתת השטח שלא לצורך." }
+                ];
+                state.publicSupport = Math.min(100, state.publicSupport + 5);
+                state.stability = Math.min(100, state.stability + 2);
+            }
+            // 5. ניסיונות אחדות עם השמאל (גנץ, לפיד)
+            else if (normalized.includes("אחדות") || normalized.includes("שמאל") || normalized.includes("לפיד") || normalized.includes("גנץ") || normalized.includes("הסכם")) {
+                responses = [
+                    { mkid: 'gantz', text: "כראש המחנה הממלכתי, המדינה לפני הכל. אנו מוכנים להיכנס לממשלת אחדות לאומית שקולה כדי לחזק את הביטחון. כתוב 'אשר אחדות עם גנץ' כדי לחתום על הסכם!" },
+                    { mkid: 'lapid', text: "אנחנו מוכנים להסכם אחדות שיציל את הכלכלה, בתנאי אחד ברור: חוק גיוס שוויוני מלא ללא פשרות, וביטול תקציבים סקטוריאליים. כתוב 'אשר אחדות עם לפיד' לחתימה!" },
+                    { mkid: 'gvir', text: "הסכם עם השמאל?! זו כניעה מוחלטת! אם תחתמו איתם על הסכם ותכניסו אותם לממשלה - עוצמה יהודית תפרוש מיידית ותפיל את הקואליציה!" },
+                    { mkid: 'deri', text: "הסכמי אחדות הם דבר מבורך למניעת קרע בעם, אך עלינו לוודא שאף גורם בשמאל לא יפגע בקדושת השבת ובתקציבי עולם התורה." }
+                ];
+            }
+            // 6. Slurs & Insults
+            else if (lowerText.includes("חוצפן") || lowerText.includes("חוצפנים") || lowerText.includes("שקט") || lowerText.includes("תשתקו") || lowerText.includes("טמבל") || lowerText.includes("מטומטם") || lowerText.includes("סמרטוט")) {
+                responses = [
+                    { mkid: 'gvir', text: "איך אתה מדבר בקבינט?! אנחנו נותנים את הנשמה לממשלה הזו ועומדים על העקרונות שלנו. לא נסבול יחס מזלזל כזה מצד ראש הממשלה!" },
+                    { mkid: 'deri', text: "אני מבקש בכל לשון של בקשה לשמור על כבוד הדדי בקבינט. אנחנו מייצגים ציבור קדוש ומחויבים לשיח מכובד לטובת שלמות הגוש." },
+                    { mkid: 'bibi', text: "חברים, בואו נרגיע את הרוחות מייד. השמאל והתקשורת רק מחכים לראות סדקים וריבים בתוכנו. בואו נהיה אחראים ומאוחדים למען המדינה." },
+                    { mkid: 'smotrich', text: "אנחנו עובדים קשה ימים כלילות למען יציבות המדינה והכלכלה, ומגיע לנו יחס ענייני ומקצועי ולא ביטויים כאלו!" }
+                ];
+                state.stability = Math.max(0, state.stability - 8); 
+            }
+            // 5. Finances
+            else if (lowerText.includes("כסף") || lowerText.includes("תקציב") || lowerText.includes("מיסים") || lowerText.includes("כלכלה") || lowerText.includes("קצבאות") || lowerText.includes("סבסוד")) {
+                responses = [
+                    { mkid: 'smotrich', text: "אני שומר על מסגרת תקציב אחראית שלא תדרדר אותנו לאינפלציה או לחובות ענק במשק." },
+                    { mkid: 'deri', text: "חייבים לדאוג לשכבות החלשות, לכרטיסי המזון ולמעונות היום. יוקר המחיה חונק את האזרחים של המדינה." },
+                    { mkid: 'bibi', text: "הכלכלה שלנו תצמח רק אם נשמור על שוק חופשי לצד תמיכה אחראית בשותפים הטבעיים שלנו." }
+                ];
+            }
+            // 6. Law and High Court
+            else if (lowerText.includes("בגצ") || lowerText.includes("חוק") || lowerText.includes("בית משפט") || lowerText.includes("משפט") || lowerText.includes("בג\"ץ")) {
+                responses = [
+                    { mkid: 'gvir', text: "הגיע הזמן לעצור את ההתערבות הבלתי פוסקת של בג\"ץ בהחלטות הממשלה שנבחרה כחוק על ידי העם!" },
+                    { mkid: 'bibi', text: "אנו מאזנים את הרשויות באחריות ומונעים פילוג מיותר בעם שפוגע ביכולת המשילות שלנו." },
+                    { mkid: 'smotrich', text: "הרפורמה המשפטית היא נחוצה והכרחית כדי להחזיר את האיזון בין הרשויות ואת כוחו של הבוחר הישראלי." }
+                ];
+            }
+            // 7. Generic fallback with smart repetition of the player's query
+            else {
+                const words = text.split(/\s+/).filter(w => w.length > 2);
+                const userPhrase = words.length > 0 ? `"${words.slice(0, 3).join(' ')}"` : `"${text}"`;
+                
+                responses = [
+                    { mkid: 'bibi', text: `חברים, לגבי הנושא שעל הפרק: ${userPhrase} - עם כל הכבוד, אנו נמצאים במצב חירום לאומי. אל לנו להתפזר לנושאים צדדיים, עלינו להתרכז בביטחון המדינה וביציבות הקואליציה הנוכחית.` },
+                    { mkid: 'deri', text: `אדוני ראש הממשלה, הדיבורים על ${userPhrase} אינם משרתים את הצרכים הדחופים של אזרחי ישראל בעת הזו. הציבור החרדי והמסורתי מצפה מאיתנו לפתור את מצוקת הדיור והמחיה במקום לעסוק בזוטי דברים.` },
+                    { mkid: 'gvir', text: `בזמן שאנחנו מנהלים פה דיוני סרק בקבינט על ${userPhrase}, האנרכיסטים והאויבים מנצלים את זה! חובה לעסוק רק בביטחון ובמשילות של המדינה עכשיו!` },
+                    { mkid: 'smotrich', text: `הנושא של ${userPhrase} דורש ניתוח תקציבי מעמיק ומסגרת מימון אחראית. כרגע אין לנו עודפי תקציב פנויים לנושאים מסוג זה.` }
+                ];
+            }
+
+            // FILTER out responses belonging to the player's own custom character!
+            responses = responses.filter(r => {
+                const mk = mkDatabase[r.mkid];
+                if (!mk) return true;
+                return mk.name !== state.leaderName && mk.party !== state.partyName;
+            });
+
+            // Post responses with delay gaps to simulate chat conversation
+            responses.forEach((msg, idx) => {
+                setTimeout(() => {
+                    const mk = mkDatabase[msg.mkid] || { name: 'שר בקבינט', avatar: '👤', color: 'text-slate-300' };
+                    const msgEl = document.createElement('div');
+                    msgEl.className = "flex items-start space-x-2 space-x-reverse animate-fadeIn";
+                    msgEl.innerHTML = `
+                        <div class="bg-slate-900 border border-slate-800 p-1.5 rounded-xl text-sm font-mono">${mk.avatar}</div>
+                        <div class="bg-slate-900/60 border border-slate-850 p-2 rounded-2xl max-w-[85%] text-right">
+                            <span class="font-bold text-[10px] ${mk.color}">${mk.name} (${mk.party})</span>
+                            <p class="text-[11px] text-slate-300 leading-normal mt-1">${msg.text}</p>
+                        </div>
+                    `;
+                    container.appendChild(msgEl);
+                    container.scrollTop = container.scrollHeight;
+                    playSound('tick');
+                    updateGovernanceStatsUI();
+                }, idx * 1000);
+            });
+        }
+
+        function generateCabinetChat(topic, isLaw = false) {
+            const container = document.getElementById('cabinet-chat-messages');
+            if (!container) return;
+            container.innerHTML = '';
+
+            let messages = [];
+
+            if (isLaw) {
+                const isLogical = topic.isLogical;
+                const title = topic.title;
+
+                if (isLogical) {
+                    messages = [
+                        { mkid: 'bibi', text: `חברים, הצעת החוק "${title}" היא צעד אחראי ומצוין שמחזק את המדינה ואת הקואליציה שלנו.` },
+                        { mkid: 'gantz', text: `חוק זה בהחלט משרת את האינטרס הממלכתי של כלל אזרחי ישראל. אנו נתמוך.` },
+                        { mkid: 'deri', text: `כל הכבוד לראש הממשלה! החוק דואג לשכבות החלשות ולחיזוק המורשת והסיוע.` }
+                    ];
+                } else {
+                    messages = [
+                        { mkid: 'lapid', text: `אני המום. הצעת החוק "${title}" היא פופוליזם זול ומביך שלא ראוי לבית המחוקקים!` },
+                        { mkid: 'smotrich', text: `מבחינה כלכלית ותקציבית, מדובר בהצעה לא הגיונית שתגרום לנזק כבד למשק.` },
+                        { mkid: 'deri', text: `אדוני ראש הממשלה, הצעת החוק הזו סותרת לחלוטין את הערכים הבסיסיים שלנו ויכולה להוביל להתפרקות הגוש!` }
+                    ];
+                }
+            } else {
+                if (topic.includes("הסלמה") || topic.includes("סייבר")) {
+                    messages = [
+                        { mkid: 'gvir', text: `הגיע הזמן להפסיק עם ההכלה! חייבים להגיב בעוצמה מקסימלית ובנחישות ביטחונית חסרת פשרות!` },
+                        { mkid: 'gantz', text: `ביטחון המדינה מנוהל באחריות ובשיקול דעת. עלינו לפעול בתיאום הדוק עם בעלות בריתנו.` },
+                        { mkid: 'deri', text: `שמענו את עמדת ראשי מערכת הביטחון. חובה עלינו לשמור על קור רוח ולפעול בחכמה ובשום שכל.` }
+                    ];
+                } else if (topic.includes("קפלן") || topic.includes("בג\"ץ") || topic.includes("הפגנות")) {
+                    messages = [
+                        { mkid: 'lapid', text: `הציבור יוצא לרחובות כי הוא מרגיש שהממשלה הזו מובילה אותנו לפגיעה אנושה במערכות החוק!` },
+                        { mkid: 'smotrich', text: `אין לאף אחד זכות לחסום כבישים ולשבש את חייהם של מיליוני אזרחים. זו לא דמוקרטיה!` },
+                        { mkid: 'deri', text: `אנחנו רוצים שלום בית ואחדות בעם, אבל האופוזיציה מסרבת לכל ניסיון הידברות אמיתי באולפנים.` }
+                    ];
+                } else {
+                    messages = [
+                        { mkid: 'bibi', text: `אנו עומדים בפני אתגר מורכב. אני מבקש מכל ראשי סיעות הגוש לגלות אחריות קואליציונית מוחלטת.` },
+                        { mkid: 'gold', text: `נעשה הכל כדי שהממשלה תהיה יציבה ותתפקד, אבל דרישותינו הבסיסיות חייבות להתקבל.` }
+                    ];
+                }
+            }
+
+            // FILTER player out
+            messages = messages.filter(m => {
+                const mk = mkDatabase[m.mkid];
+                if (!mk) return true;
+                return mk.name !== state.leaderName && mk.party !== state.partyName;
+            });
+
+            messages.forEach((msg, idx) => {
+                setTimeout(() => {
+                    const mk = mkDatabase[msg.mkid] || { name: 'חבר כנסת', avatar: '👤', color: 'text-slate-300' };
+                    const msgEl = document.createElement('div');
+                    msgEl.className = "flex items-start space-x-2 space-x-reverse animate-fadeIn";
+                    msgEl.innerHTML = `
+                        <div class="bg-slate-900 border border-slate-800 p-1.5 rounded-xl text-sm font-mono">${mk.avatar}</div>
+                        <div class="bg-slate-900/60 border border-slate-850 p-2 rounded-2xl max-w-[85%] text-right">
+                            <span class="font-bold text-[10px] ${mk.color}">${mk.name} (${mk.party})</span>
+                            <p class="text-[11px] text-slate-300 leading-normal mt-1">${msg.text}</p>
+                        </div>
+                    `;
+                    container.appendChild(msgEl);
+                    container.scrollTop = container.scrollHeight;
+                    playSound('tick');
+                }, idx * 1100);
+            });
+        }
+
+        const governanceCrises = [
+            {
+                title: "הפגנות ענק בקפלן נגד מדיניות הממשלה",
+                desc: "ארגוני אופוזיציה מהשמאל מוציאים רבבות מפגינים לרחובות וקוראים להפלת הממשלה.",
+                choices: [
+                    {
+                        text: "פרסם הצהרה נחושה נגד חסימת כבישים והפרת סדר (יציבות: +10%, תמיכת ציבור: -5%)",
+                        effect: function() {
+                            state.stability = Math.min(100, state.stability + 10);
+                            state.publicSupport = Math.max(0, state.publicSupport - 5);
+                            showModal("עמדת חוק וסדר", "השותפים בקואליציה מעריכים את הנחישות שלכם, אך הרחוב השמאלי זועם עוד יותר.", "📢");
+                        }
+                    },
+                    {
+                        text: "הצע מפגש הידברות לנציגי המוחים למניעת שסע חברתי (יציבות: -10%, תמיכת ציבור: +15%)",
+                        effect: function() {
+                            state.stability = Math.max(0, state.stability - 10);
+                            state.publicSupport = Math.min(100, state.publicSupport + 15);
+                            showModal("ניסיון פיוס", "הציבור הרחב והמתון מעריך את היוזמה, אך השותפים הימניים מאשימים אתכם בכניעה.", "🤝");
+                        }
+                    }
+                ]
+            },
+            {
+                title: "הסלמה ביטחונית דרמטית בגבול הצפון",
+                desc: "ארגון טרור עוין פתח במתקפת רקטות רחבה לעבר יישובים בצפון. מערכות כיפת ברזל פועלות ללא הפסקה, והקואליציה והציבור דורשים תגובה מוחצת.",
+                choices: [
+                    {
+                        text: "פתח במבצע צבאי כוחני כולל תמרון קרקעי (יציבות: +15%, תמיכת ציבור: +10%, תקציב: -₪150k)",
+                        effect: function() {
+                            state.stability = Math.min(100, state.stability + 15);
+                            state.publicSupport = Math.min(100, state.publicSupport + 10);
+                            state.budget = Math.max(0, state.budget - 150000);
+                            showModal("מבצע צבאי נרחב!", "כוחות הביטחון פתחו בתמרון קרקעי. הבייס והשותפים תומכים פה אחד בנחישות הממשלה.", "🛡️");
+                        }
+                    },
+                    {
+                        text: "בצע תקיפות אוויריות ממוקדות בשילוב מאמץ דיפלומטי להפסקת אש (יציבות: -15%, תמיכת ציבור: +15%, תקציב: -₪40k)",
+                        effect: function() {
+                            state.stability = Math.max(0, state.stability - 15);
+                            state.publicSupport = Math.min(100, state.publicSupport + 15);
+                            state.budget = Math.max(0, state.budget - 40000);
+                            showModal("תקיפות ממוקדות ודיפלומטיה", "הרגעתם את הסערה הדיפלומטית, אך השותפים הימניים זועמים על היעדר תגובה יבשתית מוחצת.", "✈️");
+                        }
+                    }
+                ]
+            },
+            {
+                title: "מתקפת סייבר משתקת על תשתית החשמל והמים הארצית",
+                desc: "מתקפת סייבר חסרת תקדים מצד מדינת אויב הובילה להפסקות חשמל נרחבות ושיבושים באספקת המים בערים מרכזיות.",
+                choices: [
+                    {
+                        text: "סרב למשא ומתן עם התוקפים והכרז על מצב חירום סייבר לאומי (יציבות: +12%, תמיכת ציבור: +5%, תקציב: -₪60k)",
+                        effect: function() {
+                            state.stability = Math.min(100, state.stability + 12);
+                            state.publicSupport = Math.min(100, state.publicSupport + 5);
+                            state.budget = Math.max(0, state.budget - 60000);
+                            showModal("מצב חירום סייבר", "מערך הסייבר הלאומי בלם את המתקפה ומזער נזקים בצורה מקצועית.", "💻");
+                        }
+                    },
+                    {
+                        text: "שלם מיידית לקבוצת ההאקרים דרך מתווכים למניעת פגיעה באזרחים (יציבות: -15%, תמיכת ציבור: -10%, תקציב: -₪180k)",
+                        effect: function() {
+                            state.stability = Math.max(0, state.stability - 15);
+                            state.publicSupport = Math.max(0, state.publicSupport - 10);
+                            state.budget = Math.max(0, state.budget - 180000);
+                            showModal("תשלום כופר חשאי", "השירותים הוחזרו לפעילות, אך הידיעה על התשלום הודלפה והובילה לביקורת עזה על כניעה לטרור.", "💰");
+                        }
+                    }
+                ]
+            }
+        ];
+
+        const legislationLaws = [
+            { id: 1, title: "חוק חינוך חינם מגיל אפס", desc: "סבסוד ומימון מקיף למעונות יום להקלה על משפחות עובדות.", effect: { support: 15, stability: -5 } },
+            { id: 2, title: "חוק הגדלת קצבאות משרתי מילואים", desc: "הענקת מענק כספי משמעותי והנחות מונציפליות למילואימניקים.", effect: { support: 12, stability: 5 } }
+        ];
+
+        let usedCrises = [];
+
+        function generateGovernanceCrisis() {
+            if (state.stability <= 0) {
+                triggerGameOver("התפרקות הקואליציה 💥", "היציבות הקואליציונית ירדה ל-0% בעקבות המשברים האחרונים. הממשלה התפרקה לחלוטין וישראל הולכת לבחירות מוקדמות.");
+                return;
+            }
+
+            if (state.publicSupport < 45 && !state.isStrikeActive && Math.random() > 0.4) {
+                triggerStrike();
+            }
+
+            let availableCrises = governanceCrises.filter(c => !usedCrises.includes(c.title));
+            if (availableCrises.length === 0) {
+                usedCrises = [];
+                availableCrises = governanceCrises;
+            }
+
+            const randIndex = Math.floor(Math.random() * availableCrises.length);
+            const currentCrisis = availableCrises[randIndex];
+            usedCrises.push(currentCrisis.title);
+
+            document.getElementById('gov-crisis-title').innerText = currentCrisis.title;
+            document.getElementById('gov-crisis-desc').innerText = currentCrisis.desc;
+
+            generateCabinetChat(currentCrisis.title, false);
+
+            const choicesContainer = document.getElementById('gov-crisis-choices');
+            choicesContainer.innerHTML = '';
+
+            currentCrisis.choices.forEach((choice, index) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-right bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-indigo-500 text-xs text-slate-200 p-4 rounded-xl transition font-semibold leading-relaxed shadow-sm";
+                btn.innerText = choice.text;
+                btn.onclick = function() {
+                    playSound('click');
+                    choice.effect();
+                    nextGovernanceTurn();
+                };
+                choicesContainer.appendChild(btn);
+            });
+        }
+
+        function triggerStrike() {
+            playSound('fail');
+            state.isStrikeActive = true;
+            const warningEl = document.getElementById('strike-warning-banner');
+            if(warningEl) warningEl.classList.remove('hidden');
+            
+            const statusTextEl = document.getElementById('gov-status-text');
+            if(statusTextEl) {
+                statusTextEl.innerText = "שביתה כללית של המשק!";
+                statusTextEl.className = "text-xs font-black text-red-400 animate-pulse";
+            }
+        }
+
+        function resolveStrike() {
+            if (state.isStrikeActive) {
+                playSound('success');
+                state.isStrikeActive = false;
+                state.stability = Math.min(100, state.stability + 15);
+                state.publicSupport = Math.min(100, state.publicSupport + 5);
+                
+                document.getElementById('strike-warning-banner').classList.add('hidden');
+                document.getElementById('gov-status-text').innerText = "שקט ויציב";
+                document.getElementById('gov-status-text').className = "text-xs font-black text-slate-200";
+                
+                showModal("הסכם הבנות והרגעת הרוחות", "חתמת על הסכם מול ראשי ההסתדרות לסיום השביתה. היציבות חזרה לקדמותה!", "🤝");
+                updateGovernanceStatsUI();
+            }
+        }
+
+        function renderLaws() {
+            const lawsContainer = document.getElementById('laws-container');
+            if(!lawsContainer) return;
+            lawsContainer.innerHTML = '';
+
+            legislationLaws.forEach(law => {
+                const isCooldown = state.lawCooldown > 0;
+                const lawCard = document.createElement('div');
+                lawCard.className = `p-4 rounded-xl border flex flex-col justify-between space-y-3 transition ${isCooldown ? 'bg-slate-950/50 border-slate-900 opacity-60' : 'bg-slate-950 border-slate-800 hover:border-slate-700'}`;
+                lawCard.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-center text-right">
+                            <h4 class="text-xs font-bold text-slate-200">${law.title}</h4>
+                            <span class="text-[9px] bg-indigo-900/40 text-indigo-300 px-1.5 py-0.5 rounded">קואליציוני</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1 text-right">${law.desc}</p>
+                    </div>
+                    <div class="flex items-center justify-between pt-1">
+                        <div class="text-[10px] text-slate-500">
+                            תועלת: <span class="text-emerald-400">+${law.effect.support}% פופולריות</span>
+                        </div>
+                        <button onclick="passLaw(${law.id})" ${isCooldown ? 'disabled' : ''} class="bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 text-white text-[10px] px-3 py-1.5 rounded-lg font-bold transition">הגש חוק</button>
+                    </div>
+                `;
+                lawsContainer.appendChild(lawCard);
+            });
+        }
+
+        function passLaw(lawId) {
+            if (state.lawCooldown > 0) return;
+
+            const targetLaw = legislationLaws.find(l => l.id === lawId);
+            if (!targetLaw) return;
+
+            populateVotingMKReactions(targetLaw.title, true, 'standard');
+            generateCabinetChat({title: targetLaw.title, isLogical: true}, true);
+
+            runKnessetVotingSimulation(targetLaw.title, true, () => {
+                state.publicSupport = Math.min(100, state.publicSupport + targetLaw.effect.support);
+                state.stability = Math.max(0, state.stability + targetLaw.effect.stability);
+                state.lawsPassedCount++;
+                state.lawCooldown = 2; 
+
+                updateGovernanceStatsUI();
+                renderLaws();
+                nextGovernanceTurn();
+            });
+        }
+
+        function renderPartners() {
+            const partnersList = document.getElementById('partners-list');
+            if(!partnersList) return;
+            partnersList.innerHTML = '';
+
+            state.partners.forEach(partner => {
+                let statusColor = 'text-emerald-400';
+                if (partner.affinity < 50) statusColor = 'text-amber-400';
+                if (partner.affinity < 30) statusColor = 'text-red-400';
+
+                const pItem = document.createElement('div');
+                pItem.className = "bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5 text-right";
+                pItem.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-slate-200">${partner.name}</span>
+                        <span class="text-[11px] font-bold ${statusColor} font-mono">נאמנות: ${partner.affinity}%</span>
+                    </div>
+                    <div class="flex justify-between text-[10px] text-slate-400">
+                        <span>סיעה: <strong class="text-slate-300">${partner.seats} מנדטים</strong></span>
+                        <span>תיק: <strong class="text-indigo-400">${partner.portfolio}</strong></span>
+                    </div>
+                `;
+                partnersList.appendChild(pItem);
+            });
+        }
+
+        function analyzeLawType(titleText) {
+            const textLower = titleText.toLowerCase();
+
+            // Keywords categorization
+            const keywordsTorah = ['תורה', 'ישיבה', 'ישיבות', 'שבת', 'חרדים', 'קודש', 'כשרות', 'דתי', 'דת', 'סבסוד', 'קצבאות'];
+            const keywordsTorahViolation = ['תחבורה בשבת', 'חיובי גיוס', 'גיוס חרדים', 'נישואין אזרחיים', 'סגירת ישיבות', 'סנקציות על ישיבות', 'תחבורה ציבורית בשבת'];
+            const keywordsSecurity = ['ביטחון', 'צבא', 'חיילים', 'מילואים', 'מחבלים', 'נשק', 'עזה', 'לבנון', 'משטרה', 'התיישבות', 'איוש'];
+            const keywordsRidiculous = ['שטויות', 'ממתקים', 'שוקולד', 'פיצה', 'חייזרים', 'הפגנות בבתים'];
+
+            // Match checkers
+            let hasTorah = keywordsTorah.some(kw => textLower.includes(kw));
+            let hasTorahViolation = keywordsTorahViolation.some(kw => textLower.includes(kw));
+            let hasSecurity = keywordsSecurity.some(kw => textLower.includes(kw));
+            let hasRidiculous = keywordsRidiculous.some(kw => textLower.includes(kw));
+
+            if (hasRidiculous) return 'ridiculous';
+            if (hasTorahViolation) return 'torah_violation';
+            if (hasTorah) return 'religious';
+            if (hasSecurity) return 'security';
+            return 'general_logical';
+        }
+
+        function populateVotingMKReactions(lawTitle, isPassed, lawType) {
+            const reactionsContainer = document.getElementById('voting-mk-reactions');
+            if (!reactionsContainer) return;
+            reactionsContainer.innerHTML = '';
+
+            let reactionsList = [];
+
+            if (lawType === 'religious') {
+                reactionsList = [
+                    { name: 'אריה דרעי', party: 'ש"ס', text: 'זהו חוק קדוש שמגן על ערכי עולם התורה, הזהות היהודית של המדינה והמשפחות החלשות. בעד מוחלט!', color: 'text-amber-400' },
+                    { name: 'יצחק גולדקנופף', party: 'יהדות התורה', text: 'השמירה על החינוך ועולם הישיבות היא זכות קיומנו פה בארץ ישראל. אנו תומכים במלוא העוצמה.', color: 'text-blue-300' },
+                    { name: 'יאיר לפיד', party: 'יש עתיד', text: 'שוב פעם כפייה דתית קיצונית, שוד התקציב הציבורי ופגיעה בליברליות. אנחנו מתנגדים בכל הכוח!', color: 'text-cyan-400' }
+                ];
+            } else if (lawType === 'torah_violation') {
+                reactionsList = [
+                    { name: 'אריה דרעי', party: 'ש"ס', text: 'זהו חוק חורבן שפוגע בציפור נפשה של היהדות ומאיים לקרוע את המדינה! ש"ס תטיל וטו ותתנגד נחרצות!', color: 'text-amber-400' },
+                    { name: 'יצחק גולדקנופף', party: 'יהדות התורה', text: 'גזירת שמד נגד עולם התורה והשבת! לא נהיה שותפים אפילו שעה אחת בממשלה שפועלת ככה.', color: 'text-blue-300' },
+                    { name: 'יאיר לפיד', party: 'יש עתיד', text: 'סוף סוף צעד של שוויון בנטל, צדק חברתי וחופש אזרחי. חוק היסטורי ונחוץ!', color: 'text-cyan-400' }
+                ];
+            } else if (lawType === 'security') {
+                reactionsList = [
+                    { name: 'איתמר בן גביר', party: 'עוצמה יהודית', text: 'חוק מצוין! הגיע הזמן להשליט סדר, ביטחון, לענוש מחבלים ולתת גיבוי מוחלט לחיילים בשטח.', color: 'text-red-400' },
+                    { name: 'בני גנץ', party: 'המחנה הממלכתי', text: 'אנו תומכים בכל מה שמחזק את צה\"ל ואת כוחות הביטחון באופן מקצועי ואחראי, ללא פוליטיזציה.', color: 'text-emerald-400' },
+                    { name: 'בצלאל סמוטריץ\'', party: 'הציונות הדתית', text: 'זהו חוק ציוני חשוב שמבסס את ביטחון ההתיישבות ואת עוצמת המדינה בגבולותיה.', color: 'text-orange-400' }
+                ];
+            } else if (lawType === 'ridiculous') {
+                reactionsList = [
+                    { name: 'בנימין נתניהו', party: 'הליכוד', text: 'חברים, בואו נשמור על רצינות הבית. אנחנו לא בקרקס, הצעות כאלה רק מביכות את הממשלה.', color: 'text-indigo-400' },
+                    { name: 'בצלאל סמוטריץ\'', party: 'הציונות הדתית', text: 'מדובר בבור תקציבי שערורייתי והצעה חסרת אחריות המעידה על חוסר הבנה מוחלט בכלכלה.', color: 'text-orange-400' }
+                ];
+            } else {
+                // standard logical
+                reactionsList = [
+                    { name: 'בנימין נתניהו', party: 'הליכוד', text: 'חוק כלכלי וחברתי מצוין, שיביא לצמיחה משמעותית וישרת את כלל אזרחי ישראל.', color: 'text-indigo-400' },
+                    { name: 'בני גנץ', party: 'המחנה הממלכתי', text: 'חוק ממלכתי, מאוזן וראוי שמתחשב בצרכי האזרח הפשוט ומייצר יציבות.', color: 'text-emerald-400' }
+                ];
+            }
+
+            // FILTER player out of reaction lists
+            reactionsList = reactionsList.filter(r => r.name !== state.leaderName && r.party !== state.partyName);
+
+            reactionsList.forEach((r, idx) => {
+                setTimeout(() => {
+                    const row = document.createElement('div');
+                    row.className = "bg-slate-950/65 border border-slate-850 p-2 rounded-xl animate-fadeIn text-right";
+                    row.innerHTML = `<strong class="${r.color}">${r.name} (${r.party}):</strong> <span class="text-slate-300 font-medium">"${r.text}"</span>`;
+                    reactionsContainer.appendChild(row);
+                    reactionsContainer.scrollTop = reactionsContainer.scrollHeight;
+                }, idx * 900);
+            });
+        }
+
+        function submitCustomLaw() {
+            const inputEl = document.getElementById('custom-law-input');
+            const rawText = inputEl.value.trim();
+            
+            if (rawText.length < 5) {
+                showModal("נוסח חוק קצר מדי!", "אנא הזן הצעת חוק מנוסחת היטב ומפורטת לפחות בחצי משפט.", "❌");
+                playSound('fail');
+                return;
+            }
+
+            // Detect law type
+            const lawType = analyzeLawType(rawText);
+            const isLogical = (lawType !== 'ridiculous');
+
+            inputEl.value = '';
+
+            // Dynamic Voting & reactions simulation
+            populateVotingMKReactions(rawText, isLogical, lawType);
+            generateCabinetChat({title: rawText, isLogical: isLogical}, true);
+
+            runKnessetVotingSimulation(rawText, isLogical, () => {
+                if (lawType === 'torah_violation') {
+                    // Massive penalty on loyalty for Orthodox parties
+                    state.publicSupport = Math.max(0, state.publicSupport - 15);
+                    state.stability = Math.max(0, state.stability - 30);
+                    
+                    state.partners.forEach(p => {
+                        if (p.id === 'gimel' || p.id === 'shas') {
+                            p.affinity = Math.max(0, p.affinity - 40);
+                        }
+                    });
+                    showModal("משבר חריף בקואליציה!", "החוק שהצעתם פוגע אנושות בציבור הדתי והחרדי! שרי שס ויהדות התורה זועמים ונאמנותם קרסה ב-40%!", "⚠️");
+                } else if (lawType === 'religious') {
+                    // Boosts religious loyalty, hurts general public slightly
+                    state.publicSupport = Math.max(0, state.publicSupport - 5);
+                    state.stability = Math.min(100, state.stability + 15);
+                    state.lawsPassedCount++;
+                    
+                    state.partners.forEach(p => {
+                        if (p.id === 'gimel' || p.id === 'shas') {
+                            p.affinity = Math.min(100, p.affinity + 20);
+                        }
+                    });
+                } else if (lawType === 'security') {
+                    state.publicSupport = Math.min(100, state.publicSupport + 12);
+                    state.stability = Math.min(100, state.stability + 10);
+                    state.lawsPassedCount++;
+                    
+                    state.partners.forEach(p => {
+                        if (p.id === 'gvir' || p.id === 'smotrich') {
+                            p.affinity = Math.min(100, p.affinity + 15);
+                        }
+                    });
+                } else if (lawType === 'ridiculous') {
+                    state.publicSupport = Math.max(0, state.publicSupport - 15);
+                    state.stability = Math.max(0, state.stability - 10);
+                    
+                    state.partners.forEach(p => {
+                        p.affinity = Math.max(0, p.affinity - 10);
+                    });
+                } else {
+                    // General logical
+                    state.publicSupport = Math.min(100, state.publicSupport + 10);
+                    state.stability = Math.min(100, state.stability + 5);
+                    state.lawsPassedCount++;
+                }
+
+                updateGovernanceStatsUI();
+                renderPartners();
+                nextGovernanceTurn();
+            });
+        }
+
+        function runKnessetVotingSimulation(lawTitle, isLogical, onComplete) {
+            playSound('click');
+            
+            document.getElementById('voting-law-title').innerText = `חוק: ${lawTitle}`;
+            document.getElementById('knesset-voting-overlay').classList.remove('hidden');
+            
+            const resultBox = document.getElementById('voting-status-announcement');
+            resultBox.classList.add('invisible');
+
+            let targetFor, targetAgainst;
+            if (isLogical) {
+                targetFor = 61 + Math.floor(Math.random() * 12); 
+                targetAgainst = 120 - targetFor;
+            } else {
+                targetFor = 15 + Math.floor(Math.random() * 20); 
+                targetAgainst = 120 - targetFor;
+            }
+
+            let tickCounter = 0;
+            const totalTicks = 30; 
+            
+            const votingInterval = setInterval(() => {
+                tickCounter++;
+                playSound('tick');
+
+                const progress = tickCounter / totalTicks;
+                const tempFor = Math.round(targetFor * progress);
+                const tempAgainst = Math.round(targetAgainst * progress);
+
+                document.getElementById('vote-for-count').innerText = tempFor;
+                document.getElementById('vote-against-count').innerText = tempAgainst;
+
+                if (tickCounter >= totalTicks) {
+                    clearInterval(votingInterval);
+                    
+                    document.getElementById('vote-for-count').innerText = targetFor;
+                    document.getElementById('vote-against-count').innerText = targetAgainst;
+
+                    const resultText = document.getElementById('voting-result-text');
+                    const resultSubtext = document.getElementById('voting-result-subtext');
+
+                    if (targetFor >= 61) {
+                        playSound('success');
+                        resultText.innerText = "חוק עבר! 🎉";
+                        resultText.className = "text-2xl md:text-3xl font-black text-emerald-400";
+                        resultSubtext.innerText = `הצעת החוק עברה את מליאת הכנסת ברוב של ${targetFor} קולות מול ${targetAgainst} מתנגדים! תמיכת הציבור והיציבות עלו.`;
+                    } else {
+                        playSound('fail');
+                        resultText.innerText = "החוק נדחה! ❌";
+                        resultText.className = "text-2xl md:text-3xl font-black text-red-500";
+                        resultSubtext.innerText = `מליאת הכנסת דחתה את ההצעה ברוב מוחץ של ${targetAgainst} מתנגדים מול ${targetFor} תומכים. החוק סומן כלא מציאותי ופגע במעמד הממשלה.`;
+                    }
+
+                    window.currentVotingCallback = onComplete;
+                    resultBox.classList.remove('invisible');
+                }
+            }, 80);
+        }
+
+        function closeKnessetVotingOverlay() {
+            playSound('click');
+            document.getElementById('knesset-voting-overlay').classList.add('hidden');
+            if (window.currentVotingCallback) {
+                window.currentVotingCallback();
+                window.currentVotingCallback = null;
+            }
+        }
+
+        function nextGovernanceTurn() {
+            state.govWeek++;
+            
+            const weeksBadge = document.getElementById('gov-weeks');
+            if (weeksBadge) {
+                weeksBadge.innerText = `שבוע ${state.govWeek} בתפקיד`;
+            }
+            
+            const turnLabel = document.getElementById('turn-display-label');
+            if (turnLabel) {
+                turnLabel.innerText = `שבוע ${state.govWeek}`;
+            }
+
+            if (state.lawCooldown > 0) {
+                state.lawCooldown--;
+            }
+
+            if (state.isStrikeActive) {
+                state.stability = Math.max(0, state.stability - 8);
+                state.publicSupport = Math.max(0, state.publicSupport - 5);
+            }
+
+            state.partners.forEach(p => {
+                if (state.stability < 50) {
+                    p.affinity = Math.max(0, p.affinity - 6);
+                } else {
+                    p.affinity = Math.min(100, p.affinity + 2);
+                }
+            });
+
+            saveGameLocally();
+            updateGovernanceStatsUI();
+            generateGovernanceCrisis();
+            renderLaws();
+            renderPartners();
+
+            if (state.stability <= 0) {
+                triggerGameOver("התפרקות הקואליציה 💥", "היציבות הקואליציונית ירדה ל-0% עקב מחאות השמאל ואי יציבות. שותפיך נטשו את השולחן והממשלה התפרקה.");
+                return;
+            }
+
+            const checkFallenPartner = state.partners.find(p => p.affinity <= 0);
+            if (checkFallenPartner) {
+                triggerGameOver("מרד בקואליציה 💥", `סיעת "${checkFallenPartner.name}" החליטה לפרוש באופן חד צדדי מהקואליציה עקב חוסר הסכמות על דרישותיהם. הממשלה איבדה את הרוב שלה.`);
+                return;
+            }
+
+            if (state.govWeek >= 12) {
+                triggerVictory();
+            } else {
+                setPhaseBadge(`שלב המשילות • שבוע ${state.govWeek}`);
+                generateGovernanceCrisis();
+            }
+        }
+
+        function updateGovernanceStatsUI() {
+            const govWeeksEl = document.getElementById('gov-weeks');
+            if (govWeeksEl) {
+                govWeeksEl.innerText = `שבוע ${state.govWeek} בתפקיד`;
+            }
+
+            const govStabilityEl = document.getElementById('gov-stability');
+            if (govStabilityEl) {
+                govStabilityEl.innerText = `${state.stability}%`;
+                if (state.stability < 40) {
+                    govStabilityEl.className = "text-base font-black text-red-500 animate-pulse";
+                } else if (state.stability < 65) {
+                    govStabilityEl.className = "text-base font-black text-amber-500";
+                } else {
+                    govStabilityEl.className = "text-base font-black text-emerald-400";
+                }
+            }
+
+            const govSupportEl = document.getElementById('gov-support');
+            if (govSupportEl) {
+                govSupportEl.innerText = `${state.publicSupport}%`;
+                if (state.publicSupport < 40) {
+                    govSupportEl.className = "text-base font-black text-red-500";
+                } else if (state.publicSupport < 65) {
+                    govSupportEl.className = "text-base font-black text-amber-500";
+                } else {
+                    govSupportEl.className = "text-base font-black text-indigo-400";
+                }
+            }
+        }
+
+        function showModal(title, body, icon = "🎉") {
+            document.getElementById('modal-icon').innerText = icon;
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-body').innerText = body;
+            document.getElementById('modal-container').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            playSound('click');
+            document.getElementById('modal-container').classList.add('hidden');
+        }
+
+        function playSound(type) {
+            if (state.isSoundMuted) return;
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if (!ctx) return;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                
+                if (type === 'click') {
+                    osc.frequency.setValueAtTime(600, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.05, ctx.currentTime);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.05);
+                } else if (type === 'tick') {
+                    osc.frequency.setValueAtTime(450, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.04, ctx.currentTime);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.03);
+                } else if (type === 'success') {
+                    osc.frequency.setValueAtTime(523.25, ctx.currentTime); 
+                    osc.frequency.exponentialRampToValueAtTime(1046.50, ctx.currentTime + 0.25); 
+                    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.25);
+                } else if (type === 'fail') {
+                    osc.frequency.setValueAtTime(220, ctx.currentTime); 
+                    osc.frequency.exponentialRampToValueAtTime(110, ctx.currentTime + 0.35); 
+                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.35);
+                }
+            } catch(e) {}
+        }
+
+        function toggleSound() {
+            state.isSoundMuted = !state.isSoundMuted;
+            const soundBtn = document.getElementById('sound-btn');
+            if (state.isSoundMuted) {
+                soundBtn.innerText = "🔇 סאונד מושתק";
+                soundBtn.className = "bg-slate-900 text-red-400 px-3 py-1.5 rounded-xl border border-red-950/40 text-xs transition font-bold";
+            } else {
+                soundBtn.innerText = "🔊 צלילים פעילים";
+                soundBtn.className = "bg-slate-900 text-slate-300 px-3 py-1.5 rounded-xl border border-slate-850 text-xs transition font-bold";
+            }
+        }
+
+        window.onload = function() {
+            setPhaseBadge("הקמת מפלגות");
+            renderPartiesSelectionGrid();
+            selectPartyCard('shas');
+            startNewsTicker();
+            checkForSavedGame();
+            updateLeaderboardUI();
+        };
+
+        function setPhaseBadge(text) {
+            document.getElementById('game-phase-badge').innerText = text;
+        }
+
+        function startNewsTicker() {
+            const tickerText = document.getElementById('news-marquee-text');
+            let counter = 0;
+            setInterval(() => {
+                counter = (counter + 1) % headlines.length;
+                tickerText.innerText = headlines[counter];
+            }, 10000);
+        }
+
+        function updateLeaderboardUI() {
+            const boardEl = document.getElementById('leaderboard-table');
+            const data = localStorage.getItem('the_path_to_61_leaders');
+            if (data) {
+                try {
+                    const parsed = JSON.parse(data);
+                    if (parsed.length > 0) {
+                        boardEl.innerHTML = `
+                            <table class="w-full text-right text-xs">
+                                <thead>
+                                    <tr class="border-b border-slate-850 text-slate-400 font-bold">
+                                        <th class="pb-1">ראש ממשלה</th>
+                                        <th class="pb-1">מפלגה</th>
+                                        <th class="pb-1">שבועות שלטון</th>
+                                        <th class="pb-1">חוקים</th>
+                                        <th class="pb-1 text-emerald-400">פופולריות</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${parsed.map(item => `
+                                        <tr class="border-b border-slate-900/50 hover:bg-slate-950/20">
+                                            <td class="py-1 text-slate-200 font-bold">${item.leader}</td>
+                                            <td class="py-1 text-slate-300">${item.party}</td>
+                                            <td class="py-1 font-mono">${item.weeks}</td>
+                                            <td class="py-1 font-mono text-indigo-400">${item.laws}</td>
+                                            <td class="py-1 font-mono text-emerald-400">${item.support}%</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        `;
+                        return;
+                    }
+                } catch(e) {}
+            }
+            boardEl.innerHTML = `<p class="text-slate-500 italic">טרם נרשמו שיאים. השלם קדנציה של 12 שבועות כדי להיכנס להיכל!</p>`;
+        }
+
+        function saveToLeaderboard(leader, party, weeks, laws, support) {
+            let records = [];
+            const data = localStorage.getItem('the_path_to_61_leaders');
+            if (data) {
+                try { records = JSON.parse(data); } catch(e) {}
+            }
+            records.push({ leader, party, weeks, laws, support });
+            records.sort((a,b) => b.weeks - a.weeks || b.support - a.support);
+            records = records.slice(0, 5); 
+            localStorage.setItem('the_path_to_61_leaders', JSON.stringify(records));
+            updateLeaderboardUI();
+        }
+
+        function checkForSavedGame() {
+            const saved = localStorage.getItem('the_path_to_61_save_v4');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    document.getElementById('resume-game-container').classList.remove('hidden');
+                    document.getElementById('resume-game-text').innerText = `נמצא משחק שמור: מפלגת ${parsed.partyName} (שבוע ${parsed.currentStage === 'campaign' ? parsed.week : parsed.govWeek})`;
+                } catch (e) {
+                    localStorage.removeItem('the_path_to_61_save_v4');
+                }
+            }
+        }
+
+        function saveGameLocally() {
+            localStorage.setItem('the_path_to_61_save_v4', JSON.stringify(state));
+        }
+
+        function loadSavedGame() {
+            const saved = localStorage.getItem('the_path_to_61_save_v4');
+            if (!saved) return;
+            try {
+                const parsed = JSON.parse(saved);
+                Object.assign(state, parsed);
+                
+                playSound('success');
+                document.getElementById('screen-setup').classList.add('hidden');
+                
+                if (state.currentStage === 'campaign') {
+                    document.getElementById('screen-campaign').classList.remove('hidden');
+                    setPhaseBadge(`קמפיין בחירות • שבוע ${state.week}`);
+                    updateCampaignStatsUI();
+                    generateCampaignEvent();
+                } else if (state.currentStage === 'negotiations') {
+                    startNegotiationsStage();
+                } else if (state.currentStage === 'governance') {
+                    document.getElementById('screen-governance').classList.remove('hidden');
+                    setPhaseBadge(`שלב המשילות • שבוע ${state.govWeek}`);
+                    updateGovernanceStatsUI();
+                    generateGovernanceCrisis();
+                    renderLaws();
+                    renderPartners();
+                }
+                showModal("משחק שמור נטען!", "המשחק השמור שוחזר בהצלחה מאחסון הדפדפן שלך.", "💾");
+            } catch (e) {
+                showModal("שגיאה בטעינה", "לא ניתן היה לשחזר את המשחק השמור.", "❌");
+            }
+        }
+
+        function renderPartiesSelectionGrid() {
+            const grid = document.getElementById('parties-selection-grid');
+            grid.innerHTML = '';
+
+            realParties.forEach(party => {
+                const isRight = party.bloc === 'right';
+                const card = document.createElement('div');
+                card.id = `party-card-${party.id}`;
+                card.onclick = () => { selectPartyCard(party.id); playSound('click'); };
+                card.className = "cursor-pointer bg-slate-950 p-4 rounded-2xl border border-slate-850 transition duration-300 hover:scale-102 flex flex-col justify-between h-52 space-y-3";
+                
+                card.innerHTML = `
+                    <div class="space-y-1 text-right">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] ${isRight ? 'text-blue-400 bg-blue-500/10 border-blue-500/20' : 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'} border px-2 py-0.5 rounded-full font-bold">
+                                גוש ${isRight ? 'הימין' : 'המרכז-שמאל'}
+                            </span>
+                            <span class="text-xs text-slate-500 font-bold font-mono">${party.seats} מנדטים</span>
+                        </div>
+                        <h4 class="text-sm font-black text-slate-200 mt-1">${party.name}</h4>
+                        <p class="text-[11px] text-slate-400 font-medium">${party.leader}</p>
+                    </div>
+                    <p class="text-[10px] text-slate-500 leading-normal line-clamp-3 text-right">${party.description}</p>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function selectPartyCard(partyId) {
+            state.selectedPartyId = partyId;
+            const chosen = realParties.find(p => p.id === partyId);
+            
+            realParties.forEach(p => {
+                const el = document.getElementById(`party-card-${p.id}`);
+                if (el) {
+                    el.className = "cursor-pointer bg-slate-950 p-4 rounded-2xl border border-slate-850 transition duration-300 hover:scale-102 flex flex-col justify-between h-52 space-y-3";
+                }
+            });
+
+            const activeEl = document.getElementById(`party-card-${partyId}`);
+            if (activeEl) {
+                activeEl.className = "cursor-pointer bg-slate-900 p-4 rounded-2xl border-2 border-amber-500 shadow-xl shadow-amber-500/5 transition duration-300 hover:scale-102 flex flex-col justify-between h-52 space-y-3";
+            }
+
+            document.getElementById('input-party-name').value = chosen.name;
+            document.getElementById('input-leader-name').value = chosen.leader;
+            state.bloc = chosen.bloc;
+        }
+
+        function startGame() {
+            playSound('success');
+            state.partyName = document.getElementById('input-party-name').value.trim() || 'המחנה המשותף';
+            state.leaderName = document.getElementById('input-leader-name').value.trim() || 'שמעון לוי';
+            
+            const chosenPartyInfo = realParties.find(p => p.id === state.selectedPartyId) || realParties[0];
+            
+            state.week = 1;
+            state.budget = chosenPartyInfo.budget;
+            state.partySeats = chosenPartyInfo.seats;
+            state.blocSeats = state.bloc === 'right' ? 55 : 54;
+            
+            // Setup partners with unique dynamic ongoing demands & budgets
+            const initialPartners = JSON.parse(JSON.stringify(blocPartners[state.bloc])).filter(p => p.id !== state.selectedPartyId);
+            const ongoingDemands = {
+                'gimel': { demand: 'סבסוד מוגדל למעונות יום חרדיים', cost: 110000, effect: -6 },
+                'likud': { demand: 'תמיכה ברפורמת המשילות המקומית', cost: 130000, effect: -5 },
+                'smotrich': { demand: 'סלילת כבישים עוקפים ביהודה ושומרון', cost: 140000, effect: -4 },
+                'gvir': { demand: 'מענקים מיוחדים לשוטרי סיור בערים מעורבות', cost: 120000, effect: -3 },
+                'lapid': { demand: 'תגבור תקציב המדע והמחקר באוניברסיטאות', cost: 150000, effect: -2 },
+                'gantz': { demand: 'סיוע פיננסי דחוף למשפחות משרתי המילואים', cost: 125000, effect: 2 },
+                'liberman': { demand: 'סבסוד לימודי ליבה מלאים בפריפריה', cost: 115000, effect: -5 }
+            };
+
+            state.partners = initialPartners.map(partner => {
+                const spec = ongoingDemands[partner.id] || { demand: 'חוק שיכון עירוני מורחב', cost: 100000, effect: -2 };
+                return {
+                    ...partner,
+                    partyBudget: 0,
+                    activeDemand: spec.demand,
+                    demandCost: spec.cost,
+                    demandStabilityEffect: spec.effect,
+                    demandStatus: 'pending' // 'pending', 'satisfied', 'rejected'
+                };
+            });
+            
+            document.getElementById('screen-setup').classList.add('hidden');
+            document.getElementById('screen-campaign').classList.remove('hidden');
+            state.currentStage = 'campaign';
+            
+            saveGameLocally();
+            setPhaseBadge("קמפיין בחירות • שבוע 1");
+            updateCampaignStatsUI();
+            generateCampaignEvent();
+        }
+
+        function triggerVictory() {
+            playSound('success');
+            state.currentStage = 'gameover';
+            setPhaseBadge("ניצחון היסטורי!");
+            localStorage.removeItem('the_path_to_61_save_v4');
+            
+            saveToLeaderboard(state.leaderName, state.partyName, state.govWeek - 1, state.lawsPassedCount, state.publicSupport);
+            
+            const screenGov = document.getElementById('screen-governance');
+            screenGov.innerHTML = `
+                <div class="max-w-2xl mx-auto bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl text-center space-y-6 animate-scaleUp">
+                    <div class="text-6xl animate-bounce">🏆</div>
+                    <h2 class="text-3xl font-black text-emerald-400">השלמת כהונה מלאה וניצחון היסטורי!</h2>
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        ברכות חמות לראש הממשלה, <strong>${state.leaderName}</strong>! הובלת את מפלגת <strong>${state.partyName}</strong> ואת גוש התומכים שלך לכהונה מזהירה של 12 שבועות מלאי עשייה, שמרת על היציבות הקואליציונית ברמה של ${state.stability}% והגעת לשיא פופולריות של ${state.publicSupport}%.
+                    </p>
+                    <div class="p-4 bg-slate-950 rounded-xl border border-slate-850 inline-block">
+                        <p class="text-xs text-slate-400">חוקים שהעברת בהצלחה בכנסת: <strong class="text-indigo-400 text-sm font-mono">${state.lawsPassedCount}</strong></p>
+                    </div>
+                    <button onclick="resetGame()" class="w-full bg-gradient-to-r from-amber-500 to-indigo-600 text-slate-950 font-extrabold py-3.5 rounded-xl transition">שחק שוב מההתחלה 🔄</button>
+                </div>
+            `;
+        }
+
+        function triggerGameOver(reason, desc) {
+            playSound('fail');
+            state.currentStage = 'gameover';
+            setPhaseBadge("סוף המשחק");
+            localStorage.removeItem('the_path_to_61_save_v4');
+
+            const screenGov = document.getElementById('screen-governance');
+            screenGov.innerHTML = `
+                <div class="max-w-2xl mx-auto bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl text-center space-y-6 animate-scaleUp">
+                    <div class="text-5xl">💥</div>
+                    <h2 class="text-3xl font-black text-red-500">${reason}</h2>
+                    <p class="text-sm text-slate-300 leading-relaxed">${desc}</p>
+                    <button onclick="resetGame()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-3.5 rounded-xl transition text-xs">נסה שוב מקמפיין חדש 🔄</button>
+                </div>
+            `;
+        }
+
+        function resetGame() {
+            localStorage.removeItem('the_path_to_61_save_v4');
+            location.reload();
+        }
+    </script>
+</body>
+</html>

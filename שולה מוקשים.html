@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MineSweeper Pro</title>
+
+<style>
+
+:root{
+    --bg:#0f172a;
+    --panel:#1e293b;
+    --cell:#334155;
+    --open:#e2e8f0;
+    --accent:#22c55e;
+    --danger:#ef4444;
+    --text:white;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Segoe UI,Tahoma,sans-serif;
+}
+
+body{
+    min-height:100vh;
+    background:linear-gradient(135deg,#0f172a,#1e293b);
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+}
+
+.container{
+    width:100%;
+    max-width:900px;
+}
+
+.panel{
+    background:rgba(30,41,59,.95);
+    padding:20px;
+    border-radius:20px;
+    margin-bottom:20px;
+    box-shadow:0 15px 40px rgba(0,0,0,.35);
+}
+
+h1{
+    text-align:center;
+    margin-bottom:15px;
+}
+
+.controls{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    justify-content:center;
+    align-items:center;
+}
+
+input{
+    padding:10px;
+    border:none;
+    border-radius:10px;
+    width:120px;
+}
+
+button{
+    border:none;
+    padding:10px 18px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:bold;
+    transition:.25s;
+}
+
+button:hover{
+    transform:translateY(-2px);
+}
+
+.start{
+    background:var(--accent);
+    color:white;
+}
+
+.reset{
+    background:#3b82f6;
+    color:white;
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+    gap:10px;
+    margin-top:15px;
+}
+
+.stat{
+    background:#334155;
+    padding:12px;
+    border-radius:12px;
+    text-align:center;
+}
+
+.board{
+    display:grid;
+    grid-template-columns:repeat(10,1fr);
+    gap:4px;
+}
+
+.cell{
+    aspect-ratio:1;
+    background:var(--cell);
+    border-radius:8px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-weight:bold;
+    cursor:pointer;
+    user-select:none;
+    transition:.2s;
+}
+
+.cell:hover{
+    transform:scale(1.05);
+}
+
+.cell.open{
+    background:var(--open);
+    color:black;
+}
+
+.cell.mine{
+    background:var(--danger);
+    color:white;
+}
+
+.cell.flag{
+    background:#f59e0b;
+}
+
+.message{
+    text-align:center;
+    margin-top:15px;
+    font-size:22px;
+    font-weight:bold;
+}
+
+.win{
+    color:#22c55e;
+}
+
+.lose{
+    color:#ef4444;
+}
+
+@media(max-width:700px){
+    .board{
+        gap:3px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="panel">
+
+<h1>💣 MineSweeper Pro</h1>
+
+<div class="controls">
+
+<label>פצצות:</label>
+
+<input
+id="mineCount"
+type="number"
+min="5"
+max="60"
+value="15">
+
+<button
+class="start"
+onclick="startGame()">
+התחל משחק
+</button>
+
+<button
+class="reset"
+onclick="resetGame()">
+איפוס
+</button>
+
+</div>
+
+<div class="stats">
+
+<div class="stat">
+❤️ חיים:
+<span id="lives">100</span>
+</div>
+
+<div class="stat">
+⏱ זמן:
+<span id="timer">0</span>
+</div>
+
+<div class="stat">
+🏆 ניקוד:
+<span id="score">0</span>
+</div>
+
+<div class="stat">
+🥇 שיא:
+<span id="best">0</span>
+</div>
+
+</div>
+
+</div>
+
+<div id="board" class="board"></div>
+
+<div id="message" class="message"></div>
+
+</div>
+<script>
+
+const SIZE = 10;
+
+let board = [];
+let mines = [];
+let opened = 0;
+let score = 0;
+let lives = 100;
+let timer = 0;
+let interval = null;
+let gameOver = false;
+
+const boardElement =
+document.getElementById("board");
+
+const livesElement =
+document.getElementById("lives");
+
+const scoreElement =
+document.getElementById("score");
+
+const timerElement =
+document.getElementById("timer");
+
+const bestElement =
+document.getElementById("best");
+
+const messageElement =
+document.getElementById("message");
+
+bestElement.textContent =
+localStorage.getItem("bestScore") || 0;
+
+function startTimer(){
+
+clearInterval(interval);
+
+timer = 0;
+
+timerElement.textContent = 0;
+
+interval = setInterval(()=>{
+
+timer++;
+
+timerElement.textContent = timer;
+
+},1000);
+
+}
+
+function createEmptyBoard(){
+
+board = [];
+
+for(let r=0;r<SIZE;r++){
+
+let row=[];
+
+for(let c=0;c<SIZE;c++){
+
+row.push({
+mine:false,
+open:false,
+flag:false,
+count:0
+});
+
+}
+
+board.push(row);
+
+}
+
+}
+
+function placeMines(total){
+
+mines=[];
+
+while(mines.length<total){
+
+const r =
+Math.floor(Math.random()*SIZE);
+
+const c =
+Math.floor(Math.random()*SIZE);
+
+if(!board[r][c].mine){
+
+board[r][c].mine=true;
+
+mines.push([r,c]);
+
+}
+
+}
+
+}
+
+function calculateNumbers(){
+
+for(let r=0;r<SIZE;r++){
+
+for(let c=0;c<SIZE;c++){
+
+if(board[r][c].mine) continue;
+
+let count=0;
+
+for(let dr=-1;dr<=1;dr++){
+
+for(let dc=-1;dc<=1;dc++){
+
+const nr=r+dr;
+const nc=c+dc;
+
+if(
+nr>=0 &&
+nr<SIZE &&
+nc>=0 &&
+nc<SIZE &&
+board[nr][nc].mine
+){
+count++;
+}
+
+}
+
+}
+
+board[r][c].count=count;
+
+}
+
+}
+
+}
+
+function createBoardUI(){
+
+boardElement.innerHTML="";
+
+for(let r=0;r<SIZE;r++){
+
+for(let c=0;c<SIZE;c++){
+
+const cell =
+document.createElement("div");
+
+cell.className="cell";
+
+cell.dataset.row=r;
+cell.dataset.col=c;
+
+cell.addEventListener(
+"click",
+()=>openCell(r,c)
+);
+
+cell.addEventListener(
+"contextmenu",
+e=>{
+e.preventDefault();
+toggleFlag(r,c);
+}
+);
+
+boardElement.appendChild(cell);
+
+}
+
+}
+
+}
+
+function getCellElement(r,c){
+
+return document.querySelector(
+`.cell[data-row="${r}"][data-col="${c}"]`
+);
+
+}
+
+function toggleFlag(r,c){
+
+if(gameOver) return;
+
+const cell = board[r][c];
+
+if(cell.open) return;
+
+cell.flag = !cell.flag;
+
+const el =
+getCellElement(r,c);
+
+if(cell.flag){
+
+el.classList.add("flag");
+el.textContent="🚩";
+
+}else{
+
+el.classList.remove("flag");
+el.textContent="";
+
+}
+
+}
+
+function openCell(r,c){
+
+if(gameOver) return;
+
+const cell = board[r][c];
+
+if(cell.open || cell.flag)
+return;
+
+cell.open=true;
+
+const el =
+getCellElement(r,c);
+
+el.classList.add("open");
+
+if(cell.mine){
+
+mineHit(el);
+
+return;
+
+}
+
+opened++;
+
+score += 10;
+
+scoreElement.textContent =
+score;
+
+if(cell.count>0){
+
+el.textContent =
+cell.count;
+
+}else{
+
+floodFill(r,c);
+
+}
+
+checkWin();
+
+}
+function floodFill(r,c){
+
+const queue = [[r,c]];
+
+while(queue.length){
+
+const [cr,cc] = queue.shift();
+
+for(let dr=-1;dr<=1;dr++){
+for(let dc=-1;dc<=1;dc++){
+
+const nr = cr + dr;
+const nc = cc + dc;
+
+if(
+nr<0 || nc<0 ||
+nr>=SIZE || nc>=SIZE
+) continue;
+
+const ncell = board[nr][nc];
+
+const el = getCellElement(nr,nc);
+
+if(ncell.open || ncell.flag)
+continue;
+
+if(ncell.mine) continue;
+
+ncell.open = true;
+
+el.classList.add("open");
+
+opened++;
+
+score += 5;
+
+el.textContent =
+ncell.count > 0
+? ncell.count
+: "";
+
+if(ncell.count === 0){
+queue.push([nr,nc]);
+}
+
+}
+
+}
+
+}
+
+}
+
+function mineHit(el){
+
+el.classList.add("mine");
+
+el.textContent = "💣";
+
+lives--;
+
+livesElement.textContent = lives;
+
+if(lives > 0){
+
+messageElement.textContent =
+"⚠ פיצוץ! נשארו חיים";
+
+messageElement.className =
+"message lose";
+
+setTimeout(()=>{
+messageElement.textContent = "";
+messageElement.className = "message";
+},1200);
+
+}else{
+
+endGame(false);
+
+}
+
+}
+
+function checkWin(){
+
+const totalSafe =
+SIZE*SIZE - mines.length;
+
+if(opened >= totalSafe){
+
+endGame(true);
+
+}
+
+}
+
+function endGame(win){
+
+gameOver = true;
+
+clearInterval(interval);
+
+if(win){
+
+messageElement.textContent =
+"🎉 ניצחת! כל הכבוד";
+
+messageElement.className =
+"message win";
+
+score += 200;
+
+}else{
+
+messageElement.textContent =
+"💀 הפסדת! פגעת בכל הפצצות";
+
+messageElement.className =
+"message lose";
+
+revealMines();
+
+}
+
+updateBest();
+
+}
+
+function revealMines(){
+
+for(const [r,c] of mines){
+
+const el = getCellElement(r,c);
+
+el.classList.add("mine");
+
+el.textContent = "💣";
+
+}
+
+}
+
+function updateBest(){
+
+const best =
+Number(localStorage.getItem("bestScore")||0);
+
+if(score > best){
+
+localStorage.setItem("bestScore",score);
+
+bestElement.textContent = score;
+
+}
+
+}
+
+function resetGame(){
+
+gameOver = false;
+
+opened = 0;
+
+score = 0;
+
+lives = 100;
+
+scoreElement.textContent = 0;
+
+livesElement.textContent = 100;
+
+messageElement.textContent = "";
+
+clearInterval(interval);
+
+createEmptyBoard();
+
+createBoardUI();
+
+}
+
+function startGame(){
+
+resetGame();
+
+const mineCount =
+parseInt(document.getElementById("mineCount").value);
+
+createEmptyBoard();
+
+placeMines(mineCount);
+
+calculateNumbers();
+
+createBoardUI();
+
+startTimer();
+
+}
+</script>
+
+</body>
+</html>

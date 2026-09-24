@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>צללים ברחוב הנביאים - גרסה יציבה לחלוטין</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.7;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #1e1e1e;
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.7);
+            border-top: 6px solid #8b0000;
+        }
+        h1 {
+            color: #d4af37;
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+            margin-top: 0;
+        }
+        .status-box {
+            background-color: #2a2a2a;
+            padding: 12px;
+            border-right: 4px solid #8b0000;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 25px;
+            font-weight: bold;
+            color: #bdc3c7;
+            display: flex;
+            justify-content: space-between;
+        }
+        .story-text {
+            font-size: 18px;
+            background-color: #252525;
+            padding: 25px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            margin-bottom: 30px;
+            white-space: pre-line;
+        }
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .btn {
+            background-color: #2d2d2d;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 16px 22px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: right;
+            font-size: 16px;
+            transition: all 0.25s ease;
+        }
+        .btn:hover {
+            background-color: #8b0000;
+            border-color: #a00000;
+        }
+        .error-message {
+            color: #ff4a4a;
+            font-weight: bold;
+            margin-top: 15px;
+            display: none;
+            background-color: #3a1a1a;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .name-input-box {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .name-input {
+            padding: 12px;
+            font-size: 18px;
+            border-radius: 4px;
+            border: 1px solid #444;
+            background-color: #2a2a2a;
+            color: #fff;
+            width: 60%;
+            text-align: center;
+            direction: rtl; /* מבטיח שהטקסט ייכתב נכון מימין לשמאל */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🔎 צללים ברחוב הנביאים</h1>
+    
+    <div id="game-interface" style="display: none;">
+        <div class="status-box">
+            <span id="progress-display">שלב: 1 מתוך 10</span>
+            <span id="detective-name-display">חוקר: </span>
+        </div>
+
+        <div id="story-box" class="story-text"></div>
+
+        <div id="choices-box" class="choices"></div>
+
+        <div id="error-box" class="error-message">
+            ❌ היקש בלשי שגוי! חשוב שוב על הנתונים ונסה מסלול בטוח יותר.
+        </div>
+    </div>
+
+    <div id="start-screen">
+        <div class="story-text" style="text-align: center;">
+            ברוך הבא למשחק החקירות. ירושלים, 1925.
+            לפני שנתחיל בפיענוח התיק המורכב, אנא הזן את שמך בפנקס החוקר הרשמי:
+        </div>
+        <div class="name-input-box">
+            <input type="text" id="detective-name-input" class="name-input" placeholder="הכנס שם חוקר..." maxlength="20">
+            <button class="btn" style="text-align: center; width: 40%;" onclick="startGame()">התחל בחקירה</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let detectiveName = "אפרים";
+    let currentStep = 0;
+
+    // מערך פשוט ויציב ללא פונקציות פנימיות למניעת קריסות דפדפן
+    const steps = [
+        {
+            text: "שלב 1: אתה מגיע לחדר העבודה ההפוך של הפרופסור שנעלם. על השולחן ישנו מכתב איומים מוכתם בדיו, ועל הרצפה טביעות בוץ טריות. מה הצעד הבלשי הראשון שלך בסריקת הזירה?",
+            choices: [
+                "לנקות את הבוץ מהרצפה כדי לשמור על סדר.",
+                "לסמן ולמדוד את טביעות הבוץ כדי לזהות את מקורן בשטח.", 
+                "לרוץ מיד החוצה אל הרחוב ללא תוכנית מסודרת."
+            ],
+            correctIndex: 1
+        },
+        {
+            text: "שלב 2: הבוץ מזוהה כבוץ ייחודי מאזור מעיין השילוח. אתה מגיע לשם ומבחין בשלושה אנשים. אחד מהם, עוזר המחקר הצעיר של הפרופסור, מזהה אותך ומנסה להתחמק בשקט מהסמטה. מה תעשה?",
+            choices: [
+                "תעכב מיד את עוזר המחקר הצעיר ותדרוש תשובות ברורות לגבי מעשיו.", 
+                "תתעלם ממנו לחלוטין ותמשיך לטייל באזור המעיין.",
+                "תחזור לתחנת המשטרה המקומית כדי להגיש דוח חלקי."
+            ],
+            correctIndex: 0
+        },
+        {
+            text: "שלב 3: עוזר המחקר החשוד, נחום, מודה שביקר בבית אך טוען שרק השאיר לפרופסור מפתח למעבדה 404 באוניברסיטה. לאן תפנה עכשיו כדי לאמת את גרסתו?",
+            choices: [
+                "ללכת לספרייה הציבורית הקרובה לקרוא ספרי ארכיאולוגיה כלליים.",
+                "לחזור לבית הפרופסור ולחפש עוד רמזים ישנים במגירות החשופות.",
+                "לנסוע מיד למתחם האוניברסיטה ולבדוק את מעבדה 404 בהקדם." 
+            ],
+            correctIndex: 2
+        },
+        {
+            text: "שלב 4: בתוך מעבדה 404 הנעולה, אתה מוצא את תיק המסמכים הרשמי של הפרופסור. בפנים מונח יומן אישי ובו משפט מפתח ברור: 'שותפי, ד\"ר מילר, מאיים עליי בגלל המגילה. ניפגש בחשאי במחסן הספרים הישן בשוק'. מה המטרה הבאה שלך?",
+            choices: [
+                "לצאת מיד אל מחסן הספרים הישן בשוק העיר העתיקה.", 
+                "לחפש את ד\"ר מילר בביתו הפרטי ללא צו רשמי.",
+                "להמתין באוניברסיטה עד שהשומר יגיע במשמרת הבוקר."
+            ],
+            correctIndex: 0
+        },
+        {
+            text: "שלב 5: המחסן בשוק נעול ושקט לחלוטין. בסריקת השטח בחוץ, סמוך לפתח הכניסה, אתה מבחין בחפץ קטן ומוזהב המונח בצללים. מה אתה עושה?",
+            choices: [
+                "מתעלם מהחפץ וממשיך לסרוק את שאר רחובות השוק.",
+                "מרים ובוחן את החפץ - זהו שעון הכיס של הפרופסור עם ראשי תיבות שמו!", 
+                "בועט בחפץ הצידה אל הסמטה כדי שלא יפריע בדרך החקירה."
+            ],
+            correctIndex: 1
+        },
+        {
+            text: "שלב 6: שעון הכיס שנמצא מוכיח מעל לכל ספק שהפרופסור הובא לכאן. דלת המחסן נעולה בבריח ברזל כבד מאוד. מהי הדרך הנכונה והחשאית לפעול בלי להתגלות?",
+            choices: [
+                "לחפש חלון אחורי קטן או פתח איוורור בגג כדי להציץ פנימה בשקט.", 
+                "לצעוק בקול רם לאנשים שבפנים שיפתחו מיד את הדלת הרשמית.",
+                "לנסות לשבור את מנעול הברזל המסיבי באמצעות אבן מהרחוב."
+            ],
+            correctIndex: 0
+        },
+        {
+            text: "שלב 7: מהחלון האחורי הקטן אתה רואה את ד\"ר מילר ואת סוחר העתיקות שפירא מתווכחים ליד הפרופסור הקשור לכיסא. שפירא אומר: 'השארתי את המפתח הראשי אצל השומר שלי בפתח השוק'. מה תעשה?",
+            choices: [
+                "תשבור את זכוכית החחלון ותיכנס לבד מול שניהם ללא גיבוי.",
+                "תלך בשקט להשיג את המפתח מהשומר בפתח השוק מבלי לעורר מהומה.", 
+                "תחזור לרחוב הנביאים להביא עוד כלי עבודה כבדים."
+            ],
+            correctIndex: 1
+        },
+        {
+            text: "שלב 8: השגת את המפתח מהשומר המנמנם בתושייה רבה. אתה עומד שוב מול הדלת הראשית כשהמפתח בידך. איך תיכנס כדי לשמור על גורם ההפתעה הבלשי?",
+            choices: [
+                "תפתח את המנעול בשקט, תציג את תעודת החוקר שלך, ותפתיע אותם בפנים.", 
+                "תזרוק את המפתח פנימה דרך החלון ותמתין בחוץ בחושך.",
+                "תדפוק חזק על הדלת ותדרוש מהם לצאת החוצה בזה אחר זה."
+            ],
+            correctIndex: 0
+        },
+        {
+            text: "שלב 9: הדלת נפתחת במהירות! החשודים קופאים במקומם. ד\"ר מילר אוחז במגילה העתיקה ומאיים להשמיד אותה מיד אם תעשה צעד אחד קדימה. כיצד תגיב באחריות וברוגע?",
+            choices: [
+                "תנסה לרוץ ולחטוף לו את המגילה מהיד בכוח פיזי ישיר.",
+                "תסביר לו ברוגע שיומנו של הפרופסור כבר נמצא בידיך, המשטרה עודכנה, ואין לו שום סיכוי להימלט.", 
+                "תסובב את הגב ותעזוב את המקום לחלוטין."
+            ],
+            correctIndex: 1
+        },
+        {
+            text: "שלב 10: מילר מבין שהפסיד במערכה ומוריד את ידיו. כוחות הגיבוי שהזעקת מראש פורצים פנימה ומאבטחים את הזירה. הפרופסור משוחרר מהחבלים, מחבק אותך ומודה לך מעומק הלב על הצלת חייו והמגילה ההיסטורית.",
+            choices: [
+                "המשך אל סיכום התיק והחתימה הרשמית"
+            ],
+            correctIndex: 0
+        }
+    ];
+
+    function startGame() {
+        const inputField = document.getElementById('detective-name-input');
+        const inputName = inputField.value.trim();
+        
+        if (inputName !== "") {
+            detectiveName = inputName;
+        } else {
+            detectiveName = "שניאור"; // ברירת מחדל
+        }
+        
+        // עדכון תצוגת השם במסך המשחק
+        document.getElementById('detective-name-display').innerHTML = `<strong>חוקר:</strong> הבלש ${detectiveName}`;
+        
+        // מעבר בטוח בין המסכים
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('game-interface').style.display = 'block';
+        
+        currentStep = 0;
+        renderStep();
+    }
+
+    function renderStep() {
+        // בדיקה אם הגענו מעבר לשלב 10 (סיום מוצלח)
+        if (currentStep >= steps.length) {
+            showWinScreen();
+            return;
+        }
+
+        const step = steps[currentStep];
+        
+        document.getElementById('progress-display').innerText = `שלב: ${currentStep + 1} מתוך 10`;
+        document.getElementById('story-box').innerText = step.text;
+        document.getElementById('error-box').style.display = 'none';
+
+        const choicesBox = document.getElementById('choices-box');
+        choicesBox.innerHTML = '';
+
+        step.choices.forEach((choice, index) => {
+            const button = document.createElement('button');
+            button.className = 'btn';
+            button.innerText = choice;
+            button.onclick = () => handleChoice(index);
+            choicesBox.appendChild(button);
+        });
+    }
+
+    function handleChoice(selectedIndex) {
+        const step = steps[currentStep];
+
+        if (selectedIndex === step.correctIndex) {
+            currentStep++;
+            renderStep();
+        } else {
+            document.getElementById('error-box').style.display = 'block';
+        }
+    }
+
+    function showWinScreen() {
+        document.getElementById('progress-display').innerText = "פיצוח התיק הושלם!";
+        document.getElementById('story-box').innerText = `🏆 התיק פוענח בהצלחה!\n\nהבלש ${detectiveName} פתר את אחת התעלומות המורכבות ביותר ברחובות ירושלים. הצדק נעשה והממצאים ההיסטוריים הושבו למקומם המוגן והבטוח. שמך ייזכר לטובה במחלק החקירות!`;
+        document.getElementById('error-box').style.display = 'none';
+
+        const choicesBox = document.getElementById('choices-box');
+        choicesBox.innerHTML = '';
+
+        const restartButton = document.createElement('button');
+        restartButton.className = 'btn';
+        restartButton.innerText = "שחק שוב מהתחלה";
+        restartButton.onclick = () => {
+            document.getElementById('game-interface').style.display = 'none';
+            document.getElementById('start-screen').style.display = 'block';
+            document.getElementById('detective-name-input').value = '';
+        };
+        choicesBox.appendChild(restartButton);
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>טאקי: המרוץ לאפס</title>
+    <style>
+        :root {
+            --wood: #3d2516; --felt: #064e3b;
+            --red: #ff3333; --blue: #3399ff; --green: #33cc33; --yellow: #ffcc00;
+        }
+        body {
+            font-family: 'Segoe UI', sans-serif; background-color: #000;
+            color: white; margin: 0; display: flex; flex-direction: column;
+            align-items: center; height: 100vh; overflow: hidden;
+        }
+        #setup {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            display: flex; justify-content: center; align-items: center; z-index: 2000;
+        }
+        .wood-box { background: var(--wood); padding: 40px; border-radius: 25px; text-align: center; border: 6px solid #2e1e1a; }
+        #game-board { display: none; width: 100%; height: 100%; flex-direction: column; justify-content: space-between; padding: 10px; box-sizing: border-box; }
+        .table-area {
+            flex-grow: 1; background: radial-gradient(circle, var(--felt) 0%, #062019 100%);
+            border: 22px solid var(--wood); border-radius: 90px;
+            display: flex; justify-content: center; align-items: center; 
+            position: relative; margin: 10px 0; box-shadow: inset 0 0 60px #000;
+        }
+        #central-ui {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            background: white; padding: 12px; border-radius: 20px; text-align: center;
+            min-width: 320px; z-index: 10; color: #333; 
+            border: 6px solid #ccc; transition: border-color 0.4s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .card {
+            width: 75px; height: 110px; border-radius: 12px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            font-weight: 900; cursor: pointer; border: 4px solid #fff;
+            box-shadow: 3px 3px 12px rgba(0,0,0,0.6); background-color: white;
+            position: relative;
+        }
+        .card.red { border-color: var(--red); color: var(--red); }
+        .card.blue { border-color: var(--blue); color: var(--blue); }
+        .card.green { border-color: var(--green); color: var(--green); }
+        .card.yellow { border-color: var(--yellow); color: var(--yellow); }
+        
+        /* עיצוב הטקסט של הטאקי */
+        .taki-container {
+            display: flex; flex-direction: column; align-items: center;
+            line-height: 0.9; width: 100%;
+        }
+        .taki-row { display: flex; justify-content: center; gap: 4px; font-size: 1.8rem; }
+        .taki-row.bottom { margin-top: 5px; }
+
+        .ui-btn { padding: 8px 15px; margin: 4px; font-size: 0.9rem; cursor: pointer; border-radius: 10px; border: none; background: #222; color: white; font-weight: bold; }
+        .undo-btn { background: #dc2626; }
+        .finish-btn { background: #059669; }
+        .score-badge { background: #facc15; color: #000; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
+        .player-hand { display: flex; justify-content: center; gap: 8px; padding: 15px; flex-wrap: wrap; max-height: 160px; overflow-y: auto; }
+        #status-msg { color: #dc2626; font-weight: bold; height: 20px; font-size: 0.85rem; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+<div id="setup">
+    <div class="wood-box">
+        <h1 style="color:white;">טאקי: המרוץ לאפס 🏁</h1>
+        <button class="ui-btn" style="background:white; color:black; padding:15px 40px;" onclick="startGame(3)">התחל משחק</button>
+    </div>
+</div>
+
+<div id="game-board">
+    <div id="central-ui">
+        <div id="info-turn"></div>
+        <div id="status-msg"></div>
+        <div id="info-direction" style="font-size: 0.8rem; color: #666;">כיוון: עם השעון ↻</div>
+        <div style="display:flex; justify-content: center; gap: 5px; margin-top:5px;">
+            <button id="undo-btn" class="ui-btn undo-btn" onclick="undoMove()" disabled>ביטול</button>
+            <button id="finish-btn" class="ui-btn finish-btn" onclick="finishTurn()" disabled>סיום תור</button>
+            <button class="ui-btn" style="background:#555" onclick="location.reload()">איפוס</button>
+        </div>
+    </div>
+
+    <div id="opponents-container" style="display:flex; justify-content: space-around; width:100%; margin-top:130px;"></div>
+
+    <div id="table" class="table-area">
+        <div id="deck" class="card" style="margin-left:80px; background:#222; border-color:#555; color:white; font-size: 0.9rem;" onclick="drawFromDeck()">קופה</div>
+        <div id="pile"></div>
+    </div>
+
+    <div id="my-area" style="text-align:center; width:100%">
+        <div style="margin-bottom:8px;">מספר הטורניר שלך: <span id="my-score" class="score-badge">8</span></div>
+        <button id="close-taki-btn" class="ui-btn" style="background:var(--red); display:none;" onclick="closeTaki()">סגור טאקי</button>
+        <div id="my-hand" class="player-hand"></div>
+    </div>
+</div>
+
+<div id="color-picker" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:20px; border-radius:20px; z-index:3000; border:8px solid var(--wood); grid-template-columns:1fr 1fr; gap:10px;">
+    <div onclick="pickColor('red')" style="width:60px; height:60px; background:var(--red); border-radius:50%; cursor:pointer;"></div>
+    <div onclick="pickColor('blue')" style="width:60px; height:60px; background:var(--blue); border-radius:50%; cursor:pointer;"></div>
+    <div onclick="pickColor('green')" style="width:60px; height:60px; background:var(--green); border-radius:50%; cursor:pointer;"></div>
+    <div onclick="pickColor('yellow')" style="width:60px; height:60px; background:var(--yellow); border-radius:50%; cursor:pointer;"></div>
+</div>
+
+<script>
+    const namePool = ["איתי", "נועה", "עומר", "מאיה", "גיא", "שירה", "רועי", "מיכל"];
+    let deck = [], players = [], pile = [], turn = 0, plus2Count = 0, direction = 1; 
+    let isTakiOpen = false, needColorChange = false, turnActionTaken = false, mustPlayOnPlus = false, historyState = null;
+    const colorHe = { red: 'אדום', blue: 'כחול', green: 'ירוק', yellow: 'צהוב', all: 'צבעוני' };
+
+    function getCardContent(color, val) {
+        if (val === 'Taki' || val === 'SuperTaki') {
+            const isColorful = (val === 'SuperTaki');
+            return `
+                <div class="taki-container">
+                    <div class="taki-row">
+                        <span style="${isColorful ? 'color:var(--red)' : ''}">ט</span>
+                        <span style="${isColorful ? 'color:var(--blue)' : ''}">א</span>
+                    </div>
+                    <div class="taki-row bottom">
+                        <span style="${isColorful ? 'color:var(--green)' : ''}">ק</span>
+                        <span style="${isColorful ? 'color:var(--yellow)' : ''}">י</span>
+                    </div>
+                </div>`;
+        }
+        if (val === 'Stop') return "✋"; 
+        if (val === 'King') return "👑"; 
+        if (val === 'Change') return "🎨"; 
+        if (val === 'Switch') return "⇄"; 
+        return `<span style="font-size:2.2rem">${val}</span>`;
+    }
+
+    function createCard(color, val) { 
+        return { color, val, content: getCardContent(color, val) }; 
+    }
+
+    function buildDeck() {
+        const colors = ['red', 'blue', 'green', 'yellow'];
+        const values = ['1', '3', '4', '5', '6', '7', '8', '9', '+', '+2', 'Stop', 'Taki', 'Switch'];
+        let newDeck = [];
+        colors.forEach(c => { 
+            values.forEach(v => { newDeck.push(createCard(c, v)); newDeck.push(createCard(c, v)); }); 
+            newDeck.push(createCard('all', 'SuperTaki')); 
+            newDeck.push(createCard('all', 'Change')); 
+            newDeck.push(createCard(c, 'King'));
+        });
+        return newDeck.sort(() => 0.5 - Math.random());
+    }
+
+    function startGame(num) {
+        deck = buildDeck();
+        direction = 1;
+        let shuffledNames = [...namePool].sort(() => 0.5 - Math.random());
+        players = [{ name: "אתה", hand: deck.splice(0, 8), score: 8, isBot: false }];
+        for(let i=1; i<num; i++) players.push({ name: shuffledNames[i], hand: deck.splice(0, 8), score: 8, isBot: true });
+        pile = [deck.pop()]; while(pile[0].color === 'all') pile = [deck.pop()];
+        document.getElementById('setup').style.display = 'none';
+        document.getElementById('game-board').style.display = 'flex';
+        updateUI();
+    }
+
+    function updateUI() {
+        const top = pile[pile.length-1];
+        const centralUI = document.getElementById('central-ui');
+        document.getElementById('pile').innerHTML = `<div class="card ${top.color}">${top.content}</div>`;
+        
+        if (top.color !== 'all') centralUI.style.borderColor = `var(--${top.color})`;
+        else centralUI.style.borderColor = '#ccc';
+
+        document.getElementById('info-turn').innerHTML = `תור: <b>${players[turn].name}</b>`;
+        document.getElementById('info-direction').innerText = direction === 1 ? "כיוון: עם השעון ↻" : "כיוון: נגד השעון ↺";
+        document.getElementById('my-score').innerText = players[0].score;
+        
+        let msg = "";
+        if (plus2Count > 0) msg = `⚠️ חובה +2 או למשוך ${plus2Count*2}`;
+        else if (mustPlayOnPlus) msg = "➕ חובה לשים עוד קלף";
+        else if (isTakiOpen) msg = "🌈 טאקי פתוח!";
+        document.getElementById('status-msg').innerText = msg;
+
+        document.getElementById('finish-btn').disabled = (turn !== 0 || !turnActionTaken || isTakiOpen || needColorChange || plus2Count > 0 || mustPlayOnPlus);
+        document.getElementById('undo-btn').disabled = (turn !== 0 || !turnActionTaken || needColorChange);
+        document.getElementById('close-taki-btn').style.display = (isTakiOpen && turn === 0) ? 'inline-block' : 'none';
+
+        const handDiv = document.getElementById('my-hand');
+        handDiv.innerHTML = '';
+        players[0].hand.forEach((c, i) => {
+            const d = document.createElement('div');
+            d.className = `card ${c.color}`; d.innerHTML = c.content;
+            d.onclick = () => playCard(0, i);
+            handDiv.appendChild(d);
+        });
+
+        const opps = document.getElementById('opponents-container');
+        opps.innerHTML = '';
+        for(let i=1; i<players.length; i++) {
+            opps.innerHTML += `<div style="text-align:center">${players[i].name}<br><span class="score-badge">${players[i].score}</span><br><div class="card" style="width:40px; height:55px; background:#222; border-color:#555; font-size:0.8rem; color:white;">${players[i].hand.length}</div></div>`;
+        }
+    }
+
+    function playCard(pIdx, cIdx) {
+        if (turn !== pIdx || needColorChange) return;
+        const card = players[pIdx].hand[cIdx];
+        const top = pile[pile.length-1];
+
+        let can = (card.color === 'all' || card.val === 'King' || (plus2Count > 0 && card.val === '+2') || (isTakiOpen && (card.color === top.color || card.val === top.val)) || (!plus2Count && !turnActionTaken && (card.color === top.color || card.val === top.val)) || (mustPlayOnPlus && (card.color === top.color || card.val === top.val)));
+
+        if (can) {
+            if (pIdx === 0 && !turnActionTaken) historyState = JSON.parse(JSON.stringify({players, pile, plus2Count, isTakiOpen, mustPlayOnPlus, direction}));
+            players[pIdx].hand.splice(cIdx, 1);
+            pile.push(card);
+            turnActionTaken = true;
+            
+            if (card.val === 'Switch') { direction *= -1; mustPlayOnPlus = false; isTakiOpen = false; }
+            else if (card.val === '+2') { plus2Count++; mustPlayOnPlus = false; isTakiOpen = false; if(!players[pIdx].isBot) finishTurn(); }
+            else if (card.val === '+') { mustPlayOnPlus = true; isTakiOpen = false; }
+            else if (card.val === 'Taki' || card.val === 'SuperTaki') { isTakiOpen = true; mustPlayOnPlus = false; }
+            else { mustPlayOnPlus = false; }
+
+            if (card.val === 'King' || card.val === 'Change' || card.val === 'SuperTaki') {
+                if (card.val === 'King') plus2Count = 0;
+                startColorPick(pIdx);
+            }
+
+            updateUI();
+            
+            if (players[pIdx].hand.length === 0 && !mustPlayOnPlus) {
+                players[pIdx].score--;
+                alert(players[pIdx].name + " סיים סיבוב! היעד: " + players[pIdx].score);
+                if (players[pIdx].score <= 0) { alert("ניצחון סופי!"); location.reload(); return; }
+                if (deck.length < 20) deck = buildDeck();
+                players[pIdx].hand = deck.splice(0, players[pIdx].score);
+                finishTurn();
+            } else if (players[pIdx].isBot && (isTakiOpen || mustPlayOnPlus)) {
+                setTimeout(botMove, 800);
+            }
+        }
+    }
+
+    function drawFromDeck() {
+        if (turn !== 0 || isTakiOpen || (turnActionTaken && !mustPlayOnPlus)) return;
+        let num = plus2Count > 0 ? plus2Count * 2 : 1;
+        for(let i=0; i<num; i++) { if (deck.length === 0) deck = buildDeck(); players[0].hand.push(deck.pop()); }
+        plus2Count = 0; mustPlayOnPlus = false; turnActionTaken = true; finishTurn();
+    }
+
+    function finishTurn() {
+        if (needColorChange || mustPlayOnPlus) return;
+        const lastCard = pile[pile.length-1];
+        let jump = (lastCard.val === 'Stop' && !isTakiOpen) ? 2 : 1;
+        turn = (turn + (jump * direction) + players.length) % players.length;
+        turnActionTaken = false; isTakiOpen = false;
+        updateUI();
+        if (players[turn].isBot) setTimeout(botMove, 1000);
+    }
+
+    function undoMove() {
+        if (!historyState) return;
+        players = historyState.players; pile = historyState.pile;
+        plus2Count = historyState.plus2Count; isTakiOpen = historyState.isTakiOpen; 
+        mustPlayOnPlus = historyState.mustPlayOnPlus; direction = historyState.direction;
+        turnActionTaken = false; historyState = null; updateUI();
+    }
+
+    function startColorPick(pIdx) {
+        if (!players[pIdx].isBot) { needColorChange = true; document.getElementById('color-picker').style.display = 'grid'; }
+        else { pile[pile.length-1].color = ['red','blue','green','yellow'][Math.floor(Math.random()*4)]; updateUI(); }
+    }
+
+    function pickColor(c) { pile[pile.length-1].color = c; needColorChange = false; document.getElementById('color-picker').style.display = 'none'; updateUI(); }
+    function closeTaki() { isTakiOpen = false; updateUI(); }
+
+    function botMove() {
+        if (turn === 0) return;
+        const bot = players[turn];
+        const top = pile[pile.length-1];
+        let idx = bot.hand.findIndex(c => 
+            (plus2Count > 0 && (c.val==='+2'||c.val==='King')) ||
+            (isTakiOpen && (c.color===top.color||c.val===top.val||c.color==='all')) ||
+            (mustPlayOnPlus && (c.color===top.color||c.val===top.val)) ||
+            (!plus2Count && !isTakiOpen && !mustPlayOnPlus && (c.color===top.color||c.val===top.val||c.color==='all'))
+        );
+        if (idx !== -1) {
+            playCard(turn, idx);
+            if (!isTakiOpen && !mustPlayOnPlus && !needColorChange && players[turn]?.hand.length > 0) finishTurn();
+            else if (isTakiOpen || mustPlayOnPlus) setTimeout(botMove, 800);
+        } else {
+            let num = plus2Count > 0 ? plus2Count * 2 : 1;
+            for(let i=0; i<num; i++) { if (deck.length === 0) deck = buildDeck(); bot.hand.push(deck.pop()); }
+            plus2Count = 0; mustPlayOnPlus = false; finishTurn();
+        }
+    }
+</script>
+</body>
+</html>

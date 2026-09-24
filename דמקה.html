@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>דמקה - אכילה רציפה</title>
+    <style>
+        :root { --bg: #1a252f; --light-sq: #f0d9b5; --dark-sq: #b58863; }
+        body { display: flex; flex-direction: column; align-items: center; background-color: var(--bg); font-family: 'Segoe UI', sans-serif; color: white; margin: 0; padding: 10px; }
+        .ui-panel { background: #2c3e50; padding: 15px; width: 500px; display: flex; justify-content: space-between; align-items: center; border-radius: 12px 12px 0 0; border-bottom: 5px solid #27ae60; box-sizing: border-box; }
+        canvas { display: block; cursor: pointer; border: 5px solid #3e2723; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .btns { display: flex; gap: 8px; }
+        button { padding: 8px 12px; font-size: 13px; cursor: pointer; border: none; color: white; border-radius: 4px; font-weight: bold; }
+        .btn-undo { background: #e67e22; }
+        .btn-reset { background: #c0392b; }
+        .btn-end { background: #2980b9; }
+        button:disabled { opacity: 0.4; }
+        #status { font-size: 16px; color: #f1c40f; }
+    </style>
+</head>
+<body>
+
+    <div class="ui-panel">
+        <div id="status">תורך (לבן)</div>
+        <div class="btns">
+            <button id="undoBtn" class="btn-undo" onclick="undoMove()" disabled>ביטול</button>
+            <button id="endTurnBtn" class="btn-end" onclick="endTurn()" disabled>סיום תור</button>
+            <button class="btn-reset" onclick="resetGame()">חדש</button>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas" width="480" height="480"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const size = 480 / 8;
+
+        let board = [];
+        let turn = 'w';
+        let selectedSq = null;
+        let validMoves = [];
+        let history = [];
+        let isMultiJump = false; // האם אנחנו באמצע רצף אכילה
+
+        function resetGame() {
+            board = Array(8).fill(null).map(() => Array(8).fill(null));
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    if ((r + c) % 2 !== 0) {
+                        if (r < 3) board[r][c] = { color: 'b', king: false };
+                        if (r > 4) board[r][c] = { color: 'w', king: false };
+                    }
+                }
+            }
+            turn = 'w'; selectedSq = null; validMoves = []; history = []; isMultiJump = false;
+            document.getElementById('endTurnBtn').disabled = true;
+            document.getElementById('undoBtn').disabled = true;
+            document.getElementById('status').innerText = "תור הלבן";
+            draw();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, 480, 480);
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    ctx.fillStyle = (r + c) % 2 === 0 ? '#f0d9b5' : '#b58863';
+                    ctx.fillRect(c * size, r * size, size, size);
+
+                    if (selectedSq && selectedSq.r === r && selectedSq.c === c) {
+                        ctx.fillStyle = 'rgba(255, 255, 0, 0.4)';
+                        ctx.fillRect(c * size, r * size, size, size);
+                    }
+
+                    validMoves.forEach(m => {
+                        if (m.r === r && m.c === c) {
+                            ctx.beginPath();
+                            ctx.arc(c * size + size/2, r * size + size/2, 10, 0, Math.PI*2);
+                            ctx.fillStyle = m.eat ? 'rgba(255, 0, 0, 0.6)' : 'rgba(0, 255, 0, 0.5)';
+                            ctx.fill();
+                        }
+                    });
+
+                    let p = board[r][c];
+                    if (p) {
+                        ctx.beginPath();
+                        ctx.arc(c * size + size/2, r * size + size/2, 22, 0, Math.PI*2);
+                        ctx.fillStyle = p.color === 'w' ? '#fff' : '#333';
+                        ctx.fill();
+                        ctx.strokeStyle = "#000"; ctx.lineWidth = 2; ctx.stroke();
+                        if (p.king) {
+                            ctx.fillStyle = "gold"; ctx.font = "bold 20px Arial";
+                            ctx.textAlign = "center"; ctx.textBaseline = "middle";
+                            ctx.fillText("K", c * size + size/2, r * size + size/2);
+                        }
+                    }
+                }
+            }
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            if (turn !== 'w') return;
+            const rect = canvas.getBoundingClientRect();
+            const c = Math.floor((e.clientX - rect.left) / size);
+            const r = Math.floor((e.clientY - rect.top) / size);
+
+            const move = validMoves.find(m => m.r === r && m.c === c);
+            
+            if (move) {
+                if (!isMultiJump) saveHistory();
+                
+                executeMove(selectedSq.r, selectedSq.c, r, c, move.eat);
+                
+                // בדיקה אם אפשר להמשיך לאכול
+                if (move.eat) {
+                    let nextJumps = getMoves(r, c, board).filter(m => m.eat);
+                    if (nextJumps.length > 0) {
+                        isMultiJump = true;
+                        selectedSq = {r, c};
+                        validMoves = nextJumps;
+                        document.getElementById('status').innerText = "אכילה כפולה אפשרית!";
+                        draw();
+                        return;
+                    }
+                }
+                
+                isMultiJump = false;
+                selectedSq = null;
+                validMoves = [];
+                document.getElementById('endTurnBtn').disabled = false;
+                document.getElementById('undoBtn').disabled = false;
+                draw();
+            } else if (!isMultiJump && board[r][c] && board[r][c].color === 'w') {
+                selectedSq = {r, c};
+                validMoves = getMoves(r, c, board);
+                draw();
+            }
+        });
+
+        function executeMove(fR, fC, tR, tC, eat) {
+            let p = board[fR][fC];
+            board[tR][tC] = p;
+            board[fR][fC] = null;
+            if (eat) board[eat.r][eat.c] = null;
+            if (p.color === 'w' && tR === 0) p.king = true;
+            if (p.color === 'b' && tR === 7) p.king = true;
+        }
+
+        function getMoves(r, c, b) {
+            let moves = [];
+            let p = b[r][c];
+            if (!p) return [];
+            let dirs = [[1,1],[1,-1],[-1,1],[-1,-1]];
+            
+            // חייל רגיל הולך רק קדימה (אלא אם הוא אוכל)
+            let moveDirs = p.king ? dirs : (p.color === 'w' ? [[-1,1],[-1,-1]] : [[1,1],[1,-1]]);
+
+            dirs.forEach(d => {
+                let nr = r + d[0], nc = c + d[1];
+                
+                if (p.king) { // מלך
+                    while (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                        if (!b[nr][nc]) {
+                            if (!isMultiJump) moves.push({r: nr, c: nc});
+                        } else {
+                            if (b[nr][nc].color !== p.color) {
+                                let jr = nr + d[0], jc = nc + d[1];
+                                if (jr >= 0 && jr < 8 && jc >= 0 && jc < 8 && !b[jr][jc]) {
+                                    moves.push({r: jr, c: jc, eat: {r: nr, c: nc}});
+                                }
+                            }
+                            break;
+                        }
+                        nr += d[0]; nc += d[1];
+                    }
+                } else { // חייל רגיל
+                    if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                        // הליכה רגילה (רק קדימה)
+                        if (!b[nr][nc] && !isMultiJump && moveDirs.some(md => md[0] === d[0] && md[1] === d[1])) {
+                            moves.push({r: nr, c: nc});
+                        } 
+                        // אכילה (חייל רגיל אוכל רק קדימה לפי הבקשה המקורית שלך)
+                        else if (b[nr][nc] && b[nr][nc].color !== p.color && moveDirs.some(md => md[0] === d[0] && md[1] === d[1])) {
+                            let jr = nr + d[0], jc = nc + d[1];
+                            if (jr >= 0 && jr < 8 && jc >= 0 && jc < 8 && !b[jr][jc]) {
+                                moves.push({r: jr, c: jc, eat: {r: nr, c: nc}});
+                            }
+                        }
+                    }
+                }
+            });
+            return moves;
+        }
+
+        function saveHistory() { history.push(JSON.stringify(board)); }
+        function undoMove() { 
+            if (history.length > 0) { 
+                board = JSON.parse(history.pop()); 
+                isMultiJump = false; turn = 'w'; 
+                document.getElementById('endTurnBtn').disabled = true;
+                draw(); 
+            } 
+        }
+
+        function endTurn() {
+            isMultiJump = false;
+            turn = 'b'; document.getElementById('status').innerText = "המחשב חושב...";
+            document.getElementById('endTurnBtn').disabled = true;
+            document.getElementById('undoBtn').disabled = true;
+            setTimeout(computerPlay, 800);
+        }
+
+        function computerPlay() {
+            let allMoves = [];
+            for (let r=0; r<8; r++) {
+                for (let c=0; c<8; c++) {
+                    if (board[r][c] && board[r][c].color === 'b') {
+                        getMoves(r, c, board).forEach(m => allMoves.push({fR: r, fC: c, tR: m.r, tC: m.c, eat: m.eat}));
+                    }
+                }
+            }
+            
+            if (allMoves.length > 0) {
+                let eatMoves = allMoves.filter(m => m.eat);
+                let move = eatMoves.length > 0 ? eatMoves[Math.floor(Math.random()*eatMoves.length)] : allMoves[Math.floor(Math.random()*allMoves.length)];
+                
+                executeMove(move.fR, move.fC, move.tR, move.tC, move.eat);
+                
+                // המחשב בודק אכילה רציפה
+                if (move.eat) {
+                    let nextJumps = getMoves(move.tR, move.tC, board).filter(m => m.eat);
+                    if (nextJumps.length > 0) {
+                        setTimeout(computerPlay, 500); // המשך אכילה
+                        draw();
+                        return;
+                    }
+                }
+            }
+            
+            turn = 'w'; document.getElementById('status').innerText = "תורך";
+            draw();
+        }
+
+        resetGame();
+    </script>
+</body>
+</html>

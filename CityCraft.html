@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CityCraft: Metropolis & Prison Simulator</title>
+    <style>
+        :root {
+            --bg-glass: rgba(255, 255, 255, 0.95);
+            --border-glass: rgba(255, 255, 255, 0.8);
+            --text-main: #2c3e50;
+            --accent-blue: #2980b9;
+            --accent-green: #27ae60;
+            --accent-red: #c0392b;
+            --accent-gold: #f39c12;
+            --shadow-light: rgba(0, 0, 0, 0.08);
+            --shadow-heavy: rgba(0, 0, 0, 0.15);
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+            background-color: #7CB342; /* רקע דשא רענן */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-main); user-select: none;
+        }
+
+        /* מסך בחירת מצב משחק (לובי) */
+        #lobby {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #2c3e50, #1a252f);
+            z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: white; gap: 30px;
+        }
+        .lobby-title { font-size: 2.5rem; font-weight: 800; text-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .lobby-modes { display: flex; gap: 40px; }
+        .mode-card {
+            background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2);
+            padding: 30px; border-radius: 16px; width: 260px; text-align: center;
+            cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(10px);
+        }
+        .mode-card:hover {
+            transform: translateY(-10px); background: rgba(255,255,255,0.2);
+            border-color: var(--accent-blue); box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+        }
+        .mode-icon { font-size: 4rem; margin-bottom: 15px; }
+        .mode-name { font-size: 1.5rem; font-weight: bold; margin-bottom: 10px; }
+        .mode-desc { font-size: 0.95rem; opacity: 0.8; line-height: 1.4; }
+
+        #gameCanvas { display: none; width: 100vw; height: 100vh; cursor: crosshair; }
+        #gameCanvas.dragging { cursor: grabbing; }
+
+        /* UI Panels */
+        .panel {
+            display: none;
+            background: var(--bg-glass); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--border-glass); border-radius: 16px;
+            box-shadow: 0 8px 24px var(--shadow-heavy);
+            position: absolute; z-index: 10; padding: 15px; box-sizing: border-box;
+        }
+
+        /* Top HUD */
+        #hud-top {
+            top: 20px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 20px; align-items: center; font-weight: 800; font-size: 1.1rem;
+            white-space: nowrap; transition: all 0.3s;
+        }
+        .stat { display: flex; align-items: center; gap: 6px; }
+        .val-money { color: var(--accent-green); }
+        .val-pop { color: var(--accent-blue); }
+        .val-energy { color: var(--accent-gold); }
+        .val-happy { color: #e74c3c; }
+
+        /* Left Dashboard */
+        #dash-left {
+            top: 20px; left: 20px; width: 280px; display: flex; flex-direction: column; gap: 15px;
+        }
+        .section-title { font-size: 1.15rem; color: var(--accent-blue); margin: 0 0 10px 0; border-bottom: 2px solid rgba(0,0,0,0.05); padding-bottom: 5px; }
+        .inv-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.95rem; font-weight: bold; }
+        .inv-item { background: rgba(0,0,0,0.03); padding: 8px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between;}
+        
+        /* Buttons */
+        .btn {
+            background: #fff; border: 2px solid var(--accent-blue); color: var(--accent-blue);
+            padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 800; 
+            transition: all 0.2s ease; text-align: center; width: 100%; box-shadow: 0 4px 6px var(--shadow-light);
+            box-sizing: border-box;
+        }
+        .btn:hover { background: var(--accent-blue); color: #fff; transform: translateY(-2px); box-shadow: 0 6px 12px var(--shadow-heavy); }
+        .btn:active { transform: translateY(0); }
+        .btn-action { margin-top: 5px; }
+
+        /* Build Menu (Bottom - Aligned Right & Compact) */
+        #build-menu-container {
+            bottom: 0; right: 20px; left: auto; transform: none;
+            width: calc(100% - 340px); max-width: 1100px; overflow-x: auto; overflow-y: hidden;
+            display: flex; gap: 10px; padding: 8px 15px; scroll-behavior: smooth;
+            border-bottom-left-radius: 0; border-bottom-right-radius: 0;
+        }
+        #build-menu-container::-webkit-scrollbar { height: 8px; }
+        #build-menu-container::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); border-radius: 4px; }
+        #build-menu-container::-webkit-scrollbar-thumb { background: var(--accent-blue); border-radius: 4px; }
+
+        /* Fixed-size Buttons preventing any layout popping */
+        .build-item {
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            min-width: 105px; max-width: 105px; height: 95px; padding: 6px 4px; background: rgba(255,255,255,0.7);
+            border: 2px solid rgba(0,0,0,0.08); border-radius: 12px; cursor: pointer; transition: transform 0.2s, background 0.2s, border-color 0.2s;
+            box-shadow: 0 4px 6px var(--shadow-light); box-sizing: border-box;
+        }
+        .build-item:hover { border-color: var(--accent-blue); background: #fff; transform: translateY(-3px); }
+        .build-item.active { border-color: var(--accent-green); background: #f0fff4; box-shadow: 0 0 0 2px rgba(39, 174, 96, 0.3); }
+        .b-icon { font-size: 1.5rem; margin-bottom: 2px; pointer-events: none; }
+        .b-name { font-weight: 800; font-size: 0.85rem; text-align: center; color: var(--text-main); pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+        .b-cost { color: var(--accent-green); font-size: 0.75rem; margin-top: 2px; font-weight: bold; pointer-events: none; }
+        .b-req { color: #7f8c8d; font-size: 0.65rem; text-align: center; margin-top: 2px; line-height: 1.2; font-weight: 600; pointer-events: none; }
+        .b-req span { display: block; color: var(--accent-gold); }
+
+        /* Precision Zoom Slider Control on the Right */
+        #precision-zoom-control {
+            display: none;
+            position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+            background: var(--bg-glass); border: 1px solid var(--border-glass);
+            padding: 12px 8px; border-radius: 20px; box-shadow: 0 8px 24px var(--shadow-heavy);
+            z-index: 100;
+        }
+        #precision-zoom-control label { font-size: 1.1rem; }
+        #zoom-range-input {
+            writing-mode: vertical-lr; direction: rtl; height: 160px; width: 8px;
+            cursor: pointer; margin: 5px 0; accent-color: var(--accent-blue);
+        }
+
+        /* Modals */
+        .modal-overlay {
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 99;
+        }
+        .modal {
+            display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 550px; max-height: 85vh; overflow-y: auto; z-index: 100;
+        }
+        .modal.active, .modal-overlay.active { display: block; }
+        .close-btn { position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.05); border: none; border-radius: 50%; width: 35px; height: 35px; color: var(--text-main); font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
+        .close-btn:hover { background: var(--accent-red); color: #fff; }
+        
+        .market-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .market-actions { display: flex; gap: 10px; }
+        .market-actions .btn { padding: 8px 15px; width: auto; }
+
+        /* Notifications */
+        #toaster { position: absolute; top: 80px; right: 20px; display: flex; flex-direction: column; gap: 10px; pointer-events: none; z-index: 1000; }
+        .toast {
+            background: #fff; border-right: 6px solid var(--accent-blue); color: var(--text-main);
+            padding: 15px 25px; border-radius: 8px; font-weight: bold; font-size: 1.05rem;
+            animation: slideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), fadeOut 0.5s 4s forwards;
+            box-shadow: 0 10px 25px var(--shadow-heavy);
+        }
+        .toast.error { border-color: var(--accent-red); }
+        .toast.success { border-color: var(--accent-green); }
+
+        @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { to { opacity: 0; transform: translateY(-20px); } }
+
+    </style>
+</head>
+<body>
+
+    <div id="lobby">
+        <div class="lobby-title">CityCraft: בחר מצב סימולציה</div>
+        <div class="lobby-modes">
+            <div class="mode-card" onclick="startGame('city')">
+                <div class="mode-icon">🏙️</div>
+                <div class="mode-name">עיר המחר</div>
+                <div class="mode-desc">בנה מטרופולין משגשג, נהל תושבים, ספק מקומות תעסוקה ופתח מרכזי מסחר.</div>
+            </div>
+            <div class="mode-card" onclick="startGame('prison')">
+                <div class="mode-icon">🏢</div>
+                <div class="mode-name">מתקן כליאה שמור</div>
+                <div class="mode-desc">נהל קומפלקס כליאה מאובטח. שמור על הסדר והשקט ומנע התפרעויות של האסירים.</div>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="hud-top" class="panel">
+        <div class="stat">🕒 <span id="ui-time">08:00</span> (יום <span id="ui-day">1</span>)</div>
+        <div class="stat" title="אוכלוסייה"><span id="lbl-pop">👥</span> <span id="ui-pop" class="val-pop">0</span></div>
+        <div class="stat" title="תעסוקה"><span id="lbl-jobs">💼</span> <span id="ui-jobs">0 / 0</span></div>
+        <div class="stat" title="תזרים הון">🏦 <span id="ui-money" class="val-money">₪5,000</span></div>
+        <div class="stat" title="ייצור וצריכת אנרגיה">⚡ <span id="ui-energy" class="val-energy">0 / 0</span></div>
+        <div class="stat" title="מדד שביעות רצון"><span id="lbl-happy">❤️</span> <span id="ui-happy" class="val-happy">100%</span></div>
+        <div class="stat" title="הכנסה לשעה">📈 <span id="ui-income" class="val-money">+₪0</span>/ש</div>
+    </div>
+
+    <div id="precision-zoom-control">
+        <label>➕</label>
+        <input type="range" id="zoom-range-input" min="0.4" max="2.5" step="0.01" value="1">
+        <label>➖</label>
+    </div>
+
+    <div id="dash-left" class="panel">
+        <h3 class="section-title" id="lbl-storage">מחסני המטרופולין</h3>
+        <div class="inv-grid">
+            <div class="inv-item" title="משמש לבנייה בסיסית"><span>🪵 עץ:</span> <span id="inv-wood" style="color:#8e44ad;">0</span></div>
+            <div class="inv-item" title="מיוצר במפעלים, נדרש לבתים"><span>🧱 לבנים:</span> <span id="inv-bricks" style="color:#c0392b;">0</span></div>
+            <div class="inv-item" title="משמש לשדרוגים"><span>🔩 מסמרים:</span> <span id="inv-nails" style="color:#7f8c8d;">0</span></div>
+            <div class="inv-item" title="חיוני למבני תעשייה כבדים"><span>⚙️ פלדה:</span> <span id="inv-steel" style="color:#2c3e50;">0</span></div>
+        </div>
+
+        <h3 class="section-title" style="margin-top: 15px;">ניהול המשחק</h3>
+        <button class="btn btn-action" onclick="toggleModal('marketModal')">🛒 שוק מסחר גלובלי</button>
+        <button class="btn btn-action" style="border-color:var(--accent-red); color:var(--accent-red);" onclick="toggleModal('bankModal')">🏦 בנק הלוואות</button>
+        <button class="btn btn-action" style="border-color:var(--accent-gold); color:var(--accent-gold);" onclick="toggleModal('helpModal')">📖 ספר הוראות וחוקים</button>
+        
+        <h3 class="section-title" style="margin-top: 15px;">שמירת משחק (אוטומטית)</h3>
+        <button class="btn btn-action" style="border-color:#8e44ad; color:#8e44ad;" onclick="manualSave()">💾 שמירה ידנית עכשיו</button>
+        <button class="btn btn-action" style="border-color:#e67e22; color:#e67e22;" onclick="resetSave()">🗑️ איפוס והתחלה מחדש</button>
+    </div>
+
+    <div id="build-menu-container" class="panel"></div>
+    <div id="toaster"></div>
+
+    <div class="modal-overlay" id="overlay" onclick="closeAllModals()"></div>
+
+    <div id="marketModal" class="panel modal">
+        <button class="close-btn" onclick="closeAllModals()">✖</button>
+        <h2 style="color:var(--accent-blue); margin-top:0;">מרכז סחר ולוגיסטיקה</h2>
+        <p style="font-size:0.95rem; color:#7f8c8d;">רכשו חומרי בנייה. מחירי השוק עולים ככל שקונים, ויורדים כשמוכרים.</p>
+        <div id="market-items"></div>
+    </div>
+
+    <div id="bankModal" class="panel modal">
+        <button class="close-btn" onclick="closeAllModals()">✖</button>
+        <h2 style="color:var(--accent-red); margin-top:0;" id="lbl-bank-title">בנק המטרופולין</h2>
+        <p>חוב נוכחי נושא ריבית: <strong id="ui-debt" style="color:var(--accent-red); font-size:1.4rem;">₪0</strong></p>
+        <p style="font-size:0.9rem; color:#34495e; background: rgba(0,0,0,0.05); padding: 10px; border-radius: 8px;">הריבית היומית עומדת על 5%. החזר אוטומטי מנוכה מתזרים המזומנים החיובי בשעה 12:00 בצהריים.</p>
+        <div style="display:flex; gap:15px; margin-top:25px;">
+            <button class="btn" style="border-color:var(--accent-green); color:var(--accent-green);" onclick="takeLoan(5000)">קח ₪5,000</button>
+            <button class="btn" style="border-color:var(--accent-green); color:var(--accent-green);" onclick="takeLoan(20000)">קח ₪20,000</button>
+        </div>
+        <button class="btn" style="border-color:var(--accent-red); color:var(--accent-red); margin-top:15px;" onclick="payDebt()">החזר חוב מיתרה זמינה</button>
+    </div>
+
+    <div id="helpModal" class="panel modal">
+        <button class="close-btn" onclick="closeAllModals()">✖</button>
+        <h2 style="color:var(--accent-gold); margin-top:0;" id="lbl-help-title">ברוכים הבאים ל-CityCraft</h2>
+        <div id="help-content" style="font-size:1rem; line-height: 1.6; color:var(--text-main);">
+            </div>
+    </div>
+
+<script>
+/**
+ * CITYCRAFT ENGINE v6.5 - Combined Metropolis & Prison Edition
+ */
+
+// ======================= CONFIG & STATE =======================
+const CONFIG = {
+    MAP_SIZE: 150,
+    TILE_SIZE: 45, 
+    TPS: 30,
+    DAY_LENGTH: 24000,
+    BUFFER_ZONE: 1
+};
+
+const DEFAULT_STATE = {
+    gameMode: 'city', // 'city' או 'prison'
+    money: 5000,
+    debt: 0,
+    income: 0,
+    population: 0,
+    employed: 0,
+    totalJobs: 0,
+    energyProduced: 0,
+    energyConsumed: 0,
+    happiness: 100,
+    timeOfDay: 8000,
+    daysPassed: 1,
+    currentMode: 'cursor',
+    inventory: { wood: 0, bricks: 0, nails: 0, steel: 0 },
+    camera: { x: 0, y: 0, zoom: 1, targetZoom: 1 }
+};
+
+let STATE = JSON.parse(JSON.stringify(DEFAULT_STATE));
+
+// ======================= DATA MODELS =======================
+const CITY_BUILDINGS = {
+    cursor:      { icon: '🖱️', name: 'סמן מידע', cost: 0, req: null, desc: 'מידע חופשי' },
+    chop:        { icon: '🪓', name: 'חטיבה', cost: 0, req: null, desc: 'קליק=איסוף' },
+    demolish:    { icon: '💣', name: 'הריסה', cost: 0, req: null, desc: 'החזר מלא' },
+    road:        { icon: '🛣️', name: 'כביש גישה', cost: 15, req: {}, size: 1, type: 'infra', color: '#95a5a6' },
+    park:        { icon: '🌳', name: 'פארק ציבורי', cost: 150, req: {wood: 10}, size: 2, pop: 0, jobs: 2, income: -10, energy: 0, happyMod: 15, color: '#2ecc71' },
+    house:       { icon: '🏠', name: 'שכונת מגורים', cost: 250, req: {wood: 15}, size: 2, pop: 12, jobs: 0, income: 25, energy: -2, color: '#3498db', light: '#ecf0f1' },
+    shop:        { icon: '🏪', name: 'מרכז קניות', cost: 600, req: {wood: 10, bricks: 15}, size: 3, pop: 0, jobs: 10, income: 80, energy: -5, color: '#e74c3c', light: '#f1c40f' },
+    office:      { icon: '🏢', name: 'מגדל משרדים', cost: 2000, req: {bricks: 30, steel: 10}, size: 4, pop: 0, jobs: 40, income: 300, energy: -15, color: '#9b59b6', light: '#ecf0f1' },
+    forestry:    { icon: '🌲', name: 'חוות יערנות', cost: 1500, req: {wood: 20, nails: 30}, size: 4, pop: 0, jobs: 8, income: -20, energy: -5, color: '#1abc9c', produces: 'wood', amount: 8, ticksToProd: 800 },
+    factory:     { icon: '🏭', name: 'מפעל לבנים', cost: 4000, req: {bricks: 40, steel: 20}, size: 5, pop: 0, jobs: 50, income: -50, energy: -25, color: '#7f8c8d', produces: 'bricks', amount: 10, ticksToProd: 1000 },
+    steel_mill:  { icon: '🏗️', name: 'תעשיית פלדה', cost: 8000, req: {bricks: 50, wood: 20}, size: 5, pop: 0, jobs: 60, income: -80, energy: -35, color: '#34495e', produces: 'steel', amount: 5, ticksToProd: 1200 },
+    powerplant:  { icon: '⚡', name: 'תחנת כוח', cost: 3500, req: {bricks: 25, steel: 25}, size: 4, pop: 0, jobs: 15, income: -60, energy: 120, color: '#d35400', light: '#f39c12' },
+    luxury_rest: { icon: '🍽️', name: 'מסעדת יוקרה', cost: 6000, req: {bricks: 30, steel: 15, nails: 50}, size: 4, pop: 0, jobs: 40, income: 800, energy: -40, happyMod: 20, color: '#f39c12', light: '#f1c40f' }
+};
+
+const PRISON_BUILDINGS = {
+    cursor:      { icon: '🖱️', name: 'סמן מידע', cost: 0, req: null, desc: 'מידע חופשי' },
+    chop:        { icon: '🪓', name: 'חטיבה', cost: 0, req: null, desc: 'קליק=איסוף' },
+    demolish:    { icon: '💣', name: 'הריסה', cost: 0, req: null, desc: 'החזר מלא' },
+    road:        { icon: '🛣️', name: 'מסדרון מאובטח', cost: 20, req: {}, size: 1, type: 'infra', color: '#7f8c8d' },
+    yard:        { icon: '🏋️', name: 'חצר טיולים', cost: 200, req: {wood: 15}, size: 2, pop: 0, jobs: 4, income: -15, energy: 0, happyMod: 20, color: '#16a085' },
+    cell:        { icon: '🛏️', name: 'אגף תאי כלא', cost: 300, req: {wood: 10, bricks: 20}, size: 2, pop: 8, jobs: 0, income: 50, energy: -3, color: '#2c3e50', light: '#bdc3c7' },
+    guard_post:  { icon: '🛡️', name: 'עמדת סוהרים', cost: 800, req: {bricks: 20, steel: 10}, size: 2, pop: 0, jobs: 15, income: -80, energy: -4, happyMod: 25, color: '#2980b9', light: '#ecf0f1' },
+    workshop:    { icon: '⚙️', name: 'סדנת תעסוקה', cost: 1200, req: {bricks: 30, steel: 15}, size: 4, pop: 0, jobs: 25, income: 220, energy: -15, color: '#d35400' },
+    forestry:    { icon: '🌲', name: 'חוות יערנות', cost: 1500, req: {wood: 20, nails: 30}, size: 4, pop: 0, jobs: 8, income: -20, energy: -5, color: '#1abc9c', produces: 'wood', amount: 8, ticksToProd: 800 },
+    factory:     { icon: '🏭', name: 'מפעל לבנים', cost: 4000, req: {bricks: 40, steel: 20}, size: 5, pop: 0, jobs: 50, income: -50, energy: -25, color: '#7f8c8d', produces: 'bricks', amount: 10, ticksToProd: 1000 },
+    steel_mill:  { icon: '🏗️', name: 'תעשיית פלדה', cost: 8000, req: {bricks: 50, wood: 20}, size: 5, pop: 0, jobs: 60, income: -80, energy: -35, color: '#34495e', produces: 'steel', amount: 5, ticksToProd: 1200 },
+    powerplant:  { icon: '⚡', name: 'גנרטור חירום', cost: 3500, req: {bricks: 25, steel: 25}, size: 4, pop: 0, jobs: 15, income: -60, energy: 120, color: '#7f8c8d', light: '#f39c12' }
+};
+
+let BUILDINGS = CITY_BUILDINGS;
+
+const DEFAULT_MARKET = {
+    wood:   { icon: '🪵', name: 'עץ', basePrice: 12, price: 12, vol: 0.1 },
+    bricks: { icon: '🧱', name: 'לבנים', basePrice: 40, price: 40, vol: 0.08 },
+    nails:  { icon: '🔩', name: 'מסמרים', basePrice: 10, price: 10, vol: 0.05 },
+    steel:  { icon: '⚙️', name: 'פלדה', basePrice: 120, price: 120, vol: 0.15 }
+};
+
+let MARKET = JSON.parse(JSON.stringify(DEFAULT_MARKET));
+
+const grid = Array(CONFIG.MAP_SIZE).fill().map(() => Array(CONFIG.MAP_SIZE).fill(null));
+const entities = [];
+const agents = []; 
+const particles = [];
+
+// ======================= LOBBY & START GENERATION =======================
+function startGame(mode) {
+    STATE.gameMode = mode;
+    BUILDINGS = mode === 'city' ? CITY_BUILDINGS : PRISON_BUILDINGS;
+    
+    document.getElementById('lobby').style.display = 'none';
+    document.getElementById('gameCanvas').style.display = 'block';
+    document.getElementById('precision-zoom-control').style.display = 'flex';
+    document.querySelectorAll('.panel').forEach(p => p.style.display = 'flex');
+    
+    // התאמת טקסטים ואווירה לפי מצב המשחק
+    if (mode === 'prison') {
+        document.body.style.backgroundColor = '#95a5a6'; // רקע אפרורי צבאי
+        document.getElementById('lbl-pop').innerText = '⛓️ אסירים:';
+        document.getElementById('lbl-jobs').innerText = '👮 סוהרים:';
+        document.getElementById('lbl-happy').innerText = '🛡️ מדד שקט:';
+        document.getElementById('lbl-storage').innerText = 'מחסן האספקה';
+        document.getElementById('lbl-bank-title').innerText = 'בנק מתקן הכלא';
+        document.getElementById('lbl-help-title').innerText = 'ספר חוקי מתקן הכלא';
+        
+        document.getElementById('help-content').innerHTML = `
+            <p><strong style="color:var(--accent-blue)">1. ניהול אספקה:</strong> בחרו את כלי ה-🪓 חטיבה ולחצו על עצים לאיסוף משאבי גלם בסיסיים.</p>
+            <p><strong style="color:var(--accent-blue)">2. הריסה ובנייה:</strong> כלי ה-💣 הריסה מחזיר את מלוא המשאבים והכסף שהושקעו במבנה.</p>
+            <p><strong style="color:var(--accent-red)">3. אגפים ומסדרונות:</strong> חובה לחבר כל אגף ותא אל <b>מסדרון מאובטח</b>. חובה להשאיר מרחק של משבצת אחת לפחות בין המבנים.</p>
+            <p><strong style="color:var(--accent-red)">4. מכניקת מרד ומהומות:</strong> שמרו על מדד השקט גבוה! אם מדד השקט ירד מתחת ל-35%, האסירים יתחילו להתפרע, יהפכו לאדומים ויגרמו נזק אקטיבי למבנים עד להריסתם. בנו עמדות סוהרים וחצרות טיולים כדי למנוע זאת!</p>
+            <p><strong style="color:var(--accent-blue)">5. תעסוקה ויצרנות:</strong> שלבו אסירים בסדנאות תעסוקה וחוות לייצור עצמי של משאבים, וסחרו בשוק הלוגיסטי.</p>
+        `;
+    } else {
+        document.body.style.backgroundColor = '#7CB342';
+        document.getElementById('lbl-pop').innerText = '👥 תושבים:';
+        document.getElementById('lbl-jobs').innerText = '💼 תעסוקה:';
+        document.getElementById('lbl-happy').innerText = '❤️ אושר:';
+        document.getElementById('lbl-storage').innerText = 'מחסני המטרופולין';
+        document.getElementById('lbl-bank-title').innerText = 'בנק המטרופולין';
+        document.getElementById('lbl-help-title').innerText = 'ברוכים הבאים ל-CityCraft';
+        
+        document.getElementById('help-content').innerHTML = `
+            <p><strong style="color:var(--accent-blue)">1. איסוף משאבים:</strong> בחרו את כלי ה-🪓 חטיבה ולחצו על עצים לאיסוף (לחיצה אחת בלבד!).</p>
+            <p><strong style="color:var(--accent-blue)">2. ביטול והריסה:</strong> טעיתם במיקום? בחרו בכלי ה-💣 הריסה, לחצו על המבנה - וקבלו <b>החזר מלא</b> של הכסף וכל המשאבים שהשקעתם בו!</p>
+            <p><strong style="color:var(--accent-red)">3. תכנון אורבני וחובת כבישים:</strong> <b>חובה</b> לבנות כל מבנה (בית, מפעל) כשהוא **צמוד** לכביש גישה. כמו כן חובה להשאיר מרווח של בלוק אחד ממבנים אחרים.</p>
+            <p><strong style="color:var(--accent-blue)">4. מסחר וכלכלה:</strong> המחירים בשוק משתנים בהתאם להיצע וביקוש. אם פלדה יקרה מדי, בנו "תעשיית פלדה" לייצור עצמי!</p>
+            <p><strong style="color:var(--accent-blue)">5. תתושבים ותעסוקה:</strong> ברגע שתבנו כבישים ותספקו מקומות עבודה (חנויות, מפעלים), תראו רכבים והולכי רגל. תתושבים ללא עבודה מורידים את מדד האושר.</p>
+        `;
+    }
+    
+    init();
+}
+
+// ======================= SAVE SYSTEM =======================
+function getSaveKey() {
+    return STATE.gameMode === 'prison' ? 'prisonCraftSave' : 'cityCraftSave';
+}
+
+function autoSave() {
+    if(document.getElementById('lobby').style.display !== 'none') return;
+    const saveData = { state: STATE, entities: entities, market: MARKET };
+    localStorage.setItem(getSaveKey(), JSON.stringify(saveData));
+}
+
+function manualSave() {
+    autoSave();
+    notify("המשחק נשמר בהצלחה!", "success");
+}
+
+function resetSave() {
+    if(confirm("האם אתה בטוח שברצונך למחוק את השמירה הנוכחית ולהתחיל מחדש?")) {
+        window.removeEventListener('beforeunload', autoSave);
+        localStorage.removeItem(getSaveKey());
+        location.reload();
+    }
+}
+
+function loadGame() {
+    const saved = localStorage.getItem(getSaveKey());
+    if(saved) {
+        try {
+            const data = JSON.parse(saved);
+            Object.assign(STATE, data.state);
+            Object.assign(MARKET, data.market);
+            
+            entities.length = 0;
+            data.entities.forEach(e => entities.push(e));
+            
+            for(let i=0; i<CONFIG.MAP_SIZE; i++) grid[i].fill(null);
+            
+            entities.forEach(e => {
+                if(e.type === 'tree') {
+                    if(grid[e.x] && grid[e.x][e.y] !== undefined) grid[e.x][e.y] = e;
+                } else {
+                    const b = BUILDINGS[e.type];
+                    if(b) {
+                        for(let i=0; i<b.size; i++) {
+                            for(let j=0; j<b.size; j++) {
+                                if(grid[e.x+i] && grid[e.x+i][e.y+j] !== undefined) {
+                                    grid[e.x+i][e.y+j] = e;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            notify("השמירה האחרונה נטענה בהצלחה!", "success");
+            return true;
+        } catch (e) {
+            console.error("שגיאה בטעינת שמירה:", e);
+        }
+    }
+    return false;
+}
+
+// ======================= INIT & DOM =======================
+function init() {
+    const windowMode = STATE.gameMode;
+    const isLoaded = loadGame();
+    STATE.gameMode = windowMode; // הבטחה שמצב המשחק לא יידרס מהשמירה הישנה בטעות
+
+    if (!isLoaded) {
+        generateNaturalTerrain();
+    }
+
+    buildUI();
+    setupZoomSlider();
+    recalculateMacro();
+    updateUI();
+
+    setInterval(autoSave, 15000); 
+    window.addEventListener('beforeunload', autoSave); 
+}
+
+function generateNaturalTerrain() {
+    entities.length = 0;
+    for(let i=0; i<CONFIG.MAP_SIZE; i++) {
+        grid[i].fill(null);
+        for(let j=0; j<CONFIG.MAP_SIZE; j++) {
+            let distToCenter = Math.sqrt(Math.pow(i - CONFIG.MAP_SIZE/2, 2) + Math.pow(j - CONFIG.MAP_SIZE/2, 2));
+            if(distToCenter > 3 && Math.random() < 0.22) {
+                const tree = { type: 'tree', x: i, y: j, hp: 1, sway: Math.random()*10, variation: Math.random() };
+                grid[i][j] = tree; entities.push(tree);
+            }
+        }
+    }
+    STATE.camera.x = (CONFIG.MAP_SIZE * CONFIG.TILE_SIZE / 2) - (window.innerWidth / 2);
+    STATE.camera.y = (CONFIG.MAP_SIZE * CONFIG.TILE_SIZE / 2) - (window.innerHeight / 2);
+}
+
+function buildUI() {
+    const menu = document.getElementById('build-menu-container');
+    menu.innerHTML = '';
+    for(let key in BUILDINGS) {
+        const b = BUILDINGS[key];
+        let reqHTML = '';
+        if(b.req) {
+            let reqs = [];
+            for(let mat in b.req) reqs.push(`${b.req[mat]} ${MARKET[mat] ? MARKET[mat].name : mat}`);
+            reqHTML = `${reqs.join(', ')}`;
+        }
+
+        const btn = document.createElement('div');
+        btn.className = `build-item ${key === 'cursor' ? 'active' : ''}`;
+        btn.onclick = () => setMode(key, btn);
+        btn.innerHTML = `
+            <div class="b-icon">${b.icon}</div>
+            <div class="b-name">${b.name}</div>
+            <div class="b-cost">${b.cost > 0 ? '₪'+b.cost : (b.desc || '')}</div>
+            ${reqHTML ? `<div class="b-req">${reqHTML}</div>` : ''}
+        `;
+        menu.appendChild(btn);
+    }
+
+    const market = document.getElementById('market-items');
+    market.innerHTML = '';
+    for(let key in MARKET) {
+        const item = MARKET[key];
+        market.innerHTML += `
+            <div class="market-row">
+                <div style="font-weight:800; font-size:1.2rem; color:var(--text-main);">${item.icon} ${item.name} <br><span style="font-size:0.85rem; color:#7f8c8d; font-weight:600;">מחיר יחידה: ₪<span id="price-${key}">${Math.floor(item.price)}</span></span></div>
+                <div class="market-actions">
+                    <button class="btn" style="border-color:var(--accent-red); color:var(--accent-red);" onclick="trade('${key}', 'sell', 5)">מכור 5 (₪<span id="sell-total-${key}">${Math.floor(item.price)*5}</span>)</button>
+                    <button class="btn" style="border-color:var(--accent-green); color:var(--accent-green);" onclick="trade('${key}', 'buy', 5)">קנה 5 (₪<span id="buy-total-${key}">${Math.floor(item.price)*5}</span>)</button>
+                </div>
+            </div>
+        `;
+    }
+}
+
+function setupZoomSlider() {
+    const slider = document.getElementById('zoom-range-input');
+    slider.addEventListener('input', (e) => {
+        STATE.camera.targetZoom = parseFloat(e.target.value);
+    });
+}
+
+// ======================= LOGIC & ACTIONS =======================
+
+function hasReqs(reqs) {
+    if(!reqs) return true;
+    for(let key in reqs) if(STATE.inventory[key] < reqs[key]) return false;
+    return true;
+}
+
+function checkBufferZone(x, y, size) {
+    const b = CONFIG.BUFFER_ZONE;
+    for(let i = x - b; i < x + size + b; i++) {
+        for(let j = y - b; j < y + size + b; j++) {
+            if(i>=0 && i<CONFIG.MAP_SIZE && j>=0 && j<CONFIG.MAP_SIZE) {
+                const cell = grid[i][j];
+                if(cell !== null && cell.type !== 'road' && cell.type !== 'tree') return false;
+            }
+        }
+    }
+    return true;
+}
+
+function hasAdjacentRoad(x, y, size) {
+    for(let i=x; i<x+size; i++) {
+        if(y-1 >= 0 && grid[i][y-1] && grid[i][y-1].type === 'road') return true;
+        if(y+size < CONFIG.MAP_SIZE && grid[i][y+size] && grid[i][y+size].type === 'road') return true;
+    }
+    for(let j=y; j<y+size; j++) {
+        if(x-1 >= 0 && grid[x-1][j] && grid[x-1][j].type === 'road') return true;
+        if(x+size < CONFIG.MAP_SIZE && grid[x+size][j] && grid[x+size][j].type === 'road') return true;
+    }
+    return false;
+}
+
+function executeBuild(x, y) {
+    const b = BUILDINGS[STATE.currentMode];
+    if(!b) return;
+
+    if(x < 0 || y < 0 || x+b.size > CONFIG.MAP_SIZE || y+b.size > CONFIG.MAP_SIZE) {
+        notify("שגיאה: חריגה מגבולות המפה!", "error"); return;
+    }
+    if(STATE.money < b.cost) { notify("שגיאה: אין מספיק הון!", "error"); return; }
+    if(!hasReqs(b.req)) { notify("שגיאה: חסרים חומרי בנייה במחסן!", "error"); return; }
+
+    if(STATE.currentMode !== 'road') {
+        if(!checkBufferZone(x, y, b.size)) { notify("יש להשאיר מרווח של בלוק אחד ממבנים אחרים!", "error"); return; }
+        if(!hasAdjacentRoad(x, y, b.size)) { 
+            notify(STATE.gameMode === 'prison' ? "חובה לבנות אגף בצמוד למסדרון מאובטח!" : "חובה לבנות מבנה בצמוד לכביש גישה!", "error"); 
+            return; 
+        }
+    } else {
+        if(grid[x][y] !== null) { notify("השטח חסום", "error"); return; }
+    }
+
+    STATE.money -= b.cost;
+    for(let k in b.req) STATE.inventory[k] -= b.req[k];
+
+    const entity = { type: STATE.currentMode, x: x, y: y, size: b.size, tick: 0, hp: 100 };
+    for(let i=0; i<b.size; i++) {
+        for(let j=0; j<b.size; j++) grid[x+i][y+j] = entity;
+    }
+    entities.push(entity);
+    spawnParticles(x * CONFIG.TILE_SIZE + (b.size*CONFIG.TILE_SIZE)/2, y * CONFIG.TILE_SIZE + (b.size*CONFIG.TILE_SIZE)/2, b.color, 20);
+    notify(`נבנה בהצלחה: ${b.name}`, "success");
+    
+    recalculateMacro();
+}
+
+function chopTree(x, y) {
+    const t = grid[x][y];
+    if(t && t.type === 'tree') {
+        grid[x][y] = null;
+        const idx = entities.indexOf(t);
+        if(idx > -1) entities.splice(idx, 1);
+        
+        STATE.inventory.wood += 3;
+        spawnParticles(x * CONFIG.TILE_SIZE + 22, y * CONFIG.TILE_SIZE + 22, '#e67e22', 8);
+        notify("+3 יחידות עץ!", "success");
+        updateUI();
+    }
+}
+
+// ======================= ENGINE TICK =======================
+setInterval(() => {
+    if(document.getElementById('lobby').style.display !== 'none') return;
+
+    STATE.timeOfDay += 15;
+    if(STATE.timeOfDay >= CONFIG.DAY_LENGTH) {
+        STATE.timeOfDay = 0; STATE.daysPassed++;
+        for(let k in MARKET) {
+            MARKET[k].price += (Math.random()-0.5)*MARKET[k].vol*MARKET[k].basePrice;
+            MARKET[k].price = Math.max(MARKET[k].basePrice*0.2, Math.min(MARKET[k].price, MARKET[k].basePrice*4));
+        }
+    }
+
+    if(STATE.timeOfDay % 1000 < 15) {
+        STATE.money += STATE.income;
+        if(STATE.timeOfDay > 11900 && STATE.timeOfDay < 12100 && STATE.debt > 0 && STATE.money > STATE.debt*0.1) {
+            let p = STATE.debt*0.05; STATE.money -= p; STATE.debt -= p;
+        }
+        if(STATE.money < 0 && STATE.income < 0) {
+            notify(STATE.gameMode === 'prison' ? "המתקן קורס כלכלית! קחו הלוואה מהבנק." : "העיר קורסת כלכלית! קחו הלוואה או בנו מקורות הכנסה.", "error");
+        }
+        updateUI();
+    }
+
+    entities.forEach(e => {
+        if(e.type === 'tree') {
+            if(e.sway > 0) e.sway--;
+            return;
+        }
+
+        const b = BUILDINGS[e.type];
+        if(b && b.produces) {
+            e.tick++;
+            if(e.tick >= b.ticksToProd) {
+                e.tick = 0; STATE.inventory[b.produces] += b.amount;
+                spawnParticles(e.x*CONFIG.TILE_SIZE+b.size*20, e.y*CONFIG.TILE_SIZE+b.size*20, '#27ae60', 4, true);
+                updateUI();
+            }
+        }
+        
+        if(e.type === 'road' && Math.random() < 0.015 && agents.length < (STATE.population * 1.5)) {
+            let isCar = STATE.gameMode === 'city' && Math.random() > 0.4;
+            agents.push({ 
+                x: e.x*CONFIG.TILE_SIZE + (isCar ? 22 : Math.random()>0.5 ? 5 : 40), 
+                y: e.y*CONFIG.TILE_SIZE + (isCar ? 22 : Math.random()>0.5 ? 5 : 40), 
+                dx: isCar ? (Math.random()>0.5?3:-3) : (Math.random()>0.5?1:-1), 
+                dy: isCar ? (Math.random()>0.5?3:-3) : (Math.random()>0.5?1:-1), 
+                life: isCar ? 150 : 300,
+                type: isCar ? 'car' : 'pedestrian',
+                color: isCar ? ['#e74c3c','#3498db','#f1c40f','#ecf0f1'][Math.floor(Math.random()*4)] : (STATE.gameMode === 'prison' ? '#e67e22' : '#2c3e50'), // כתום לאסירים
+                rioting: STATE.gameMode === 'prison' && STATE.happiness < 35
+            });
+        }
+    });
+
+    for(let i=agents.length-1; i>=0; i--) {
+        let a = agents[i]; 
+        if(Math.random() < 0.05) { let temp = a.dx; a.dx = a.dy; a.dy = -temp; }
+        a.x += a.dx; a.y += a.dy; a.life--;
+
+        // מנגנון מרד והתפרעויות במצב כלא
+        if (a.rioting) {
+            let gx = Math.floor(a.x / CONFIG.TILE_SIZE);
+            let gy = Math.floor(a.y / CONFIG.TILE_SIZE);
+            if (gx >= 0 && gx < CONFIG.MAP_SIZE && gy >= 0 && gy < CONFIG.MAP_SIZE) {
+                let t = grid[gx][gy];
+                if (t && t.type !== 'road' && t.type !== 'tree') {
+                    t.hp = (t.hp || 100) - 0.4;
+                    if(Math.random() < 0.05) spawnParticles(a.x, a.y, '#c0392b', 2);
+                    if (t.hp <= 0) {
+                        demolish(gx, gy, true);
+                        notify("אגף נהרס לחלוטין בעקבות מהומות אסירים!", "error");
+                    }
+                }
+            }
+        }
+
+        if(a.life <= 0) agents.splice(i,1);
+    }
+    
+    for(let i=particles.length-1; i>=0; i--) {
+        let p = particles[i]; p.life--; p.y -= p.sy; p.x += p.sx; p.alpha -= 0.03;
+        if(p.life <= 0) particles.splice(i,1);
+    }
+
+}, 1000 / CONFIG.TPS);
+
+function demolish(x, y, force = false) {
+    const target = grid[x][y];
+    if(target && target.type !== 'tree') {
+        const b = BUILDINGS[target.type];
+        if(b) {
+            if (!force) {
+                STATE.money += b.cost;
+                if(b.req) {
+                    for(let k in b.req) STATE.inventory[k] += b.req[k];
+                }
+            }
+            
+            for(let i=0; i<target.size; i++) {
+                for(let j=0; j<target.size; j++) {
+                    grid[target.x+i][target.y+j] = null;
+                }
+            }
+            
+            const idx = entities.indexOf(target);
+            if(idx > -1) entities.splice(idx, 1);
+            
+            spawnParticles(target.x * CONFIG.TILE_SIZE + (target.size*CONFIG.TILE_SIZE)/2, target.y * CONFIG.TILE_SIZE + (target.size*CONFIG.TILE_SIZE)/2, '#e74c3c', 25);
+            if (!force) notify(`המבנה נהרס! התקבל החזר מלא.`, "success");
+            recalculateMacro();
+        }
+    }
+}
+
+function recalculateMacro() {
+    if(document.getElementById('lobby').style.display !== 'none') return;
+    STATE.population = 0; STATE.totalJobs = 0; STATE.employed = 0;
+    let baseIncome = 0; STATE.energyProduced = 0; STATE.energyConsumed = 0;
+    let modifierRating = 0;
+
+    entities.forEach(e => {
+        if(e.type === 'tree') return; 
+        const b = BUILDINGS[e.type];
+        if(!b) return;
+        
+        STATE.population += (b.pop || 0);
+        STATE.totalJobs += (b.jobs || 0);
+        const inc = (b.income || 0);
+        if(inc > 0) {
+            if(e.type !== 'road' && hasAdjacentRoad(e.x, e.y, e.size)) baseIncome += inc;
+        } else {
+            baseIncome += inc;
+        }
+        
+        if(b.energy > 0) STATE.energyProduced += b.energy;
+        else if(b.energy < 0) STATE.energyConsumed += Math.abs(b.energy);
+
+        if(b.happyMod) modifierRating += b.happyMod;
+    });
+
+    STATE.employed = Math.min(STATE.population, STATE.totalJobs);
+    let unemployed = Math.max(0, STATE.population - STATE.employed);
+
+    let blackout = STATE.energyConsumed > STATE.energyProduced;
+    
+    let h = 60 + modifierRating - (unemployed * 3);
+    if(blackout) h -= 40;
+    STATE.happiness = Math.max(0, Math.min(100, h));
+
+    let taxMultiplier = STATE.happiness / 100;
+    STATE.income = (baseIncome * taxMultiplier);
+    if(STATE.debt > 0) STATE.income -= (STATE.debt * 0.05 / 24); 
+
+    updateUI();
+}
+
+function trade(item, action, qty) {
+    const unit = Math.floor(MARKET[item].price);
+    const price = unit * qty;
+    MARKET[item].price = unit;
+    if(action === 'buy') {
+        if(STATE.money >= price) {
+            STATE.money -= price; STATE.inventory[item] += qty;
+            MARKET[item].price *= (1 + MARKET[item].vol);
+            MARKET[item].price = Math.min(MARKET[item].price, MARKET[item].basePrice * 4);
+            notify(`רכשת ${qty} ${MARKET[item].name} תמורת ₪${price}`, "success");
+        } else notify("אין מספיק כסף בחשבון", "error");
+    } else {
+        if(STATE.inventory[item] >= qty) {
+            STATE.money += price; STATE.inventory[item] -= qty;
+            MARKET[item].price = Math.max(MARKET[item].basePrice, MARKET[item].price * (1 - MARKET[item].vol/2));
+            notify(`מכרת בהצלחה תמורת ₪${price}`, "success");
+        } else notify("אין מספיק מלאי במחסן", "error");
+    }
+    updateUI();
+}
+
+// ======================= BANKING =======================
+function takeLoan(amt) { STATE.money+=amt; STATE.debt+=amt; notify(`הלוואה בסך ₪${amt.toLocaleString()} אושרה!`, "success"); recalculateMacro(); }
+function payDebt() {
+    if(STATE.debt<=0) return;
+    let pay = Math.min(STATE.money, STATE.debt);
+    STATE.money -= pay; STATE.debt -= pay;
+    notify(`הוחזר ₪${Math.floor(pay).toLocaleString()} לבנק`, "success"); recalculateMacro();
+}
+
+// ======================= CANVAS & RENDER =======================
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d', { alpha: false });
+
+window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+window.dispatchEvent(new Event('resize'));
+
+let isDragging = false; 
+let lastMx = 0, lastMy = 0; 
+let startClickX = 0, startClickY = 0;
+let gridX = -1, gridY = -1;
+
+canvas.addEventListener('mousedown', e => {
+    if(document.getElementById('lobby').style.display !== 'none') return;
+    if(e.target !== canvas) return;
+    if(e.button === 0 || e.button === 2) {
+        isDragging = true;
+        canvas.classList.add('dragging');
+        startClickX = e.clientX;
+        startClickY = e.clientY;
+        lastMx = e.clientX;
+        lastMy = e.clientY;
+    }
+});
+
+canvas.addEventListener('mousemove', e => {
+    if(isDragging) { 
+        STATE.camera.x -= (e.clientX - lastMx)/STATE.camera.zoom; 
+        STATE.camera.y -= (e.clientY - lastMy)/STATE.camera.zoom; 
+    }
+    lastMx = e.clientX; 
+    lastMy = e.clientY;
+    
+    gridX = Math.floor((e.clientX/STATE.camera.zoom + STATE.camera.x) / CONFIG.TILE_SIZE);
+    gridY = Math.floor((e.clientY/STATE.camera.zoom + STATE.camera.y) / CONFIG.TILE_SIZE);
+});
+
+canvas.addEventListener('mouseup', e => {
+    isDragging = false;
+    canvas.classList.remove('dragging');
+    
+    if(e.target === canvas && e.button === 0 && Math.abs(e.clientX - startClickX) < 5 && Math.abs(e.clientY - startClickY) < 5) {
+        if(STATE.currentMode === 'chop') chopTree(gridX, gridY);
+        else if(STATE.currentMode === 'demolish') demolish(gridX, gridY);
+        else if(STATE.currentMode !== 'cursor') executeBuild(gridX, gridY);
+    }
+});
+
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+canvas.addEventListener('wheel', e => {
+    if(document.getElementById('lobby').style.display !== 'none') return;
+    STATE.camera.targetZoom += e.deltaY > 0 ? -0.15 : 0.15;
+    STATE.camera.targetZoom = Math.max(0.4, Math.min(2.5, STATE.camera.targetZoom));
+});
+
+function draw() {
+    if(document.getElementById('lobby').style.display !== 'none') {
+        requestAnimationFrame(draw);
+        return;
+    }
+
+    STATE.camera.zoom += (STATE.camera.targetZoom - STATE.camera.zoom) * 0.15;
+
+    const rangeInput = document.getElementById('zoom-range-input');
+    if (document.activeElement !== rangeInput) {
+        rangeInput.value = STATE.camera.targetZoom;
+    }
+
+    ctx.fillStyle = STATE.gameMode === 'prison' ? '#95a5a6' : '#7CB342'; 
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.save();
+    ctx.scale(STATE.camera.zoom, STATE.camera.zoom);
+    ctx.translate(-STATE.camera.x, -STATE.camera.y);
+
+    const isNight = STATE.timeOfDay < 5000 || STATE.timeOfDay > 19000;
+    const hasPower = STATE.energyProduced >= STATE.energyConsumed;
+
+    if(STATE.currentMode !== 'cursor' && STATE.currentMode !== 'chop' && STATE.currentMode !== 'demolish') {
+        ctx.strokeStyle = 'rgba(0,0,0,0.06)'; ctx.lineWidth = 1;
+        const sx = Math.max(0, Math.floor(STATE.camera.x / CONFIG.TILE_SIZE));
+        const sy = Math.max(0, Math.floor(STATE.camera.y / CONFIG.TILE_SIZE));
+        const ex = Math.min(CONFIG.MAP_SIZE, sx + Math.ceil(canvas.width/STATE.camera.zoom / CONFIG.TILE_SIZE) + 1);
+        const ey = Math.min(CONFIG.MAP_SIZE, sy + Math.ceil(canvas.height/STATE.camera.zoom / CONFIG.TILE_SIZE) + 1);
+        ctx.beginPath();
+        for(let i=sx; i<=ex; i++) { ctx.moveTo(i*CONFIG.TILE_SIZE, sy*CONFIG.TILE_SIZE); ctx.lineTo(i*CONFIG.TILE_SIZE, ey*CONFIG.TILE_SIZE); }
+        for(let j=sy; j<=ey; j++) { ctx.moveTo(sx*CONFIG.TILE_SIZE, j*CONFIG.TILE_SIZE); ctx.lineTo(ex*CONFIG.TILE_SIZE, j*CONFIG.TILE_SIZE); }
+        ctx.stroke();
+    }
+
+    entities.sort((a,b) => a.y - b.y).forEach(e => {
+        const px = e.x * CONFIG.TILE_SIZE; 
+        const py = e.y * CONFIG.TILE_SIZE;
+
+        if(e.type === 'tree') {
+            ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.beginPath(); ctx.arc(px+22, py+35, 12, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#795548'; ctx.fillRect(px+18, py+20, 9, 20);
+            let leafColor = e.variation > 0.5 ? '#2E7D32' : '#388E3C';
+            ctx.fillStyle = leafColor; 
+            ctx.beginPath(); ctx.arc(px+22 + Math.sin(e.sway)*2, py+12, 18, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#4CAF50'; 
+            ctx.beginPath(); ctx.arc(px+18 + Math.sin(e.sway)*2, py+8, 10, 0, Math.PI*2); ctx.fill();
+
+        } else {
+            const b = BUILDINGS[e.type];
+            if(!b) return;
+
+            const s = (b.size||1) * CONFIG.TILE_SIZE;
+
+            if(e.type === 'road') {
+                ctx.fillStyle = STATE.gameMode === 'prison' ? '#7f8c8d' : '#BDC3C7'; ctx.fillRect(px, py, s, s);
+                ctx.fillStyle = STATE.gameMode === 'prison' ? '#34495e' : '#7F8C8D'; ctx.fillRect(px+4, py+4, s-8, s-8);
+                ctx.fillStyle = STATE.gameMode === 'prison' ? 'rgba(241, 196, 15, 0.4)' : 'rgba(255,255,255,0.6)'; ctx.fillRect(px + s/2 - 2, py+4, 4, s-8);
+            } else {
+                ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(px+8, py+8, s, s);
+                ctx.fillStyle = b.color; ctx.fillRect(px, py, s, s);
+                ctx.fillStyle = 'rgba(255,255,255,0.15)'; ctx.fillRect(px, py, s, s*0.25);
+                
+                if(b.light) {
+                    let lightOn = (isNight && hasPower) || (e.type === 'luxury_rest' || e.type === 'guard_post');
+                    ctx.fillStyle = lightOn ? b.light : 'rgba(255,255,255,0.3)';
+                    if(lightOn && isNight) { ctx.shadowBlur = 15; ctx.shadowColor = b.light; }
+                    
+                    for(let wx=px+15; wx<px+s-15; wx+=20) {
+                        for(let wy=py+s*0.35; wy<py+s-15; wy+=20) {
+                            if(!lightOn || Math.random()>0.15) ctx.fillRect(wx, wy, 10, 10);
+                        }
+                    }
+                    ctx.shadowBlur = 0;
+                }
+
+                if(b.produces) {
+                    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(px+5, py-10, s-10, 6);
+                    ctx.fillStyle = '#2ecc71'; ctx.fillRect(px+5, py-10, (s-10) * (e.tick/b.ticksToProd), 6);
+                }
+
+                // הצגת מדד חיים למבנה אם הוא תחת מתקפה במהומה
+                if (STATE.gameMode === 'prison' && e.hp < 100) {
+                    ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(px+5, py+s-12, s-10, 6);
+                    ctx.fillStyle = '#c0392b'; ctx.fillRect(px+5, py+s-12, (s-10) * (e.hp/100), 6);
+                }
+            }
+        }
+    });
+
+    agents.forEach(a => {
+        if(a.type === 'car') {
+            ctx.fillStyle = a.color; ctx.fillRect(a.x, a.y, 12, 8); 
+            ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(a.x+2, a.y+1, 8, 6); 
+            if(isNight) {
+                ctx.fillStyle = 'rgba(255, 255, 150, 0.4)';
+                ctx.beginPath(); ctx.moveTo(a.x+12, a.y); ctx.lineTo(a.x+35, a.y-8); ctx.lineTo(a.x+35, a.y+16); ctx.fill();
+            }
+        } else {
+            ctx.fillStyle = a.rioting ? '#c0392b' : a.color; // אדום אם מתפרע
+            ctx.beginPath(); ctx.arc(a.x, a.y, a.rioting ? 4.5 : 3, 0, Math.PI*2); ctx.fill();
+        }
+    });
+
+    if(gridX >= 0 && gridX < CONFIG.MAP_SIZE && gridY >= 0 && gridY < CONFIG.MAP_SIZE) {
+        const px = gridX * CONFIG.TILE_SIZE; const py = gridY * CONFIG.TILE_SIZE;
+        
+        if(STATE.currentMode === 'chop') {
+            ctx.strokeStyle = '#e67e22'; ctx.lineWidth = 4; ctx.strokeRect(px, py, CONFIG.TILE_SIZE, CONFIG.TILE_SIZE);
+        } else if(STATE.currentMode === 'demolish') {
+            const target = grid[gridX][gridY];
+            if(target && target.type !== 'tree') {
+                const s = target.size * CONFIG.TILE_SIZE;
+                ctx.fillStyle = 'rgba(231, 76, 60, 0.5)'; ctx.fillRect(target.x*CONFIG.TILE_SIZE, target.y*CONFIG.TILE_SIZE, s, s);
+                ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 4; ctx.strokeRect(target.x*CONFIG.TILE_SIZE, target.y*CONFIG.TILE_SIZE, s, s);
+            } else {
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(px, py, CONFIG.TILE_SIZE, CONFIG.TILE_SIZE);
+            }
+        } else if(STATE.currentMode === 'cursor') {
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(px, py, CONFIG.TILE_SIZE, CONFIG.TILE_SIZE);
+        } else {
+            const b = BUILDINGS[STATE.currentMode];
+            if(b) {
+                const s = b.size * CONFIG.TILE_SIZE;
+                const bufferValid = STATE.currentMode === 'road' ? grid[gridX][gridY]===null : checkBufferZone(gridX, gridY, b.size);
+                const roadValid = STATE.currentMode === 'road' ? true : hasAdjacentRoad(gridX, gridY, b.size);
+                const valid = bufferValid && roadValid;
+                
+                if(STATE.currentMode !== 'road') {
+                    const bfr = (b.size + CONFIG.BUFFER_ZONE*2) * CONFIG.TILE_SIZE;
+                    ctx.fillStyle = valid ? 'rgba(46, 204, 113, 0.2)' : 'rgba(231, 76, 60, 0.2)';
+                    ctx.fillRect((gridX-CONFIG.BUFFER_ZONE)*CONFIG.TILE_SIZE, (gridY-CONFIG.BUFFER_ZONE)*CONFIG.TILE_SIZE, bfr, bfr);
+                }
+                
+                ctx.fillStyle = valid ? 'rgba(46, 204, 113, 0.6)' : 'rgba(231, 76, 60, 0.6)'; ctx.fillRect(px, py, s, s);
+                ctx.strokeStyle = valid ? '#27ae60' : '#c0392b'; ctx.lineWidth = 3; ctx.strokeRect(px, py, s, s);
+            }
+        }
+    }
+
+    ctx.restore();
+
+    if(isNight) {
+        ctx.fillStyle = STATE.gameMode === 'prison' ? 'rgba(15, 20, 35, 0.5)' : 'rgba(20, 30, 80, 0.45)';
+        ctx.globalCompositeOperation = 'multiply'; ctx.fillRect(0,0, canvas.width, canvas.height);
+        ctx.globalCompositeOperation = 'source-over';
+    }
+
+    particles.forEach(p => {
+        ctx.fillStyle = p.ui ? p.color : `rgba(255,255,255,${p.alpha})`;
+        ctx.font = 'bold 18px Arial'; ctx.shadowBlur=3; ctx.shadowColor='rgba(0,0,0,0.5)';
+        ctx.fillText(p.ui ? "₪" : "✦", p.ui ? p.x : (p.x - STATE.camera.x)*STATE.camera.zoom, p.ui ? p.y : (p.y - STATE.camera.y)*STATE.camera.zoom);
+        ctx.shadowBlur=0;
+    });
+
+    requestAnimationFrame(draw);
+}
+
+// ======================= UTILS =======================
+function spawnParticles(x, y, color, count=5, ui=false) {
+    for(let i=0; i<count; i++) {
+        particles.push({ x: x+(Math.random()-0.5)*30, y: y, color: color, life: 35, alpha: 1, sy: Math.random()*2+1, sx: (Math.random()-0.5)*2, ui: ui });
+    }
+}
+
+function notify(text, type='info') {
+    const t = document.getElementById('toaster');
+    const d = document.createElement('div'); d.className = `toast ${type}`; d.innerText = text;
+    t.appendChild(d); setTimeout(() => d.remove(), 4500);
+}
+
+// ======================= UI INTERACTIONS =======================
+function setMode(mode, element) {
+    STATE.currentMode = mode;
+    document.querySelectorAll('.build-item').forEach(b => b.classList.remove('active'));
+    if(element) element.classList.add('active');
+}
+
+function toggleModal(id) {
+    closeAllModals();
+    const el = document.getElementById(id);
+    el.classList.add('active');
+    el.style.display = 'block'; 
+    document.getElementById('overlay').classList.add('active');
+    document.getElementById('overlay').style.display = 'block';
+    
+    if(id==='marketModal') {
+        for(let k in MARKET) {
+            const p = Math.floor(MARKET[k].price);
+            document.getElementById(`price-${k}`).innerText = p;
+            const bt = document.getElementById(`buy-total-${k}`); if(bt) bt.innerText = p*5;
+            const st = document.getElementById(`sell-total-${k}`); if(st) st.innerText = p*5;
+        }
+    }
+}
+
+function closeAllModals() {
+    document.querySelectorAll('.modal, .modal-overlay').forEach(e => {
+        e.classList.remove('active');
+        e.style.display = 'none';
+    });
+}
+
+function updateUI() {
+    if(document.getElementById('lobby').style.display !== 'none') return;
+    document.getElementById('ui-pop').innerText = STATE.population.toLocaleString();
+    document.getElementById('ui-jobs').innerText = `${STATE.employed} / ${STATE.totalJobs}`;
+    document.getElementById('ui-money').innerText = '₪' + Math.floor(STATE.money).toLocaleString();
+    
+    const en = document.getElementById('ui-energy');
+    en.innerText = `${STATE.energyConsumed} / ${STATE.energyProduced}`;
+    en.style.color = STATE.energyConsumed > STATE.energyProduced ? 'var(--accent-red)' : 'var(--accent-gold)';
+
+    const hp = document.getElementById('ui-happy');
+    hp.innerText = `${Math.floor(STATE.happiness)}%`;
+    hp.style.color = STATE.happiness < 50 ? 'var(--accent-red)' : 'inherit';
+    
+    let sign = STATE.income >= 0 ? '+' : '';
+    const inc = document.getElementById('ui-income');
+    inc.innerText = `${sign}₪${Math.floor(STATE.income)}/ש`;
+    inc.style.color = STATE.income >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+    
+    let hrs = Math.floor((STATE.timeOfDay / CONFIG.DAY_LENGTH) * 24).toString().padStart(2,'0');
+    let mins = Math.floor(((STATE.timeOfDay / CONFIG.DAY_LENGTH) * 24 * 60) % 60).toString().padStart(2,'0');
+    document.getElementById('ui-time').innerText = `${hrs}:${mins}`;
+    document.getElementById('ui-day').innerText = STATE.daysPassed;
+
+    document.getElementById('inv-wood').innerText = STATE.inventory.wood;
+    document.getElementById('inv-bricks').innerText = STATE.inventory.bricks;
+    document.getElementById('inv-nails').innerText = STATE.inventory.nails;
+    document.getElementById('inv-steel').innerText = STATE.inventory.steel;
+    document.getElementById('ui-debt').innerText = '₪' + Math.floor(STATE.debt).toLocaleString();
+    
+    if(document.getElementById('marketModal').classList.contains('active')) {
+        for(let k in MARKET) {
+            const p = Math.floor(MARKET[k].price);
+            document.getElementById(`price-${k}`).innerText = p;
+            const bt = document.getElementById(`buy-total-${k}`); if(bt) bt.innerText = p*5;
+            const st = document.getElementById(`sell-total-${k}`); if(st) st.innerText = p*5;
+        }
+    }
+}
+
+// קריאה ראשונית ללולאת הציור (תיעצר בלובי עד לבחירה)
+draw();
+</script>
+</body>
+</html>

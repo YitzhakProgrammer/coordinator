@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CityCraft: Advanced Imperial Engine</title>
+    <style>
+        :root {
+            --glass-bg: rgba(15, 20, 35, 0.75);
+            --glass-border: rgba(0, 243, 255, 0.2);
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00ea;
+            --neon-green: #00ff88;
+            --neon-yellow: #ffea00;
+            --neon-red: #ff3366;
+            --text-main: #e0e5ff;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+            background-color: #050508; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-main); user-select: none;
+        }
+
+        #gameCanvas { display: block; width: 100vw; height: 100vh; cursor: crosshair; }
+
+        /* Glassmorphism UI */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border); border-radius: 12px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+            position: absolute; z-index: 10; padding: 15px; transition: all 0.3s;
+        }
+
+        /* Top HUD */
+        #hud-top {
+            top: 20px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 20px; align-items: center; font-weight: bold; font-size: 1.1rem;
+        }
+        .stat-group { display: flex; align-items: center; gap: 8px; text-shadow: 0 0 8px rgba(255,255,255,0.2); }
+        .val-money { color: var(--neon-green); }
+        .val-pop { color: var(--neon-blue); }
+        .val-wood { color: #d4a373; }
+        .val-energy { color: var(--neon-yellow); }
+        .val-time { color: var(--neon-pink); }
+
+        /* Side Dashboard */
+        #dashboard {
+            top: 20px; right: 20px; width: 300px; display: flex; flex-direction: column; gap: 15px;
+        }
+        .dash-section { border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        .dash-section h3 { margin: 0 0 10px 0; color: var(--neon-blue); font-size: 1.2rem; }
+        .inventory-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9rem; }
+        
+        /* Buttons */
+        .btn {
+            background: rgba(0, 243, 255, 0.1); border: 1px solid var(--neon-blue);
+            color: white; padding: 8px 12px; border-radius: 6px; cursor: pointer;
+            font-weight: bold; transition: all 0.2s; width: 100%; text-align: center;
+        }
+        .btn:hover { background: rgba(0, 243, 255, 0.3); box-shadow: 0 0 15px rgba(0,243,255,0.5); }
+        .btn.active { background: var(--neon-blue); color: #000; }
+        .btn-red { border-color: var(--neon-red); color: var(--neon-red); background: rgba(255,51,102,0.1); }
+        .btn-red:hover { background: rgba(255,51,102,0.3); box-shadow: 0 0 15px rgba(255,51,102,0.5); color: #fff;}
+        .btn-green { border-color: var(--neon-green); color: var(--neon-green); background: rgba(0,255,136,0.1); }
+        .btn-green:hover { background: rgba(0,255,136,0.3); box-shadow: 0 0 15px rgba(0,255,136,0.5); color: #fff;}
+
+        /* Bottom Build Menu */
+        #build-menu {
+            bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px;
+        }
+        .build-item {
+            display: flex; flex-direction: column; align-items: center; min-width: 90px;
+        }
+        .build-item span.price { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
+        .build-item span.reqs { font-size: 0.7rem; color: var(--neon-yellow); }
+
+        /* Notifications */
+        #notifications { position: absolute; top: 100px; left: 20px; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+        .alert { background: rgba(0,0,0,0.8); border-right: 4px solid var(--neon-blue); padding: 12px 20px; border-radius: 4px; animation: slideIn 0.3s, fadeOut 0.5s 3.5s forwards; backdrop-filter: blur(4px); }
+        .alert.error { border-right-color: var(--neon-red); }
+        .alert.success { border-right-color: var(--neon-green); }
+
+        @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+
+        /* Modals */
+        .modal { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 400px; z-index: 100; }
+        .modal.active { display: block; }
+        .close-btn { position: absolute; top: 10px; left: 10px; cursor: pointer; color: #aaa; }
+        .close-btn:hover { color: #fff; }
+        .market-row { display: flex; justify-content: space-between; margin-bottom: 15px; align-items: center; }
+        .market-row div { display: flex; gap: 10px; }
+    </style>
+</head>
+<body>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="hud-top" class="glass-panel">
+        <div class="stat-group">🕒 <span id="ui-time" class="val-time">08:00</span> (יום <span id="ui-day">1</span>)</div>
+        <div class="stat-group">👥 <span id="ui-pop" class="val-pop">0</span> תושבים</div>
+        <div class="stat-group">🏦 <span id="ui-money" class="val-money">₪1,000</span></div>
+        <div class="stat-group">⚡ <span id="ui-energy" class="val-energy">0 / 0</span> MW</div>
+        <div class="stat-group">📈 תזרים: <span id="ui-income" class="val-money">+₪0</span>/שעה</div>
+    </div>
+
+    <div id="dashboard" class="glass-panel">
+        <div class="dash-section">
+            <h3>מצב נוכחי</h3>
+            <p id="ui-mode-desc" style="margin:0; font-size:0.9rem; color:#aaa;">בחר כלי מהתפריט למטה</p>
+        </div>
+        <div class="dash-section">
+            <h3>מלאי מחסנים</h3>
+            <div class="inventory-grid">
+                <div>🪵 עץ: <span id="inv-wood" class="val-wood">0</span></div>
+                <div>🧱 לבנים: <span id="inv-bricks">0</span></div>
+                <div>🔩 מסמרים: <span id="inv-nails">0</span></div>
+                <div>⚙️ פלדה: <span id="inv-steel">0</span></div>
+            </div>
+        </div>
+        <div class="dash-section">
+            <h3>ניהול פיננסי ומסחר</h3>
+            <button class="btn" onclick="toggleModal('marketModal')" style="margin-bottom: 10px;">🛒 שוק המסחר</button>
+            <button class="btn btn-red" onclick="toggleModal('bankModal')">🏦 בנק העיר (הלוואות)</button>
+        </div>
+        <div class="dash-section">
+            <h3>כלים מתקדמים</h3>
+            <button class="btn" id="btn-heatmap" onclick="toggleHeatmap()">🔥 מפת חום (אנרגיה/צפיפות)</button>
+        </div>
+    </div>
+
+    <div id="build-menu" class="glass-panel">
+        <button class="btn build-item active" onclick="setMode('cursor')">
+            🖱️ סמן
+            <span class="price">בחירה/מידע</span>
+        </button>
+        <button class="btn build-item" onclick="setMode('chop')">
+            🪓 חטיבה
+            <span class="price">איסוף ידני</span>
+        </button>
+        <button class="btn build-item" onclick="setMode('road')">
+            🛣️ כביש
+            <span class="price">₪10</span>
+        </button>
+        <button class="btn build-item" onclick="setMode('house')">
+            🏠 מגורים
+            <span class="price">₪150</span>
+            <span class="reqs">דורש: 2 עץ</span>
+        </button>
+        <button class="btn build-item" onclick="setMode('shop')">
+            🏪 מכולת
+            <span class="price">₪500</span>
+            <span class="reqs">דורש: 5 לבנים</span>
+        </button>
+        <button class="btn build-item" onclick="setMode('forestry')">
+            🌲 חוות יערנות
+            <span class="price">₪1200</span>
+            <span class="reqs">מייצר עץ</span>
+        </button>
+        <button class="btn build-item" onclick="setMode('powerplant')">
+            ⚡ תחנת כוח
+            <span class="price">₪2500</span>
+            <span class="reqs">מספק 50MW</span>
+        </button>
+    </div>
+
+    <div id="marketModal" class="glass-panel modal">
+        <span class="close-btn" onclick="toggleModal('marketModal')">✖</span>
+        <h2 style="color:var(--neon-blue); margin-top:0;">שוק המסחר הגלובלי</h2>
+        <p style="font-size:0.8rem; color:#aaa;">המחירים משתנים בהתאם להיצע וביקוש. קנה חומרים לבנייה מתקדמת.</p>
+        
+        <div class="market-row">
+            <span>🪵 עץ (מחיר: ₪<span id="price-wood">15</span>)</span>
+            <div>
+                <button class="btn btn-red" onclick="trade('wood', 'sell', 1)">מכור 1</button>
+                <button class="btn btn-green" onclick="trade('wood', 'buy', 1)">קנה 1</button>
+            </div>
+        </div>
+        <div class="market-row">
+            <span>🧱 לבנים (מחיר: ₪<span id="price-bricks">30</span>)</span>
+            <div>
+                <button class="btn btn-red" onclick="trade('bricks', 'sell', 1)">מכור 1</button>
+                <button class="btn btn-green" onclick="trade('bricks', 'buy', 1)">קנה 1</button>
+            </div>
+        </div>
+        <div class="market-row">
+            <span>🔩 מסמרים (מחיר: ₪<span id="price-nails">10</span>)</span>
+            <div>
+                <button class="btn btn-red" onclick="trade('nails', 'sell', 5)">מכור 5</button>
+                <button class="btn btn-green" onclick="trade('nails', 'buy', 5)">קנה 5</button>
+            </div>
+        </div>
+        <div class="market-row">
+            <span>⚙️ פלדה (מחיר: ₪<span id="price-steel">100</span>)</span>
+            <div>
+                <button class="btn btn-red" onclick="trade('steel', 'sell', 1)">מכור 1</button>
+                <button class="btn btn-green" onclick="trade('steel', 'buy', 1)">קנה 1</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="bankModal" class="glass-panel modal">
+        <span class="close-btn" onclick="toggleModal('bankModal')">✖</span>
+        <h2 style="color:var(--neon-red); margin-top:0;">בנק המטרופולין</h2>
+        <p>חוב נוכחי: <strong id="ui-debt" style="color:var(--neon-red);">₪0</strong></p>
+        <p style="font-size:0.8rem;">ריבית: 5% מתווספת כל יום למאזן החוב. התזרים שלך יקוזז אוטומטית לכיסוי החוב.</p>
+        <div style="display:flex; gap:10px; margin-top:20px;">
+            <button class="btn btn-green" onclick="takeLoan(1000)">קח הלוואה ₪1,000</button>
+            <button class="btn btn-green" onclick="takeLoan(5000)">קח הלוואה ₪5,000</button>
+        </div>
+        <div style="margin-top:10px;">
+            <button class="btn btn-red" onclick="payDebt()">החזר חוב מיתרה</button>
+        </div>
+    </div>
+
+    <div id="notifications"></div>
+
+<script>
+/**
+ * CITYCRAFT ADVANCED ENGINE
+ * Core Architecture: Data-Driven ECS, Deterministic Loop (30TPS), RAF Renderer.
+ */
+
+// --- CONFIGURATION ---
+const CONFIG = {
+    MAP_SIZE: 100,        // 100x100 tiles
+    TILE_SIZE: 40,        // Pixels per tile
+    TPS: 30,              // Logic Ticks Per Second
+    DAY_LENGTH: 24000,    // Ticks per game day
+    BUFFER_ZONE: 1        // Mandatory empty space around non-road structures
+};
+
+// --- DATA STRUCTURES ---
+const BUILDINGS = {
+    road:       { id: 'road', name: 'כביש', cost: 10, req: {}, size: 1, pop: 0, income: -1, energy: 0, color: '#444', neon: null },
+    house:      { id: 'house', name: 'בית מגורים', cost: 150, req: {wood: 2}, size: 2, pop: 5, income: 15, energy: -1, color: '#2b5797', neon: '#00f3ff' },
+    shop:       { id: 'shop', name: 'מכולת מסחרית', cost: 500, req: {bricks: 5}, size: 3, pop: 0, income: 80, energy: -3, color: '#b91d47', neon: '#ff00ea' },
+    forestry:   { id: 'forestry', name: 'חוות יערנות', cost: 1200, req: {wood: 10, nails: 10}, size: 4, pop: -2, income: -10, energy: -2, color: '#1e7145', neon: '#00ff88', produces: 'wood', amount: 2, tickRate: 600 },
+    powerplant: { id: 'powerplant', name: 'תחנת כוח', cost: 2500, req: {steel: 5, bricks: 10}, size: 4, pop: 0, income: -50, energy: 50, color: '#e3a21a', neon: '#ffea00' },
+    tree:       { id: 'tree', name: 'עץ פראי', size: 1, hp: 3 }
+};
+
+const MARKET = {
+    wood: { price: 15, volatility: 0.1, basePrice: 15 },
+    bricks: { price: 30, volatility: 0.05, basePrice: 30 },
+    nails: { price: 10, volatility: 0.02, basePrice: 10 },
+    steel: { price: 100, volatility: 0.15, basePrice: 100 }
+};
+
+// --- GLOBAL STATE ---
+const STATE = {
+    money: 1000,
+    debt: 0,
+    income: 0,
+    population: 0,
+    energyProduced: 0,
+    energyConsumed: 0,
+    timeOfDay: 8000, // Starts at 08:00
+    daysPassed: 1,
+    currentMode: 'cursor', // cursor, chop, road, house...
+    showHeatmap: false,
+    inventory: { wood: 0, bricks: 0, nails: 0, steel: 0 },
+    camera: { x: 0, y: 0, zoom: 1 }
+};
+
+const grid = Array(CONFIG.MAP_SIZE).fill().map(() => Array(CONFIG.MAP_SIZE).fill(null));
+const entities = [];
+const agents = []; // Vehicles / people
+const particles = [];
+
+// --- INITIALIZATION ---
+function init() {
+    // Generate terrain & trees
+    for(let i=0; i<CONFIG.MAP_SIZE; i+=2) {
+        for(let j=0; j<CONFIG.MAP_SIZE; j+=2) {
+            if(Math.random() < 0.12) {
+                const t = { type: 'tree', x: i, y: j, hp: 3, sway: 0 };
+                grid[i][j] = t;
+                entities.push(t);
+            }
+        }
+    }
+    // Center camera
+    STATE.camera.x = (CONFIG.MAP_SIZE * CONFIG.TILE_SIZE / 2) - (window.innerWidth / 2);
+    STATE.camera.y = (CONFIG.MAP_SIZE * CONFIG.TILE_SIZE / 2) - (window.innerHeight / 2);
+    updateUI();
+}
+
+// --- LOGIC FUNCTIONS ---
+
+function checkBuffer(x, y, size) {
+    const b = CONFIG.BUFFER_ZONE;
+    for(let i = x - b; i < x + size + b; i++) {
+        for(let j = y - b; j < y + size + b; j++) {
+            if(i>=0 && i<CONFIG.MAP_SIZE && j>=0 && j<CONFIG.MAP_SIZE) {
+                if(grid[i][j] !== null) return false;
+            }
+        }
+    }
+    return true;
+}
+
+function hasRequirements(reqs) {
+    if(!reqs) return true;
+    for (let key in reqs) {
+        if (STATE.inventory[key] < reqs[key]) return false;
+    }
+    return true;
+}
+
+function deductRequirements(reqs) {
+    if(!reqs) return;
+    for (let key in reqs) {
+        STATE.inventory[key] -= reqs[key];
+    }
+}
+
+function build(x, y) {
+    const b = BUILDINGS[STATE.currentMode];
+    if(!b) return;
+
+    // Bounds check
+    if(x < 0 || y < 0 || x+b.size > CONFIG.MAP_SIZE || y+b.size > CONFIG.MAP_SIZE) {
+        notify("שגיאה: מחוץ לגבולות המטרופולין", "error"); return;
+    }
+
+    // Money & Reqs check
+    if(STATE.money < b.cost) { notify("שגיאה: אין מספיק כסף!", "error"); return; }
+    if(!hasRequirements(b.req)) { notify("שגיאה: חסרים חומרי בנייה!", "error"); return; }
+
+    // Space check
+    if(STATE.currentMode !== 'road') {
+        if(!checkBuffer(x, y, b.size)) { notify("שגיאה: יש לשמור מרווח ביטחון!", "error"); return; }
+    } else {
+        if(grid[x][y] !== null) { notify("השטח תפוס", "error"); return; }
+    }
+
+    // Execute Build
+    STATE.money -= b.cost;
+    deductRequirements(b.req);
+    
+    const ent = { type: STATE.currentMode, x: x, y: y, size: b.size, active: true, tickCounter: 0 };
+    for(let i=0; i<b.size; i++) {
+        for(let j=0; j<b.size; j++) {
+            grid[x+i][y+j] = ent;
+        }
+    }
+    entities.push(ent);
+    spawnParticles(x * CONFIG.TILE_SIZE, y * CONFIG.TILE_SIZE, b.color, 15);
+    notify(`נבנה: ${b.name} (-₪${b.cost})`, "success");
+
+    recalculateStats();
+    spawnAgent(x, y); // Spawn a car/agent near the new building
+}
+
+function chop(x, y) {
+    const target = grid[x][y];
+    if(target && target.type === 'tree') {
+        target.hp--;
+        target.sway = 10;
+        spawnParticles(x * CONFIG.TILE_SIZE, y * CONFIG.TILE_SIZE, '#8B4513', 5);
+        if(target.hp <= 0) {
+            grid[x][y] = null;
+            entities.splice(entities.indexOf(target), 1);
+            STATE.inventory.wood += 3;
+            notify("נכרת עץ! +3 עץ", "success");
+            updateUI();
+        }
+    }
+}
+
+function spawnAgent(x, y) {
+    if(Math.random() > 0.5) return;
+    agents.push({
+        x: x * CONFIG.TILE_SIZE, y: y * CONFIG.TILE_SIZE,
+        tx: x * CONFIG.TILE_SIZE + (Math.random()*200 - 100),
+        ty: y * CONFIG.TILE_SIZE + (Math.random()*200 - 100),
+        speed: 1 + Math.random(), color: (Math.random()>0.5)?'#fff':'#ff00ea'
+    });
+}
+
+function recalculateStats() {
+    STATE.population = 0;
+    STATE.income = 0;
+    STATE.energyProduced = 0;
+    STATE.energyConsumed = 0;
+
+    entities.forEach(e => {
+        const b = BUILDINGS[e.type];
+        if(!b || e.type === 'tree') return;
+        
+        STATE.population += b.pop;
+        STATE.income += b.income;
+        if(b.energy > 0) STATE.energyProduced += b.energy;
+        else if(b.energy < 0) STATE.energyConsumed += Math.abs(b.energy);
+    });
+
+    // Debt interest
+    if(STATE.debt > 0) STATE.income -= (STATE.debt * 0.05 / 24); // Spread daily interest across hours
+
+    // Blackout logic
+    if(STATE.energyConsumed > STATE.energyProduced) {
+        // Penalty for lack of power
+        STATE.income *= 0.5;
+        if(Math.random() < 0.1) notify("אזהרה: עומס יתר ברשת החשמל! ההכנסות יורדות.", "error");
+    }
+    updateUI();
+}
+
+// --- MARKET & BANKING ---
+function trade(item, action, qty) {
+    const price = Math.floor(MARKET[item].price) * qty;
+    if(action === 'buy') {
+        if(STATE.money >= price) {
+            STATE.money -= price;
+            STATE.inventory[item] += qty;
+            MARKET[item].price *= (1 + MARKET[item].volatility); // Price goes up
+            notify(`קנית ${qty} ${item} תמורת ₪${price}`, "success");
+        } else notify("אין מספיק כסף להשלמת העסקה.", "error");
+    } else {
+        if(STATE.inventory[item] >= qty) {
+            STATE.money += price;
+            STATE.inventory[item] -= qty;
+            MARKET[item].price *= (1 - MARKET[item].volatility/2); // Price goes down
+            notify(`מכרת ${qty} ${item} תמורת ₪${price}`, "success");
+        } else notify(`אין לך מספיק ${item} למכירה.`, "error");
+    }
+    updateUI();
+}
+
+function takeLoan(amount) {
+    STATE.money += amount;
+    STATE.debt += amount;
+    notify(`נלקחה הלוואה בסך ₪${amount}. ריבית תתווסף בכל יום!`, "error");
+    recalculateStats();
+}
+
+function payDebt() {
+    if(STATE.debt <= 0) return;
+    if(STATE.money >= STATE.debt) {
+        STATE.money -= STATE.debt;
+        STATE.debt = 0;
+        notify("החוב לבנק שולם במלואו!", "success");
+    } else {
+        STATE.debt -= STATE.money;
+        notify(`שולם חלק מהחוב (₪${Math.floor(STATE.money)}). נותר: ₪${Math.floor(STATE.debt)}`, "success");
+        STATE.money = 0;
+    }
+    recalculateStats();
+}
+
+function fluctuateMarket() {
+    for(let k in MARKET) {
+        // Random walk around base price
+        const change = (Math.random() - 0.5) * MARKET[k].volatility * MARKET[k].basePrice;
+        MARKET[k].price = Math.max(1, MARKET[k].price + change);
+    }
+}
+
+// --- ENGINE LOOP (DETERMINISTIC LOGIC) ---
+setInterval(() => {
+    // 1. Time progression
+    STATE.timeOfDay += 10;
+    if(STATE.timeOfDay >= CONFIG.DAY_LENGTH) {
+        STATE.timeOfDay = 0;
+        STATE.daysPassed++;
+        fluctuateMarket();
+        if(STATE.debt > 0) notify("יום חדש: ריבית נוספה לחוב שלך בבנק.", "error");
+    }
+
+    // 2. Economy Tick (Every in-game hour approx 1000 ticks)
+    if(STATE.timeOfDay % 1000 === 0) {
+        STATE.money += STATE.income;
+        if(STATE.income > 0) spawnParticles(STATE.camera.x + window.innerWidth/2, STATE.camera.y + 100, '#00ff88', 5, true);
+        else if(STATE.income < 0) spawnParticles(STATE.camera.x + window.innerWidth/2, STATE.camera.y + 100, '#ff3366', 3, true);
+        
+        // Auto-pay debt if money is available and income is bleeding
+        if(STATE.debt > 0 && STATE.money > 0 && STATE.timeOfDay === 12000) {
+            let payment = Math.min(STATE.money, STATE.debt * 0.1); // Pay 10% daily automatically
+            STATE.money -= payment; STATE.debt -= payment;
+        }
+
+        if(STATE.money < 0 && !STATE.isBankrupt) {
+            notify("העיר בגירעון! קח הלוואה או צמצם הוצאות בדחיפות.", "error");
+        }
+        updateUI();
+    }
+
+    // 3. Entity Specific Logic (Factories/Forestry)
+    entities.forEach(e => {
+        const b = BUILDINGS[e.type];
+        if(b && b.produces) {
+            e.tickCounter++;
+            if(e.tickCounter >= b.tickRate) {
+                e.tickCounter = 0;
+                STATE.inventory[b.produces] += b.amount;
+                spawnParticles(e.x*CONFIG.TILE_SIZE + 40, e.y*CONFIG.TILE_SIZE + 40, '#00ff88', 2);
+            }
+        }
+        if(e.type === 'tree' && e.sway > 0) e.sway--;
+    });
+
+    // 4. Agent Pathing (Simple)
+    agents.forEach((a, i) => {
+        let dx = a.tx - a.x; let dy = a.ty - a.y;
+        let dist = Math.sqrt(dx*dx + dy*dy);
+        if(dist < 5) {
+            // Pick new target
+            a.tx = a.x + (Math.random()*400 - 200);
+            a.ty = a.y + (Math.random()*400 - 200);
+            a.life = (a.life||0) + 1;
+            if(a.life > 5) agents.splice(i, 1); // Die after 5 waypoints
+        } else {
+            a.x += (dx/dist) * a.speed;
+            a.y += (dy/dist) * a.speed;
+        }
+    });
+
+    // 5. Particles
+    for(let i=particles.length-1; i>=0; i--) {
+        let p = particles[i];
+        p.life--;
+        p.y -= p.speedY;
+        p.x += p.speedX;
+        p.alpha -= 0.02;
+        if(p.life <= 0) particles.splice(i, 1);
+    }
+
+}, 1000 / CONFIG.TPS);
+
+// --- RENDERING LOOP ---
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d', { alpha: false });
+
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+window.addEventListener('resize', resize); resize();
+
+let isDragging = false;
+let lastMx, lastMy;
+let mouseGridX = -1, mouseGridY = -1;
+
+canvas.addEventListener('mousemove', e => {
+    if(isDragging) {
+        STATE.camera.x -= (e.clientX - lastMx);
+        STATE.camera.y -= (e.clientY - lastMy);
+    }
+    lastMx = e.clientX; lastMy = e.clientY;
+    mouseGridX = Math.floor((e.clientX + STATE.camera.x) / CONFIG.TILE_SIZE);
+    mouseGridY = Math.floor((e.clientY + STATE.camera.y) / CONFIG.TILE_SIZE);
+});
+
+canvas.addEventListener('mousedown', e => {
+    if(e.button === 2 || e.button === 1) isDragging = true;
+    else if(e.button === 0 && !e.target.closest('.glass-panel')) {
+        if(STATE.currentMode === 'chop') chop(mouseGridX, mouseGridY);
+        else if(STATE.currentMode !== 'cursor') build(mouseGridX, mouseGridY);
+    }
+});
+canvas.addEventListener('mouseup', () => isDragging = false);
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+function render() {
+    // Sky/Ground Base
+    ctx.fillStyle = '#101217';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.save();
+    ctx.translate(-STATE.camera.x, -STATE.camera.y);
+
+    const isNight = STATE.timeOfDay < 6000 || STATE.timeOfDay > 18000;
+    const powerGridActive = STATE.energyProduced >= STATE.energyConsumed;
+
+    // Grid rendering (only in build mode)
+    if(STATE.currentMode !== 'chop' && STATE.currentMode !== 'cursor') {
+        ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+        ctx.lineWidth = 1;
+        const sx = Math.max(0, Math.floor(STATE.camera.x / CONFIG.TILE_SIZE));
+        const sy = Math.max(0, Math.floor(STATE.camera.y / CONFIG.TILE_SIZE));
+        const ex = Math.min(CONFIG.MAP_SIZE, sx + Math.ceil(canvas.width / CONFIG.TILE_SIZE) + 1);
+        const ey = Math.min(CONFIG.MAP_SIZE, sy + Math.ceil(canvas.height / CONFIG.TILE_SIZE) + 1);
+
+        ctx.beginPath();
+        for(let i=sx; i<=ex; i++) { ctx.moveTo(i*CONFIG.TILE_SIZE, sy*CONFIG.TILE_SIZE); ctx.lineTo(i*CONFIG.TILE_SIZE, ey*CONFIG.TILE_SIZE); }
+        for(let j=sy; j<=ey; j++) { ctx.moveTo(sx*CONFIG.TILE_SIZE, j*CONFIG.TILE_SIZE); ctx.lineTo(ex*CONFIG.TILE_SIZE, j*CONFIG.TILE_SIZE); }
+        ctx.stroke();
+    }
+
+    // Entities
+    entities.forEach(e => {
+        const px = e.x * CONFIG.TILE_SIZE;
+        const py = e.y * CONFIG.TILE_SIZE;
+        const b = BUILDINGS[e.type];
+
+        if(e.type === 'tree') {
+            ctx.fillStyle = '#1b3313'; // Shadow/Trunk
+            ctx.fillRect(px+15, py+20, 10, 20);
+            ctx.fillStyle = '#2b631d'; // Leaves
+            ctx.fillRect(px + e.sway, py, CONFIG.TILE_SIZE, CONFIG.TILE_SIZE-10);
+        } else if(e.type === 'road') {
+            ctx.fillStyle = b.color;
+            ctx.fillRect(px, py, CONFIG.TILE_SIZE, CONFIG.TILE_SIZE);
+            ctx.fillStyle = 'rgba(255,255,255,0.2)';
+            ctx.fillRect(px + CONFIG.TILE_SIZE/2 - 1, py, 2, CONFIG.TILE_SIZE);
+        } else {
+            const rs = b.size * CONFIG.TILE_SIZE;
+            // Shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(px+5, py+5, rs, rs);
+            // Body
+            ctx.fillStyle = b.color; ctx.fillRect(px, py, rs, rs);
+            
+            // Neon / Windows
+            if(isNight && b.neon && powerGridActive) {
+                ctx.shadowBlur = 20; ctx.shadowColor = b.neon; ctx.fillStyle = b.neon;
+                for(let wx=px+15; wx<px+rs-15; wx+=25) {
+                    for(let wy=py+15; wy<py+rs-15; wy+=25) {
+                        if(Math.random()>0.1) ctx.fillRect(wx, wy, 10, 10);
+                    }
+                }
+                ctx.shadowBlur = 0;
+            } else {
+                ctx.fillStyle = 'rgba(255,255,255,0.1)';
+                for(let wx=px+15; wx<px+rs-15; wx+=25) {
+                    for(let wy=py+15; wy<py+rs-15; wy+=25) ctx.fillRect(wx, wy, 10, 10);
+                }
+            }
+            
+            // Progress bar for producing buildings
+            if(b.produces) {
+                let p = e.tickCounter / b.tickRate;
+                ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(px, py-10, rs, 6);
+                ctx.fillStyle = '#00ff88'; ctx.fillRect(px, py-10, rs * p, 6);
+            }
+        }
+    });
+
+    // Agents
+    agents.forEach(a => {
+        ctx.fillStyle = a.color;
+        if(isNight) { ctx.shadowBlur = 10; ctx.shadowColor = a.color; }
+        ctx.fillRect(a.x, a.y, 6, 6);
+        ctx.shadowBlur = 0;
+    });
+
+    // Build Cursor / Buffer preview
+    if(mouseGridX >= 0 && mouseGridX < CONFIG.MAP_SIZE && mouseGridY >= 0 && mouseGridY < CONFIG.MAP_SIZE) {
+        const px = mouseGridX * CONFIG.TILE_SIZE;
+        const py = mouseGridY * CONFIG.TILE_SIZE;
+        
+        if(STATE.currentMode === 'chop') {
+            ctx.strokeStyle = '#ffea00'; ctx.lineWidth = 2; ctx.strokeRect(px, py, CONFIG.TILE_SIZE, CONFIG.TILE_SIZE);
+        } else if (STATE.currentMode === 'cursor') {
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.strokeRect(px, py, CONFIG.TILE_SIZE, CONFIG.TILE_SIZE);
+            // Show info
+            let tgt = grid[mouseGridX][mouseGridY];
+            if(tgt) {
+                let name = tgt.type === 'tree' ? 'עץ פראי' : BUILDINGS[tgt.type].name;
+                ctx.fillStyle = 'white'; ctx.font = '14px sans-serif';
+                ctx.fillText(name, px, py - 10);
+            }
+        } else {
+            const b = BUILDINGS[STATE.currentMode];
+            const rs = b.size * CONFIG.TILE_SIZE;
+            const valid = STATE.currentMode === 'road' ? (grid[mouseGridX][mouseGridY]===null) : checkBuffer(mouseGridX, mouseGridY, b.size);
+            
+            if(STATE.currentMode !== 'road') {
+                const bSize = (b.size + CONFIG.BUFFER_ZONE*2) * CONFIG.TILE_SIZE;
+                const bx = (mouseGridX - CONFIG.BUFFER_ZONE) * CONFIG.TILE_SIZE;
+                const by = (mouseGridY - CONFIG.BUFFER_ZONE) * CONFIG.TILE_SIZE;
+                ctx.fillStyle = valid ? 'rgba(0,255,136,0.1)' : 'rgba(255,51,102,0.15)';
+                ctx.fillRect(bx, by, bSize, bSize);
+            }
+            
+            ctx.fillStyle = valid ? 'rgba(0,255,136,0.5)' : 'rgba(255,51,102,0.5)';
+            ctx.fillRect(px, py, rs, rs);
+            ctx.strokeStyle = valid ? '#00ff88' : '#ff3366'; ctx.strokeRect(px, py, rs, rs);
+        }
+    }
+
+    // Heatmap Overlay (Energy / Density)
+    if(STATE.showHeatmap) {
+        ctx.globalCompositeOperation = 'screen';
+        entities.forEach(e => {
+            const b = BUILDINGS[e.type];
+            if(!b || e.type === 'tree') return;
+            const px = e.x * CONFIG.TILE_SIZE + (b.size*CONFIG.TILE_SIZE)/2;
+            const py = e.y * CONFIG.TILE_SIZE + (b.size*CONFIG.TILE_SIZE)/2;
+            
+            const grad = ctx.createRadialGradient(px, py, 0, px, py, 150);
+            if(b.energy > 0) { grad.addColorStop(0, 'rgba(0,243,255,0.4)'); grad.addColorStop(1, 'rgba(0,243,255,0)'); }
+            else if(b.energy < 0) { grad.addColorStop(0, 'rgba(255,51,102,0.3)'); grad.addColorStop(1, 'rgba(255,51,102,0)'); }
+            else { grad.addColorStop(0, 'rgba(255,234,0,0.2)'); grad.addColorStop(1, 'rgba(255,234,0,0)'); }
+            
+            ctx.fillStyle = grad;
+            ctx.beginPath(); ctx.arc(px, py, 150, 0, Math.PI*2); ctx.fill();
+        });
+        ctx.globalCompositeOperation = 'source-over';
+    }
+
+    ctx.restore();
+
+    // Night overlay filter
+    if(isNight) {
+        ctx.fillStyle = 'rgba(5, 5, 15, 0.6)';
+        ctx.globalCompositeOperation = 'multiply';
+        ctx.fillRect(0,0, canvas.width, canvas.height);
+        ctx.globalCompositeOperation = 'source-over';
+    }
+
+    // Particles (Rendered in screen space or world space depending on flag)
+    particles.forEach(p => {
+        ctx.fillStyle = p.ui ? p.color : `rgba(255,255,255,${p.alpha})`;
+        ctx.font = '14px bold Arial';
+        ctx.fillText(p.ui ? "₪" : "✦", p.ui ? p.x : p.x - STATE.camera.x, p.ui ? p.y : p.y - STATE.camera.y);
+    });
+
+    requestAnimationFrame(render);
+}
+
+// --- UI HELPERS ---
+function spawnParticles(x, y, color, count=3, ui=false) {
+    for(let i=0; i<count; i++) {
+        particles.push({
+            x: x + Math.random()*20, y: y, color: color,
+            life: 30, alpha: 1, speedY: Math.random()*2+1, speedX: (Math.random()-0.5)*2, ui: ui
+        });
+    }
+}
+
+function notify(text, type='info') {
+    const area = document.getElementById('notifications');
+    const note = document.createElement('div');
+    note.className = `alert ${type}`;
+    note.innerText = text;
+    area.appendChild(note);
+    setTimeout(() => note.remove(), 4000);
+}
+
+function setMode(mode) {
+    STATE.currentMode = mode;
+    document.querySelectorAll('.build-item').forEach(btn => btn.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+    let desc = mode === 'cursor' ? "בחר אובייקט לקבלת מידע" : mode === 'chop' ? "לחץ על עץ 3 פעמים כדי לכרות" : `מצב תכנון: ${BUILDINGS[mode].name}`;
+    document.getElementById('ui-mode-desc').innerText = desc;
+}
+
+function toggleModal(id) {
+    const el = document.getElementById(id);
+    el.classList.toggle('active');
+    updateMarketUI();
+}
+
+function toggleHeatmap() {
+    STATE.showHeatmap = !STATE.showHeatmap;
+    document.getElementById('btn-heatmap').classList.toggle('active');
+}
+
+function updateMarketUI() {
+    for(let k in MARKET) {
+        document.getElementById(`price-${k}`).innerText = Math.floor(MARKET[k].price);
+    }
+    document.getElementById('ui-debt').innerText = '₪' + Math.floor(STATE.debt);
+}
+
+function updateUI() {
+    document.getElementById('ui-pop').innerText = STATE.population.toLocaleString();
+    document.getElementById('ui-money').innerText = '₪' + Math.floor(STATE.money).toLocaleString();
+    document.getElementById('ui-energy').innerText = `${STATE.energyConsumed} / ${STATE.energyProduced}`;
+    document.getElementById('ui-energy').style.color = (STATE.energyConsumed > STATE.energyProduced) ? 'var(--neon-red)' : 'var(--neon-yellow)';
+    
+    let sign = STATE.income >= 0 ? '+' : '';
+    document.getElementById('ui-income').innerText = `${sign}₪${Math.floor(STATE.income)}/שעה`;
+    document.getElementById('ui-income').style.color = STATE.income >= 0 ? 'var(--neon-green)' : 'var(--neon-red)';
+    
+    // Time formatting
+    let hrs = Math.floor((STATE.timeOfDay / CONFIG.DAY_LENGTH) * 24);
+    let mins = Math.floor(((STATE.timeOfDay / CONFIG.DAY_LENGTH) * 24 * 60) % 60);
+    document.getElementById('ui-time').innerText = `${hrs.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}`;
+    document.getElementById('ui-day').innerText = STATE.daysPassed;
+
+    // Inventory
+    document.getElementById('inv-wood').innerText = STATE.inventory.wood;
+    document.getElementById('inv-bricks').innerText = STATE.inventory.bricks;
+    document.getElementById('inv-nails').innerText = STATE.inventory.nails;
+    document.getElementById('inv-steel').innerText = STATE.inventory.steel;
+    
+    if(document.getElementById('marketModal').classList.contains('active')) updateMarketUI();
+}
+
+// Start Game
+init();
+render();
+
+</script>
+</body>
+</html>

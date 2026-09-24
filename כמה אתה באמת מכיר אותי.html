@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>כמה אתה באמת מכיר אותי? 🤔</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Heebo & Assistant -->
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&family=Heebo:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Heebo', 'Assistant', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fdf4ff',
+                            100: '#fae8ff',
+                            500: '#d946ef',
+                            600: '#c026d3',
+                            700: '#a21caf',
+                            900: '#701a75',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Heebo', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+            min-height: 100vh;
+            color: #f8fafc;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .glass-button {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+        }
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(217, 70, 239, 0.4); }
+            50% { box-shadow: 0 0 35px rgba(217, 70, 239, 0.8); }
+        }
+        .pulse-glow {
+            animation: pulseGlow 3s infinite;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.5);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(217, 70, 239, 0.5);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(217, 70, 239, 0.8);
+        }
+    </style>
+</head>
+<body class="overflow-x-hidden antialiased flex flex-col min-h-screen">
+
+    <header class="w-full p-4 md:p-6 flex justify-between items-center max-w-4xl mx-auto z-10">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="switchScreen('home-screen')">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center shadow-lg text-white font-black text-xl pulse-glow">
+                🤔
+            </div>
+            <span class="font-black text-lg md:text-xl tracking-wide bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                עד כמה מכירים אותי?
+            </span>
+        </div>
+        <div class="flex items-center gap-2">
+            <!-- Chaos Mode Toggle -->
+            <button onclick="toggleChaosMode()" id="chaos-btn" title="מצב כאוס" class="glass-button px-3 py-2 rounded-xl text-sm font-bold flex items-center gap-1.5 transition text-gray-300 hover:text-white">
+                <i class="fa-solid fa-bolt text-yellow-400"></i>
+                <span class="hidden sm:inline">מצב כאוס</span>
+            </button>
+            <!-- Sound Toggle -->
+            <button onclick="toggleSound()" id="sound-btn" class="glass-button w-10 h-10 rounded-xl flex items-center justify-center text-lg text-gray-300 hover:text-white">
+                <i id="sound-icon" class="fa-solid fa-volume-high text-pink-400"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center p-4 max-w-2xl w-full mx-auto relative">
+
+        <!-- 🏠 Home Screen -->
+        <div id="home-screen" class="screen w-full flex flex-col items-center text-center space-y-6 transition-all duration-500">
+            <div class="space-y-3 floating mt-4">
+                <div class="inline-block p-4 rounded-3xl bg-gradient-to-br from-purple-600/30 to-pink-600/30 border border-purple-500/30 shadow-2xl mb-2">
+                    <span class="text-6xl md:text-7xl">🎯</span>
+                </div>
+                <h1 class="text-4xl md:text-5xl font-black tracking-tight text-white drop-shadow-md">
+                    כמה אתה באמת מכיר אותי?
+                </h1>
+                <p class="text-lg md:text-xl text-purple-200/80 font-medium max-w-md mx-auto">
+                    ענה על השאלות ותגלה אם אתה חבר אמיתי או סתם אורח לרגע 😈
+                </p>
+            </div>
+
+        <div class="w-full max-w-xs space-y-3 pt-4">
+            <button onclick="startPlayerPrompt()" class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 font-bold text-lg text-white shadow-lg shadow-purple-600/30 hover:shadow-purple-600/50 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3">
+                <i class="fa-solid fa-gamepad text-xl"></i>
+                <span>התחל משחק</span>
+            </button>
+            <button onclick="switchScreen('editor-screen')" class="w-full py-3.5 px-6 rounded-2xl glass-button font-semibold text-white flex items-center justify-center gap-3">
+                <i class="fa-solid fa-gear text-purple-400"></i>
+                <span>עריכת שאלות</span>
+            </button>
+            <button onclick="openLeaderboard()" class="w-full py-3.5 px-6 rounded-2xl glass-button font-semibold text-white flex items-center justify-center gap-3">
+                <i class="fa-solid fa-trophy text-yellow-400"></i>
+                <span>טבלת דירוג</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 👤 Player Name Prompt Modal / Screen -->
+        <div id="player-screen" class="screen hidden w-full flex flex-col items-center text-center space-y-6">
+            <div class="glass-card w-full p-8 rounded-3xl shadow-2xl space-y-6 relative overflow-hidden">
+                <div class="absolute -top-12 -right-12 w-32 h-32 bg-purple-500/20 rounded-full blur-2xl"></div>
+                <div class="space-y-2">
+                    <h2 class="text-2xl md:text-3xl font-black text-white">מי המאושר שבא לבחון את עצמו?</h2>
+                    <p class="text-gray-300 text-sm">הכנס את השם שלך כדי להיכנס ללוח התוצאות</p>
+                </div>
+                <div class="space-y-4">
+                    <input type="text" id="player-name-input" placeholder="הכנס את השם שלך..." maxlength="20"
+                        class="w-full px-5 py-4 rounded-2xl bg-slate-900/60 border border-purple-500/30 text-white placeholder-gray-500 text-center font-bold text-lg focus:outline-none focus:border-purple-500 transition">
+                    <button onclick="beginGame()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 font-bold text-lg text-white shadow-lg shadow-purple-600/30 hover:scale-[1.02] active:scale-[0.98] transition">
+                        צא לדרך! 🚀
+                    </button>
+                </div>
+                <button onclick="switchScreen('home-screen')" class="text-sm text-gray-400 hover:text-white transition">
+                    <i class="fa-solid fa-arrow-right ml-1"></i> חזרה לתפריט
+                </button>
+            </div>
+        </div>
+
+        <!-- 🧠 Game Screen -->
+        <div id="game-screen" class="screen hidden w-full flex flex-col space-y-4">
+            <!-- Game Top Status Bar -->
+            <div class="glass-card p-4 rounded-2xl flex items-center justify-between shadow-lg">
+                <div class="flex items-center gap-3">
+                    <div class="px-3 py-1.5 rounded-xl bg-purple-500/20 border border-purple-500/30 text-purple-300 font-bold text-sm" id="question-counter">
+                        שאלה 1/20
+                    </div>
+                    <div id="combo-badge" class="hidden px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 text-amber-300 font-black text-sm flex items-center gap-1 animate-bounce">
+                        🔥 <span id="combo-text">x2</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="text-sm font-bold text-pink-300">
+                        ניקוד: <span id="current-score" class="text-white text-base">0</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/60 border border-slate-700 font-mono text-sm font-bold text-cyan-300">
+                        <i class="fa-regular fa-clock"></i>
+                        <span id="timer-display">15</span>s
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timer Progress Bar -->
+            <div class="w-full bg-slate-800/80 h-2 rounded-full overflow-hidden p-0.5">
+                <div id="timer-bar" class="bg-gradient-to-r from-cyan-400 to-purple-500 h-full rounded-full transition-all duration-1000" style="width: 100%;"></div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="glass-card p-6 md:p-8 rounded-3xl shadow-2xl space-y-6 relative">
+                <h3 id="question-text" class="text-xl md:text-2xl font-extrabold text-white text-center leading-relaxed">
+                    טוען שאלה...
+                </h3>
+
+                <!-- Answers Options Container -->
+                <div id="answers-container" class="grid grid-cols-1 gap-3">
+                    <!-- Dynamic Answer Buttons -->
+                </div>
+
+                <!-- Immediate Feedback Banner -->
+                <div id="feedback-banner" class="hidden p-4 rounded-2xl text-center font-bold text-lg transition-all transform scale-95 opacity-0">
+                    <p id="feedback-message"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 📊 Results Screen -->
+        <div id="results-screen" class="screen hidden w-full flex flex-col items-center space-y-6">
+            <div class="glass-card w-full p-6 md:p-8 rounded-3xl shadow-2xl space-y-6 text-center relative overflow-hidden">
+                <div class="absolute -top-16 -left-16 w-36 h-36 bg-pink-500/20 rounded-full blur-3xl"></div>
+                
+                <div class="space-y-2">
+                    <div class="inline-block p-3 rounded-2xl bg-purple-500/20 text-3xl mb-1">👑</div>
+                    <h2 class="text-3xl font-black text-white" id="result-player-title">תוצאות המשחק</h2>
+                    <p id="result-rating-text" class="text-purple-300 font-semibold text-lg max-w-md mx-auto"></p>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-2 gap-3 text-right">
+                    <div class="p-4 rounded-2xl bg-slate-900/50 border border-slate-700/50 space-y-1">
+                        <span class="text-xs text-gray-400 block font-medium">ניקוד סופי</span>
+                        <span id="res-score" class="text-2xl font-black text-white">0</span>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-slate-900/50 border border-slate-700/50 space-y-1">
+                        <span class="text-xs text-gray-400 block font-medium">אחוז הצלחה</span>
+                        <span id="res-accuracy" class="text-2xl font-black text-cyan-400">0%</span>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-slate-900/50 border border-slate-700/50 space-y-1">
+                        <span class="text-xs text-gray-400 block font-medium">נכונות / שגויות</span>
+                        <span id="res-correct-wrong" class="text-lg font-bold text-emerald-400">0 / 0</span>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-slate-900/50 border border-slate-700/50 space-y-1">
+                        <span class="text-xs text-gray-400 block font-medium">זמן ממוצע</span>
+                        <span id="res-avg-time" class="text-lg font-bold text-amber-400">0.0s</span>
+                    </div>
+                    <div class="col-span-2 p-4 rounded-2xl bg-slate-900/50 border border-slate-700/50 flex justify-between items-center">
+                        <span class="text-xs text-gray-400 font-medium">שיא Combo מקסימלי</span>
+                        <span id="res-max-combo" class="text-lg font-black text-pink-400">🔥 x0</span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                    <button onclick="restartGame()" class="py-3.5 px-5 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 font-bold text-white shadow-lg shadow-purple-600/30 hover:scale-[1.02] transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-rotate-right"></i> שחק שוב
+                    </button>
+                    <button onclick="openLeaderboard()" class="py-3.5 px-5 rounded-2xl glass-button font-semibold text-white flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-trophy text-yellow-400"></i> טבלת דירוג
+                    </button>
+                    <button onclick="openReviewModal()" class="py-3.5 px-5 rounded-2xl glass-button font-semibold text-white flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-list-check text-cyan-400"></i> הצג תשובות
+                    </button>
+                    <button onclick="switchScreen('home-screen')" class="py-3.5 px-5 rounded-2xl glass-button font-semibold text-white flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-house"></i> מסך ראשי
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 📋 Review Answers Modal / Screen -->
+        <div id="review-screen" class="screen hidden w-full flex flex-col space-y-4 max-h-[85vh]">
+            <div class="flex items-center justify-between">
+                <h2 class="text-2xl font-black text-white">סיכום התשובות שלך</h2>
+                <button onclick="switchScreen('results-screen')" class="px-4 py-2 rounded-xl glass-button text-sm font-bold text-white">
+                    <i class="fa-solid fa-arrow-right ml-1"></i> חזרה לתוצאות
+                </button>
+            </div>
+            <div id="review-list" class="space-y-3 overflow-y-auto pr-1 flex-grow max-h-[60vh]">
+                <!-- Dynamic review items -->
+            </div>
+        </div>
+
+        <!-- ⚙️ Question Editor Screen -->
+        <div id="editor-screen" class="screen hidden w-full flex flex-col space-y-4 max-h-[85vh]">
+            <div class="flex items-center justify-between">
+                <div class="space-y-1">
+                    <h2 class="text-2xl font-black text-white">ניהול שאלות המשחק</h2>
+                    <p class="text-xs text-gray-400">הוסף, ערוך או מחק שאלות אישיות משלך</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="openQuestionModal('add')" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-sm font-bold text-white shadow-md flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i> הוסף שאלה
+                    </button>
+                    <button onclick="switchScreen('home-screen')" class="px-4 py-2.5 rounded-xl glass-button text-sm font-bold text-white">
+                        <i class="fa-solid fa-house"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="questions-list-container" class="space-y-3 overflow-y-auto pr-1 flex-grow max-h-[62vh]">
+                <!-- Dynamic question items for editing -->
+            </div>
+        </div>
+
+        <!-- 🏆 Leaderboard Screen -->
+        <div id="leaderboard-screen" class="screen hidden w-full flex flex-col space-y-4 max-h-[85vh]">
+            <div class="flex items-center justify-between">
+                <div class="space-y-1">
+                    <h2 class="text-2xl font-black text-white flex items-center gap-2">
+                        <span>🏆</span> טבלת הדירוג
+                    </h2>
+                    <p class="text-xs text-gray-400">המובילים שיודעים עליי הכי הרבה</p>
+                </div>
+                <button onclick="switchScreen('home-screen')" class="px-4 py-2.5 rounded-xl glass-button text-sm font-bold text-white">
+                    <i class="fa-solid fa-house ml-1"></i> ראשי
+                </button>
+            </div>
+
+            <div id="leaderboard-list" class="space-y-2 overflow-y-auto pr-1 flex-grow max-h-[62vh]">
+                <!-- Dynamic leaderboard items -->
+            </div>
+        </div>
+
+    </main>
+
+    <div id="question-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4 z-50">
+        <div class="glass-card w-full max-w-lg p-6 rounded-3xl shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <h3 id="modal-title" class="text-xl font-black text-white">הוספת שאלה חדשה</h3>
+            <input type="hidden" id="edit-question-index" value="-1">
+            
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">טקסט השאלה</label>
+                    <textarea id="modal-q-text" rows="2" class="w-full px-4 py-3 rounded-xl bg-slate-900/80 border border-purple-500/30 text-white text-sm focus:outline-none focus:border-purple-500" placeholder="מה המאכל האהוב עליי ביותר?"></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">אפשרות 1</label>
+                        <input type="text" id="modal-opt-0" class="w-full px-3 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white text-sm focus:outline-none focus:border-purple-500" placeholder="פיצה">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">אפשרות 2</label>
+                        <input type="text" id="modal-opt-1" class="w-full px-3 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white text-sm focus:outline-none focus:border-purple-500" placeholder="סושי">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">אפשרות 3</label>
+                        <input type="text" id="modal-opt-2" class="w-full px-3 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white text-sm focus:outline-none focus:border-purple-500" placeholder="המבורגר">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-300 mb-1">אפשרות 4</label>
+                        <input type="text" id="modal-opt-3" class="w-full px-3 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-white text-sm focus:outline-none focus:border-purple-500" placeholder="פסטה">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-gray-300 mb-1">התשובה הנכונה</label>
+                    <select id="modal-correct-index" class="w-full px-4 py-3 rounded-xl bg-slate-900/80 border border-purple-500/30 text-white text-sm focus:outline-none focus:border-purple-500">
+                        <option value="0">אפשרות 1</option>
+                        <option value="1">אפשרות 2</option>
+                        <option value="2">אפשרות 3</option>
+                        <option value="3">אפשרות 4</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-emerald-400 mb-1">תגובה לתשובה נכונה</label>
+                        <input type="text" id="modal-correct-msg" class="w-full px-3 py-2.5 rounded-xl bg-slate-900/80 border border-emerald-500/30 text-white text-sm focus:outline-none focus:border-emerald-500" placeholder="איך ידעת את זה?!">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-rose-400 mb-1">תגובה לתשובה שגויה</label>
+                        <input type="text" id="modal-wrong-msg" class="w-full px-3 py-2.5 rounded-xl bg-slate-900/80 border border-rose-500/30 text-white text-sm focus:outline-none focus:border-rose-500" placeholder="באמת? 😭">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button onclick="saveQuestionFromModal()" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 font-bold text-white shadow-md hover:scale-[1.01] transition">
+                    💾 שמור שאלה
+                </button>
+                <button onclick="closeQuestionModal()" class="px-5 py-3 rounded-xl glass-button font-semibold text-gray-300 hover:text-white">
+                    ביטול
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Default 20 Pre-loaded Questions
+        const defaultQuestions = [
+            {
+                text: "מה הדבר הראשון שאני עושה בבוקר כשאני קם?",
+                options: ["בודק את הטלפון", "שותה קפה חזק", "חוזר לישון עוד 5 דקות", "מתאמן / עושה מתיחות"],
+                correct: 0,
+                correctMsg: "מכור אמיתי! אין בוקר בלי מסך.",
+                wrongMsg: "כנראה שלא ראית אותי בבוקר עדיין..."
+            },
+            {
+                text: "איזה ז'אנר סרטים או סדרות אני הכי אוהב?",
+                options: ["מדע בדיוני ופנטזיה", "קומדיות רומנטיות", "מתח, פשע ומסתורין", "דוקומנטרי והיסטוריה"],
+                correct: 2,
+                correctMsg: "ואו, אתה ממש מכיר את טעם הצפייה שלי!",
+                wrongMsg: "ממש לא! אני אוהב מתח וטוויסטים בעלילה."
+            },
+            {
+                text: "מהו המאכל האהוב עליי ביותר שאי אפשר לעמוד בפניו?",
+                options: ["פיצה חמה עם המון גבינה", "סושי טרי ומפנק", "שניצל חם וקריספי", "המבורגר עסיסי"],
+                correct: 1,
+                correctMsg: "בול! סושי זה החיים",
+                wrongMsg: "איך פספסת? סושי זה האהבה הראשונה שלי."
+            },
+            {
+                text: "מה צבע הבגדים הכי נפוץ בארון שלי?",
+                options: ["שחור קלאסי", "לבן נקי", "כחול כהה / נייבי", "צבעוני ונועז"],
+                correct: 0,
+                correctMsg: "שחור זה הכי אחיד, אלגנטי ובטוח!",
+                wrongMsg: "איפה ראית אותי לובש צבעים צעקניים כל כך?"
+            },
+            {
+                text: "אם הייתי זוכה עכשיו במיליון שקל, מה הדבר הראשון שהייתי עושה?",
+                options: ["קונה רכב יוקרה", "טס לטיול מסביב לעולם", "סוגר חובות וחוסך", "תורם את הכל לצדקה"],
+                correct: 1,
+                correctMsg: "ברור! מזוודות וכרטיס טיסה!",
+                wrongMsg: "כסף זה טוב, אבל חופש וחופשה זה מעל הכל."
+            },
+            {
+                text: "איזה סוג מוזיקה מתנגן אצלי ברקע רוב הזמן?",
+                options: ["מזרחי וים תיכוני", "רוק קלאסי ומטאל", "פופ מודרני ולהיטים", "ישראלי ישן וטוב"],
+                correct: 2,
+                correctMsg: "קל! הפלייליסט שלי תמיד מעודכן.",
+                wrongMsg: "ממש לא הטעם שלי במוזיקה..."
+            },
+            {
+                text: "מה עדיף מבחינת חופשה מושלמת?",
+                options: ["בטן-גב בריזורט מפנק", "טיול טבע אתגרי עם שק שינה", "עיר בירה אירופאית שוקקת", "להישאר בבית במיטה עם מזגן"],
+                correct: 0,
+                correctMsg: "מדויק! אין כמו להירגע מול הים.",
+                wrongMsg: "טיולים אקסטרים זה פחות הכיוון שלי."
+            },
+            {
+                text: "מה תכונת האופי הבולטת ביותר שלי לדעתך?",
+                options: ["סבלני ורגוע", "עקשן שלא מוותר", "מצחיק ושנון", "פרפקציוניסט ודייקן"],
+                correct: 1,
+                correctMsg: "בול! כשאני מחליט משהו, אין דרך לעצור אותי.",
+                wrongMsg: "חבל שלא שמת לב לעקשנות האינסופית שלי..."
+            },
+            {
+                text: "איך אני מעדיף את הקפה שלי?",
+                options: ["שחור חזק בלי סוכר", "הפוך חם עם הרבה קצף", "קרח קר עם חלב", "נס קפה פשוט ומתוק"],
+                correct: 2,
+                correctMsg: "מלחיץ כמה שאתה מכיר אותי טוב",
+                wrongMsg: "ממש לא! הקפה שלי אחר לגמרי."
+            },
+            {
+                text: "מה הציון הממוצע שלי בהתנהלות עם זמנים (איחורים)?",
+                options: ["תמיד מגיע 10 דקות מראש", "בדיוק בזמן על השנייה", "מאחר קלאסי ב-5 עד 10 דקות", "תלוי במצב הרוח, לפעמים שעה"],
+                correct: 2,
+                correctMsg: "נו כן, האיחור האקדמי הוא שם המשחק!",
+                wrongMsg: "הלוואי שהייתי מגיע בזמן תמיד..."
+            },
+            {
+                text: "מהו חיית המחמד האולטימטיבית מבחינתי?",
+                options: ["כלב נאמן ואנרגטי", "חתול עצמאי ומסתורי", "תוכי מדבר", "עדיף בלי חיות בבית"],
+                correct: 0,
+                correctMsg: "חבר אמת על ארבע! ברור שכלב.",
+                wrongMsg: "אני מעריץ גדול של כלבים."
+            },
+            {
+                text: "מה תוכנית הטלוויזיה או היוטיוב האהובה עליי להעברת זמן?",
+                options: ["סרטוני אתגרים וריאליטי", "פודקאסטים עמוקים ומעניינים", "סטנדאפ וסרטוני חתולים מצחיקים", "סרטוני בישול ואוכל"],
+                correct: 1,
+                correctMsg: "שאפו! אני אוהב להעשיר את הראש.",
+                wrongMsg: "לא בדיוק, אני מעדיף תוכן עמוק יותר."
+            },
+            {
+                text: "איך אני מתמודד עם מצבים מלחיצים במיוחד?",
+                options: ["נכנס לפאניקה ומאבד שליטה", "נשאר קור רוח ומארגן את המצב", "מדבר בלי הפסקה עד שזה עובר", "הולך לישון כדי להתעלם מהמציאות"],
+                correct: 1,
+                correctMsg: "נכון לגמרי! קור רוח זה השם השני שלי.",
+                wrongMsg: "אני ממש לא נכנס לפאניקה בקלות."
+            },
+            {
+                text: "מה דעתי על פעילות גופנית וכושר?",
+                options: ["מכור למכון כוח כל יום", "רץ וצועד כשיוצא", "שונא ספורט בכל רמ\"ח איבריי", "עושה כושר רק כשמכריחים אותי"],
+                correct: 1,
+                correctMsg: "כל הכבוד, קלעת בול לשגרת האימונים שלי.",
+                wrongMsg: "אני משתדל לשמור על כושר מינימלי לפחות!"
+            },
+            {
+                text: "איזו עונה בשנה היא האהובה עליי ביותר?",
+                options: ["קיץ וחום עם ים ושמש", "חורף וגשם תחת שמיכה", "סתיו עם עלים נופלים ואווירה", "אביב ופריחה"],
+                correct: 1,
+                correctMsg: "אין כמו חורף, פוך ושוקו חם",
+                wrongMsg: "קיץ חם מדי בשבילי..."
+            },
+            {
+                text: "מה היתרון הגדול ביותר שלי בשיחות סלון?",
+                options: ["ידע עצום בהמון נושאים מוזרים", "יכולת להצחיק ולספר בדיחות", "מקשיב מעולה ונותן עצות", "מומחה בלשכנע אחרים"],
+                correct: 0,
+                correctMsg: "מידע אנציקלופדי מוזר זה המומחיות שלי!",
+                wrongMsg: "אני בעיקר יודע המון עובדות טריוויה מוזרות."
+            },
+            {
+                text: "איזה משחק מחשב או פלטפורמה הכי תפסה אותי בחיים?",
+                options: ["משחקי אסטרטגיה וניהול", "משחקי ספורט ופיפא", "משחקי יריות תחרותיים", "כמעט ולא משחק במחשב"],
+                correct: 0,
+                correctMsg: "נכון מאוד! חולה על אתגרים טקטיים.",
+                wrongMsg: "משחקי אסטרטגיה הם האהובים עליי."
+            },
+            {
+                text: "מה הדבר שהכי מעצבן אותי באנשים אחרים?",
+                options: ["חוסר דיוק ועמידה בזמנים", "אנשים צבועים ושקרנים", "חוסר נימוס בסיסי", "מי שמדבר בקול רם בטלפון בציבור"],
+                correct: 1,
+                correctMsg: "בול! כנות ואמת זה הערך העליון שלי.",
+                wrongMsg: "צביעות ושקרים הם הדבר הכי קשה עבורי לקבל."
+            },
+            {
+                text: "מהו סגנון הלבוש המועדף עליי ביום-יום?",
+                options: ["ספורט-אלגנט מוקפד", "טרנינג ונעלי ספורט נוחות", "ג'ינס וטי-שירט פשוטה", "חולצה מכופתרת וסטייל"],
+                correct: 2,
+                correctMsg: "נוח, פשוט וקלאסי. בדיוק אני.",
+                wrongMsg: "אני מעדיף פשטות ונוחות לפני הכל."
+            },
+            {
+                text: "אם הייתי יכול לבחור מאכל קסם לאכול כל החיים בלי להשמין, מה זה היה?",
+                options: ["פיצה משפחתית עם תוספות", "המבורגר ענק עם צ'יפס", "עוגת שוקולד חמה וגלידה", "בורקס גבינה חם מהתנור"],
+                correct: 2,
+                correctMsg: "חגיגה מתוקה! אין כמו שוקולד.",
+                wrongMsg: "התשובה המתוקה היא הנכונה!"
+            }
+        ];
+
+        // Global State Variables
+        let questions = [];
+        let leaderboard = [];
+        let soundEnabled = true;
+        let chaosMode = false;
+
+        let currentPlayer = "";
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let correctCount = 0;
+        let wrongCount = 0;
+        let combo = 0;
+        let maxCombo = 0;
+        let questionTimes = [];
+        let userAnswersHistory = [];
+
+        let timerInterval = null;
+        let timeLeft = 15;
+        let questionStartTime = 0;
+        let isWaitingForNext = false;
+
+        // Audio Context for Web Audio API Sound Effects
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+
+                if (type === 'correct') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.15);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(250, now);
+                    osc.frequency.linearRampToValueAtTime(120, now + 0.25);
+                    gain.gain.setValueAtTime(0.25, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'timeout') {
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(180, now);
+                    osc.frequency.linearRampToValueAtTime(100, now + 0.4);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else if (type === 'win') {
+                    osc.type = 'sine';
+                    const notes = [300, 400, 500, 650, 800];
+                    notes.forEach((freq, idx) => {
+                        const noteOsc = audioCtx.createOscillator();
+                        const noteGain = audioCtx.createGain();
+                        noteOsc.connect(noteGain);
+                        noteGain.connect(audioCtx.destination);
+                        noteOsc.frequency.setValueAtTime(freq, now + idx * 0.1);
+                        noteGain.gain.setValueAtTime(0.15, now + idx * 0.1);
+                        noteGain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.25);
+                        noteOsc.start(now + idx * 0.1);
+                        noteOsc.stop(now + idx * 0.1 + 0.25);
+                    });
+                }
+            } catch (e) {
+                console.error("Audio playback error:", e);
+            }
+        }
+
+        // Initialization on window load
+        window.onload = function() {
+            loadDataFromStorage();
+            switchScreen('home-screen');
+        };
+
+        function loadDataFromStorage() {
+            // Load questions
+            const savedQ = localStorage.getItem('my_quiz_questions');
+            if (savedQ) {
+                try {
+                    questions = JSON.parse(savedQ);
+                } catch (e) {
+                    questions = [...defaultQuestions];
+                }
+            } else {
+                questions = [...defaultQuestions];
+                localStorage.setItem('my_quiz_questions', JSON.stringify(questions));
+            }
+
+            // Load leaderboard
+            const savedLb = localStorage.getItem('my_quiz_leaderboard');
+            if (savedLb) {
+                try {
+                    leaderboard = JSON.parse(savedLb);
+                } catch (e) {
+                    leaderboard = [];
+                }
+            }
+
+            // Load sound setting
+            const savedSound = localStorage.getItem('my_quiz_sound');
+            if (savedSound !== null) {
+                soundEnabled = savedSound === 'true';
+                updateSoundIcon();
+            }
+
+            // Load chaos mode
+            const savedChaos = localStorage.getItem('my_quiz_chaos');
+            if (savedChaos !== null) {
+                chaosMode = savedChaos === 'true';
+                updateChaosButtonUI();
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            localStorage.setItem('my_quiz_sound', soundEnabled);
+            updateSoundIcon();
+        }
+
+        function updateSoundIcon() {
+            const icon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                icon.className = "fa-solid fa-volume-high text-pink-400";
+            } else {
+                icon.className = "fa-solid fa-volume-xmark text-gray-500";
+            }
+        }
+
+        function toggleChaosMode() {
+            chaosMode = !chaosMode;
+            localStorage.setItem('my_quiz_chaos', chaosMode);
+            updateChaosButtonUI();
+            if (chaosMode) {
+                playSound('correct');
+            }
+        }
+
+        function updateChaosButtonUI() {
+            const btn = document.getElementById('chaos-btn');
+            if (chaosMode) {
+                btn.className = "glass-button px-3 py-2 rounded-xl text-sm font-bold flex items-center gap-1.5 bg-yellow-500/20 border-yellow-500 text-yellow-300 shadow-lg shadow-yellow-500/20";
+                btn.innerHTML = '<i class="fa-solid fa-bolt text-yellow-400 animate-spin"></i><span>מצב כאוס פעיל 🔥</span>';
+            } else {
+                btn.className = "glass-button px-3 py-2 rounded-xl text-sm font-bold flex items-center gap-1.5 text-gray-300 hover:text-white";
+                btn.innerHTML = '<i class="fa-solid fa-bolt text-yellow-400"></i><span>מצב כאוס</span>';
+            }
+        }
+
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+            const target = document.getElementById(screenId);
+            if (target) {
+                target.classList.remove('hidden');
+            }
+            if (screenId === 'editor-screen') {
+                renderEditorQuestions();
+            } else if (screenId === 'leaderboard-screen') {
+                renderLeaderboard();
+            }
+        }
+
+        // Start Game Flow
+        function startPlayerPrompt() {
+            switchScreen('player-screen');
+            setTimeout(() => {
+                const input = document.getElementById('player-name-input');
+                if (input) input.focus();
+            }, 100);
+        }
+
+        function beginGame() {
+            const nameInput = document.getElementById('player-name-input');
+            const name = nameInput.value.trim();
+            if (!name) {
+                alertBox("נא להכניס שם תקין כדי להמשיך!");
+                return;
+            }
+            currentPlayer = name;
+            currentQuestionIndex = 0;
+            score = 0;
+            correctCount = 0;
+            wrongCount = 0;
+            combo = 0;
+            maxCombo = 0;
+            questionTimes = [];
+            userAnswersHistory = [];
+
+            // Shuffle questions for variety
+            questions.sort(() => Math.random() - 0.5);
+
+            switchScreen('game-screen');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (currentQuestionIndex >= questions.length || currentQuestionIndex >= 20) {
+                endGame();
+                return;
+            }
+
+            isWaitingForNext = false;
+            const q = questions[currentQuestionIndex];
+            
+            // Update UI counter & score
+            document.getElementById('question-counter').innerText = `שאלה ${currentQuestionIndex + 1}/${Math.min(questions.length, 20)}`;
+            document.getElementById('current-score').innerText = score;
+            document.getElementById('question-text').innerText = q.text;
+
+            // Combo badge display
+            const comboBadge = document.getElementById('combo-badge');
+            if (combo >= 2) {
+                comboBadge.classList.remove('hidden');
+                document.getElementById('combo-text').innerText = `x${combo}` + (combo >= 5 ? ' 🔥 מפחיד!' : '');
+            } else {
+                comboBadge.classList.add('hidden');
+            }
+
+            // Render options
+            const container = document.getElementById('answers-container');
+            container.innerHTML = '';
+            
+            // Randomize options order while keeping track of correct
+            let opts = q.options.map((opt, idx) => ({ text: opt, originalIndex: idx }));
+            opts.sort(() => Math.random() - 0.5);
+
+            opts.forEach((optObj, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-right p-4 rounded-2xl glass-button text-white font-semibold text-base md:text-lg flex items-center justify-between group transition-all transform hover:scale-[1.01]";
+                btn.innerHTML = `
+                    <span class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-300 text-sm font-bold group-hover:bg-purple-500 group-hover:text-white transition">
+                            ${['א', 'ב', 'ג', 'ד'][idx]}
+                        </span>
+                        <span>${optObj.text}</span>
+                    </span>
+                    <i class="fa-solid fa-chevron-left text-gray-500 group-hover:text-purple-400 transition"></i>
+                `;
+                btn.onclick = () => selectAnswer(optObj.originalIndex === q.correct, btn, opts, q);
+                container.appendChild(btn);
+            });
+
+            // Hide feedback banner
+            const feedback = document.getElementById('feedback-banner');
+            feedback.className = "hidden p-4 rounded-2xl text-center font-bold text-lg transition-all transform scale-95 opacity-0";
+
+            // Setup Timer (shorter in chaos mode)
+            timeLeft = chaosMode ? 10 : 15;
+            questionStartTime = Date.now();
+            updateTimerDisplay();
+            clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeout(q);
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            document.getElementById('timer-display').innerText = timeLeft;
+            const maxTime = chaosMode ? 10 : 15;
+            const percentage = (timeLeft / maxTime) * 100;
+            document.getElementById('timer-bar').style.width = `${percentage}%`;
+        }
+
+        function handleTimeout(q) {
+            if (isWaitingForNext) return;
+            isWaitingForNext = true;
+            playSound('timeout');
+
+            wrongCount++;
+            combo = 0;
+            const timeTaken = chaosMode ? 10 : 15;
+            questionTimes.push(timeTaken);
+
+            userAnswersHistory.push({
+                question: q.text,
+                correctAnswer: q.options[q.correct],
+                userAnswer: "זמן נגמר (ללא תשובה)",
+                isCorrect: false
+            });
+
+            // Show timeout feedback
+            const feedback = document.getElementById('feedback-banner');
+            feedback.className = "p-4 rounded-2xl text-center font-bold text-lg bg-rose-500/20 border border-rose-500/40 text-rose-300 transition-all transform scale-100 opacity-100";
+            feedback.innerHTML = `<i class="fa-solid fa-clock-rotate-left ml-2"></i> הזמן נגמר! ${q.wrongMsg}`;
+
+            // Disable all buttons
+            document.querySelectorAll('#answers-container button').forEach(b => b.disabled = true);
+
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadQuestion();
+            }, 2000);
+        }
+
+        function selectAnswer(isCorrect, btnElement, opts, q) {
+            if (isWaitingForNext) return;
+            isWaitingForNext = true;
+            clearInterval(timerInterval);
+
+            const timeTaken = ((Date.now() - questionStartTime) / 1000).toFixed(1);
+            questionTimes.push(parseFloat(timeTaken));
+
+            const feedback = document.getElementById('feedback-banner');
+            
+            // Find selected text
+            const selectedText = btnElement.querySelector('span span:nth-child(2)').innerText;
+
+            userAnswersHistory.push({
+                question: q.text,
+                correctAnswer: q.options[q.correct],
+                userAnswer: selectedText,
+                isCorrect: isCorrect
+            });
+
+            if (isCorrect) {
+                correctCount++;
+                combo++;
+                if (combo > maxCombo) maxCombo = combo;
+
+                let points = 100;
+                if (timeLeft > (chaosMode ? 5 : 8)) points += 50;
+                if (chaosMode) points *= combo;
+                else if (combo >= 2) points += (combo * 10);
+
+                score += points;
+                document.getElementById('current-score').innerText = score;
+
+                playSound('correct');
+                btnElement.className = "w-full text-right p-4 rounded-2xl bg-emerald-500/20 border border-emerald-500 text-white font-semibold text-base md:text-lg flex items-center justify-between shadow-lg shadow-emerald-500/20 transition-all";
+                
+                const randomCorrectMsgs = [
+                    q.correctMsg,
+                    "וואו, אתה ממש מכיר אותי 😳",
+                    "איך ידעת את זה?!",
+                    "אוקיי, זה כבר חשוד...",
+                    "יפה! נקודה לזכותך 🔥"
+                ];
+                const chosenMsg = randomCorrectMsgs[Math.floor(Math.random() * randomCorrectMsgs.length)];
+
+                feedback.className = "p-4 rounded-2xl text-center font-bold text-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 transition-all transform scale-100 opacity-100";
+                feedback.innerHTML = `<i class="fa-solid fa-circle-check ml-2"></i> ${chosenMsg} (+${points} נק')`;
+
+            } else {
+                wrongCount++;
+                combo = 0;
+                playSound('wrong');
+
+                btnElement.className = "w-full text-right p-4 rounded-2xl bg-rose-500/20 border border-rose-500 text-white font-semibold text-base md:text-lg flex items-center justify-between shadow-lg shadow-rose-500/20 transition-all";
+
+                const allBtns = document.querySelectorAll('#answers-container button');
+                allBtns.forEach((b) => {
+                    const txt = b.querySelector('span span:nth-child(2)').innerText;
+                    if (txt === q.options[q.correct]) {
+                        b.className = "w-full text-right p-4 rounded-2xl bg-emerald-500/30 border border-emerald-500 text-white font-semibold text-base md:text-lg flex items-center justify-between shadow-lg transition-all";
+                    }
+                });
+
+                const randomWrongMsgs = [
+                    q.wrongMsg,
+                    "באמת? 😭",
+                    "אנחנו צריכים לדבר...",
+                    "כנראה שאתה לא מכיר אותי כמו שחשבת 😂",
+                    "איך הצלחת לפספס את זה?!"
+                ];
+                const chosenWrongMsg = randomWrongMsgs[Math.floor(Math.random() * randomWrongMsgs.length)];
+
+                feedback.className = "p-4 rounded-2xl text-center font-bold text-lg bg-rose-500/20 border border-rose-500/40 text-rose-300 transition-all transform scale-100 opacity-100";
+                feedback.innerHTML = `<i class="fa-solid fa-circle-xmark ml-2"></i> ${chosenWrongMsg}`;
+            }
+
+            document.querySelectorAll('#answers-container button').forEach(b => b.disabled = true);
+
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadQuestion();
+            }, 2200);
+        }
+
+        function endGame() {
+            playSound('win');
+            switchScreen('results-screen');
+
+            const totalQ = correctCount + wrongCount;
+            const accuracy = totalQ > 0 ? Math.round((correctCount / totalQ) * 100) : 0;
+            const avgTime = questionTimes.length > 0 ? (questionTimes.reduce((a, b) => a + b, 0) / questionTimes.length).toFixed(1) : 0;
+
+            document.getElementById('result-player-title').innerText = `כל הכבוד, ${currentPlayer}!`;
+            document.getElementById('res-score').innerText = score;
+            document.getElementById('res-accuracy').innerText = `${accuracy}%`;
+            document.getElementById('res-correct-wrong').innerText = `${correctCount} / ${wrongCount}`;
+            document.getElementById('res-avg-time').innerText = `${avgTime}s`;
+            document.getElementById('res-max-combo').innerText = `🔥 x${maxCombo}`;
+
+            let ratingMsg = "";
+            if (accuracy >= 90) {
+                ratingMsg = chaosMode ? "🤯 אתה סוכן סמוי במחוח שלי! כאוס מוחלט!" : "🧠 אתה מכיר אותי יותר מדי. זה מתחיל להיות חשוד.";
+            } else if (accuracy >= 75) {
+                ratingMsg = "🔥 וואו! אתה מכיר אותי ממש טוב.";
+            } else if (accuracy >= 50) {
+                ratingMsg = "😎 לא רע, אבל יש לך עוד מה ללמוד.";
+            } else if (accuracy >= 25) {
+                ratingMsg = "😂 אנחנו כנראה צריכים לבלות יותר זמן ביחד.";
+            } else {
+                ratingMsg = "💀 אתה בטוח שאנחנו מכירים?";
+            }
+            document.getElementById('result-rating-text').innerText = ratingMsg;
+
+            saveToLeaderboard({
+                name: currentPlayer,
+                score: score,
+                accuracy: accuracy,
+                date: new Date().toLocaleDateString('he-IL')
+            });
+
+            if (accuracy >= 60 || score >= 500) {
+                try {
+                    confetti({
+                        particleCount: 120,
+                        spread: 80,
+                        origin: { y: 0.6 }
+                    });
+                } catch (e) {}
+            }
+        }
+
+        function saveToLeaderboard(record) {
+            leaderboard.push(record);
+            leaderboard.sort((a, b) => b.score - a.score || b.accuracy - a.accuracy);
+            if (leaderboard.length > 20) {
+                leaderboard = leaderboard.slice(0, 20);
+            }
+            localStorage.setItem('my_quiz_leaderboard', JSON.stringify(leaderboard));
+        }
+
+        function restartGame() {
+            startPlayerPrompt();
+        }
+
+        function openReviewModal() {
+            switchScreen('review-screen');
+            const list = document.getElementById('review-list');
+            list.innerHTML = '';
+
+            userAnswersHistory.forEach((item, idx) => {
+                const div = document.createElement('div');
+                div.className = `p-4 rounded-2xl border ${item.isCorrect ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-200' : 'bg-rose-500/10 border-rose-500/30 text-rose-200'} space-y-1 text-sm`;
+                div.innerHTML = `
+                    <div class="font-bold text-white flex justify-between items-center">
+                        <span>שאלה ${idx + 1}: ${item.question}</span>
+                        <span>${item.isCorrect ? '✅' : '❌'}</span>
+                    </div>
+                    <div class="text-xs text-gray-300">התשובה שלך: <span class="font-semibold text-white">${item.userAnswer}</span></div>
+                    ${!item.isCorrect ? `<div class="text-xs text-emerald-400">התשובה הנכונה: <span class="font-semibold">${item.correctAnswer}</span></div>` : ''}
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function openLeaderboard() {
+            switchScreen('leaderboard-screen');
+            renderLeaderboard();
+        }
+
+        function renderLeaderboard() {
+            const list = document.getElementById('leaderboard-list');
+            list.innerHTML = '';
+
+            if (leaderboard.length === 0) {
+                list.innerHTML = `
+                    <div class="glass-card p-8 rounded-2xl text-center text-gray-400">
+                        <p>אין עדיין תוצאות בטבלה. היה הראשון לשחק! 🚀</p>
+                    </div>
+                `;
+                return;
+            }
+
+            leaderboard.forEach((entry, idx) => {
+                const div = document.createElement('div');
+                let badgeIcon = '';
+                let bgStyle = 'bg-slate-900/60 border-slate-800';
+                if (idx === 0) {
+                    badgeIcon = '🥇';
+                    bgStyle = 'bg-gradient-to-r from-amber-500/20 to-yellow-600/10 border-amber-500/40';
+                } else if (idx === 1) {
+                    badgeIcon = '🥈';
+                    bgStyle = 'bg-gradient-to-r from-slate-400/20 to-slate-500/10 border-slate-400/40';
+                } else if (idx === 2) {
+                    badgeIcon = '🥉';
+                    bgStyle = 'bg-gradient-to-r from-amber-700/20 to-orange-800/10 border-amber-700/40';
+                }
+
+                div.className = `p-4 rounded-2xl border ${bgStyle} flex items-center justify-between`;
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-xl bg-slate-800 flex items-center justify-center font-black text-sm text-white">
+                            ${badgeIcon || (idx + 1)}
+                        </span>
+                        <div>
+                            <div class="font-bold text-white text-base">${entry.name}</div>
+                            <div class="text-xs text-gray-400">דיוק: ${entry.accuracy}% • ${entry.date}</div>
+                        </div>
+                    </div>
+                    <div class="text-left font-black text-purple-300 text-lg">
+                        ${entry.score} <span class="text-xs font-normal text-gray-400">נק'</span>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function renderEditorQuestions() {
+            const container = document.getElementById('questions-list-container');
+            container.innerHTML = '';
+
+            questions.forEach((q, idx) => {
+                const div = document.createElement('div');
+                div.className = "glass-card p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3";
+                div.innerHTML = `
+                    <div class="space-y-1 flex-grow">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 text-xs font-bold">שאלה ${idx + 1}</span>
+                            <h4 class="font-bold text-white text-sm md:text-base line-clamp-1">${q.text}</h4>
+                        </div>
+                        <p class="text-xs text-gray-400">תשובה נכונה: <span class="text-emerald-400 font-semibold">${q.options[q.correct]}</span></p>
+                    </div>
+                    <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                        <button onclick="openQuestionModal('edit', ${idx})" class="px-3 py-1.5 rounded-xl glass-button text-xs font-bold text-purple-300 hover:text-white flex items-center gap-1">
+                            <i class="fa-solid fa-pen"></i> ערוך
+                        </button>
+                        <button onclick="deleteQuestion(${idx})" class="px-3 py-1.5 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-bold hover:bg-rose-500 hover:text-white flex items-center gap-1 transition">
+                            <i class="fa-solid fa-trash"></i> מחק
+                        </button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function openQuestionModal(mode, index = -1) {
+            const modal = document.getElementById('question-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            if (mode === 'add') {
+                document.getElementById('modal-title').innerText = "הוספת שאלה חדשה";
+                document.getElementById('edit-question-index').value = "-1";
+                document.getElementById('modal-q-text').value = "";
+                document.getElementById('modal-opt-0').value = "";
+                document.getElementById('modal-opt-1').value = "";
+                document.getElementById('modal-opt-2').value = "";
+                document.getElementById('modal-opt-3').value = "";
+                document.getElementById('modal-correct-index').value = "0";
+                document.getElementById('modal-correct-msg').value = "איך ידעת את זה?!";
+                document.getElementById('modal-wrong-msg').value = "באמת? 😭";
+            } else {
+                document.getElementById('modal-title').innerText = "עריכת שאלה";
+                document.getElementById('edit-question-index').value = index;
+                const q = questions[index];
+                document.getElementById('modal-q-text').value = q.text;
+                document.getElementById('modal-opt-0').value = q.options[0];
+                document.getElementById('modal-opt-1').value = q.options[1];
+                document.getElementById('modal-opt-2').value = q.options[2];
+                document.getElementById('modal-opt-3').value = q.options[3];
+                document.getElementById('modal-correct-index').value = q.correct;
+                document.getElementById('modal-correct-msg').value = q.correctMsg;
+                document.getElementById('modal-wrong-msg').value = q.wrongMsg;
+            }
+        }
+
+        function closeQuestionModal() {
+            const modal = document.getElementById('question-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function saveQuestionFromModal() {
+            const index = parseInt(document.getElementById('edit-question-index').value);
+            const text = document.getElementById('modal-q-text').value.trim();
+            const opt0 = document.getElementById('modal-opt-0').value.trim();
+            const opt1 = document.getElementById('modal-opt-1').value.trim();
+            const opt2 = document.getElementById('modal-opt-2').value.trim();
+            const opt3 = document.getElementById('modal-opt-3').value.trim();
+            const correct = parseInt(document.getElementById('modal-correct-index').value);
+            const correctMsg = document.getElementById('modal-correct-msg').value.trim() || "כל הכבוד!";
+            const wrongMsg = document.getElementById('modal-wrong-msg').value.trim() || "טעות!";
+
+            if (!text || !opt0 || !opt1 || !opt2 || !opt3) {
+                alertBox("נא למלא את כל השדות (שאלה ו-4 אפשרויות)!");
+                return;
+            }
+
+            const newQ = {
+                text: text,
+                options: [opt0, opt1, opt2, opt3],
+                correct: correct,
+                correctMsg: correctMsg,
+                wrongMsg: wrongMsg
+            };
+
+            if (index === -1) {
+                questions.push(newQ);
+            } else {
+                questions[index] = newQ;
+            }
+
+            localStorage.setItem('my_quiz_questions', JSON.stringify(questions));
+            closeQuestionModal();
+            renderEditorQuestions();
+        }
+
+        function deleteQuestion(index) {
+            if (questions.length <= 1) {
+                alertBox("חייבת להישאר לפחות שאלה אחת במשחק!");
+                return;
+            }
+            questions.splice(index, 1);
+            localStorage.setItem('my_quiz_questions', JSON.stringify(questions));
+            renderEditorQuestions();
+        }
+
+        function alertBox(message) {
+            const oldModal = document.getElementById('custom-alert-modal');
+            if (oldModal) oldModal.remove();
+
+            const div = document.createElement('div');
+            div.id = 'custom-alert-modal';
+            div.className = "fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-50";
+            div.innerHTML = `
+                <div class="glass-card w-full max-w-sm p-6 rounded-3xl shadow-2xl text-center space-y-4">
+                    <div class="text-3xl">⚠️</div>
+                    <p class="text-white font-bold text-base">${message}</p>
+                    <button onclick="document.getElementById('custom-alert-modal').remove()" class="w-full py-3 rounded-xl bg-purple-600 font-bold text-white shadow-md hover:bg-purple-700 transition">
+                        אישור
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(div);
+        }
+    </script>
+</body>
+</html>

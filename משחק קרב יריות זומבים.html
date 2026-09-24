@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Zombie Tank Game FIX</title>
+
+<style>
+body{margin:0;overflow:hidden;background:#cfe8ff}
+canvas{display:block}
+#hud{position:fixed;top:10px;left:10px;font-weight:bold}
+#level{position:fixed;top:10px;right:10px;font-weight:bold;font-size:22px}
+</style>
+</head>
+
+<body>
+
+<div id="hud"></div>
+<div id="level"></div>
+<canvas id="c"></canvas>
+
+<script>
+const c=document.getElementById("c");
+const ctx=c.getContext("2d");
+
+c.width=1200;
+c.height=720;
+
+const TILE=60, COLS=20, ROWS=12;
+
+// מפה
+let map=[];
+for(let y=0;y<ROWS;y++){
+map[y]=[];
+for(let x=0;x<COLS;x++){
+map[y][x]=Math.random()<0.2?1:0;
+}
+}
+
+function solid(x,y){
+let gx=Math.floor(x/TILE);
+let gy=Math.floor(y/TILE);
+if(gx<0||gy<0||gx>=COLS||gy>=ROWS) return true;
+return map[gy][gx]===1;
+}
+
+// שחקן
+let p={x:100,y:100,speed:4,hp:5,maxHp:12};
+
+// אובייקטים
+let zombies=[];
+let bullets=[];
+let tankBullets=[];
+
+let score=0;
+let wave=1;
+
+// ירי
+let canShoot=true;
+
+document.addEventListener("keydown",e=>{
+if(e.code==="Space" && canShoot){
+shoot();
+canShoot=false;
+}
+});
+document.addEventListener("keyup",e=>{
+if(e.code==="Space") canShoot=true;
+});
+
+// יעד חכם
+function nearest(){
+if(tankBullets.length>0){
+let best=null,dist=99999;
+for(let b of tankBullets){
+let d=Math.hypot(p.x-b.x,p.y-b.y);
+if(d<dist){dist=d;best=b;}
+}
+return best;
+}
+let best=null,dist=99999;
+for(let z of zombies){
+let d=Math.hypot(p.x-z.x,p.y-z.y);
+if(d<dist){dist=d;best=z;}
+}
+return best;
+}
+
+function shoot(){
+let t=nearest();
+if(!t) return;
+
+let dx=t.x-p.x;
+let dy=t.y-p.y;
+let d=Math.hypot(dx,dy);
+
+bullets.push({x:p.x,y:p.y,dx:dx/d*8,dy:dy/d*8});
+}
+
+// ספאון
+function spawnZombie(){
+
+let r=Math.random();
+let baseSpeed=1.4+wave*0.06;
+
+let tankChance=Math.min(0.05+wave*0.01,0.25);
+let redChance=Math.min(0.15+wave*0.02,0.45);
+
+let type,hp;
+
+if(r<1-(redChance+tankChance)){
+type="normal"; hp=1;
+}else if(r<1-tankChance){
+type="red"; hp=2;
+}else{
+type="tank"; hp=3;
+}
+
+for(let i=0;i<60;i++){
+let x=Math.floor(Math.random()*COLS);
+let y=Math.floor(Math.random()*ROWS);
+
+if(map[y][x]===0){
+
+let z={
+x:x*TILE+TILE/2,
+y:y*TILE+TILE/2,
+s:baseSpeed,
+type:type,
+hp:hp
+};
+
+if(type==="tank"){
+z.s*=0.6;
+z.shootTimer=0;
+}
+
+zombies.push(z);
+return;
+}
+}
+}
+
+for(let i=0;i<18;i++) spawnZombie();
+
+// תנועה
+function moveZombie(z,dx,dy){
+let nx=z.x+dx;
+let ny=z.y+dy;
+
+if(!solid(nx,ny)){
+z.x=nx;
+z.y=ny;
+return;
+}
+
+let dirs=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]];
+dirs.sort(()=>Math.random()-0.5);
+
+for(let d of dirs){
+let tx=z.x+d[0]*z.s;
+let ty=z.y+d[1]*z.s;
+if(!solid(tx,ty)){
+z.x=tx;
+z.y=ty;
+return;
+}
+}
+}
+
+// שליטה
+let keys={};
+document.addEventListener("keydown",e=>keys[e.key]=1);
+document.addEventListener("keyup",e=>keys[e.key]=0);
+
+// עדכון
+function update(){
+
+// שחקן
+let nx=p.x,ny=p.y;
+if(keys["ArrowLeft"]) nx-=p.speed;
+if(keys["ArrowRight"]) nx+=p.speed;
+if(keys["ArrowUp"]) ny-=p.speed;
+if(keys["ArrowDown"]) ny+=p.speed;
+
+if(!solid(nx,p.y)) p.x=nx;
+if(!solid(p.x,ny)) p.y=ny;
+
+// זומבים
+for(let z of zombies){
+
+let dx=p.x-z.x;
+let dy=p.y-z.y;
+let d=Math.hypot(dx,dy);
+
+moveZombie(z,dx/d*z.s,dy/d*z.s);
+
+// 🔥 טנק יורה כל 20 שניות
+if(z.type==="tank"){
+z.shootTimer++;
+
+if(z.shootTimer>=1200){ // 20 שניות (60FPS)
+z.shootTimer=0;
+
+let ddx=p.x-z.x;
+let ddy=p.y-z.y;
+let dist=Math.hypot(ddx,ddy);
+
+tankBullets.push({
+x:z.x,
+y:z.y,
+dx:ddx/dist*3,
+dy:ddy/dist*3
+});
+}
+}
+
+if(d<25){
+p.hp--;
+z.x=Math.random()*c.width;
+z.y=Math.random()*c.height;
+}
+}
+
+// יריות שחקן
+for(let i=bullets.length-1;i>=0;i--){
+let b=bullets[i];
+b.x+=b.dx;
+b.y+=b.dy;
+
+let gx=Math.floor(b.x/TILE);
+let gy=Math.floor(b.y/TILE);
+
+if(gx<0||gy<0||gx>=COLS||gy>=ROWS || map[gy][gx]===1){
+bullets.splice(i,1);
+continue;
+}
+
+// יירוט קליע טנק
+for(let k=tankBullets.length-1;k>=0;k--){
+let tb=tankBullets[k];
+if(Math.hypot(b.x-tb.x,b.y-tb.y)<15){
+tankBullets.splice(k,1);
+bullets.splice(i,1);
+break;
+}
+}
+
+// פגיעה בזומבים
+for(let j=zombies.length-1;j>=0;j--){
+let z=zombies[j];
+if(Math.hypot(b.x-z.x,b.y-z.y)<20){
+z.hp--;
+bullets.splice(i,1);
+
+if(z.hp<=0){
+zombies.splice(j,1);
+
+if(z.type==="normal") score+=1;
+if(z.type==="red") score+=2;
+if(z.type==="tank") score+=3;
+}
+break;
+}
+}
+}
+
+// קליעי טנק
+for(let i=tankBullets.length-1;i>=0;i--){
+let b=tankBullets[i];
+b.x+=b.dx;
+b.y+=b.dy;
+
+if(Math.hypot(b.x-p.x,b.y-p.y)<20){
+p.hp--;
+tankBullets.splice(i,1);
+continue;
+}
+
+let gx=Math.floor(b.x/TILE);
+let gy=Math.floor(b.y/TILE);
+
+if(map[gy] && map[gy][gx]===1){
+tankBullets.splice(i,1);
+}
+}
+
+// שלבים
+if(score>=wave*150){
+wave++;
+p.hp=Math.min(12,p.hp+1);
+for(let i=0;i<10+wave*3;i++) spawnZombie();
+}
+
+if(zombies.length<15+wave*3) spawnZombie();
+
+if(p.hp<=0){
+alert("💀 Game Over");
+location.reload();
+}
+
+// HUD
+document.getElementById("hud").innerHTML=
+`🧟 ניקוד: ${score} | ❤️ חיים: ${p.hp}`;
+
+document.getElementById("level").innerHTML=
+`🎮 שלב ${wave}`;
+}
+
+// ציור
+function draw(){
+
+ctx.fillStyle="#cfe8ff";
+ctx.fillRect(0,0,c.width,c.height);
+
+// מפה
+for(let y=0;y<ROWS;y++){
+for(let x=0;x<COLS;x++){
+ctx.fillStyle=map[y][x]?"#555":"#d9f0ff";
+ctx.fillRect(x*TILE,y*TILE,TILE,TILE);
+}
+}
+
+// שחקן
+ctx.font="28px Arial";
+ctx.fillText("🤠",p.x,p.y);
+
+// זומבים
+for(let z of zombies){
+
+if(z.type==="tank"){
+// 🟢 ציור טנק אמיתי
+ctx.fillStyle="green";
+ctx.fillRect(z.x-15,z.y-10,30,20); // גוף
+ctx.fillStyle="darkgreen";
+ctx.fillRect(z.x-5,z.y-15,10,10); // צריח
+ctx.fillRect(z.x+5,z.y-5,15,4); // קנה
+}
+else if(z.type==="red"){
+ctx.font="24px Arial";
+ctx.fillText("🧟‍🔥",z.x,z.y);
+}
+else{
+ctx.font="24px Arial";
+ctx.fillText("🧟",z.x,z.y);
+}
+}
+
+// קליעי שחקן
+for(let b of bullets){
+ctx.fillText("🔵",b.x,b.y);
+}
+
+// קליעי טנק
+for(let b of tankBullets){
+ctx.fillText("🔴",b.x,b.y);
+}
+}
+
+// לולאה
+function loop(){
+update();
+draw();
+requestAnimationFrame(loop);
+}
+loop();
+
+</script>
+
+</body>
+</html>

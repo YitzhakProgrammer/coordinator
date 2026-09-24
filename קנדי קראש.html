@@ -1,0 +1,502 @@
+<html lang="he" dir="rtl">
+<style>
+* { box-sizing: border-box; }
+body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea, #764ba2); margin: 0; padding: 10px; color: white; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { text-align: center; font-size: 2em; margin: 10px 0; }
+.game-wrapper { display: grid; grid-template-columns: 1fr 280px; gap: 15px; }
+.game-container { background: rgba(255,255,255,0.15); border-radius: 15px; padding: 15px; backdrop-filter: blur(8px); }
+.header { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin-bottom: 15px; }
+.stat-box { text-align: center; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 8px; }
+.stat-label { font-size: 0.8em; opacity: 0.9; }
+.stat-value { font-size: 1.5em; font-weight: bold; color: #ffd700; }
+.progress-bar { width: 100%; height: 20px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; margin-bottom: 15px; }
+.progress { height: 100%; background: linear-gradient(90deg, #f39c12, #e74c3c); width: 0%; transition: width 0.3s ease; }
+.grid { display: grid; grid-template-columns: repeat(8,1fr); gap: 5px; aspect-ratio: 1; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; }
+.candy { border-radius: 8px; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: transform 0.15s, box-shadow 0.15s; user-select: none; padding: 4px; }
+.candy:hover { transform: scale(1.1); }
+.candy.selected { transform: scale(1.2); box-shadow: 0 0 20px rgba(255,255,255,0.9); }
+.candy.matched { animation: pop 0.3s ease-out forwards; }
+@keyframes pop { 0% { transform: scale(1); opacity: 1; } 60% { transform: scale(1.3); } 100% { transform: scale(0); opacity: 0; } }
+svg { width: 100%; height: 100%; }
+.controls { display: flex; gap: 8px; margin-top: 15px; }
+button { flex: 1; background: linear-gradient(135deg, #f39c12, #e74c3c); border: none; border-radius: 8px; color: white; padding: 10px; cursor: pointer; font-weight: bold; transition: all 0.2s; font-size: 14px; }
+button:hover { transform: translateY(-2px); }
+.sidebar { background: rgba(255,255,255,0.15); border-radius: 15px; padding: 15px; backdrop-filter: blur(8px); display: flex; flex-direction: column; gap: 12px; }
+.sidebar-section { background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; }
+.sidebar-title { font-weight: bold; text-align: center; margin-bottom: 8px; font-size: 0.95em; }
+.powerup-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.powerup-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 6px; color: white; padding: 8px; cursor: pointer; font-size: 0.75em; transition: all 0.2s; }
+.powerup-btn:hover:not(:disabled) { background: rgba(255,255,255,0.3); transform: translateY(-1px); }
+.powerup-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.combo-counter { font-size: 1.8em; font-weight: bold; text-align: center; color: #ffd700; }
+.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 100; }
+.modal-content { background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 15px; padding: 30px; text-align: center; max-width: 400px; width: 90%; }
+.modal h2 { font-size: 2em; margin: 0 0 15px 0; }
+.modal p { font-size: 1em; margin: 8px 0; }
+.trophy { font-size: 70px; margin: 15px 0; }
+@media (max-width: 700px) { .game-wrapper { grid-template-columns: 1fr; } .header { grid-template-columns: repeat(2,1fr); } h1 { font-size: 1.5em; } }
+</style>
+
+<div class="container">
+<h1>💎 Gem Match</h1>
+
+<div class="game-wrapper">
+<div class="game-container">
+<div class="header">
+<div class="stat-box"><div class="stat-label">Level</div><div class="stat-value level">1</div></div>
+<div class="stat-box"><div class="stat-label">Moves</div><div class="stat-value moves">20</div></div>
+<div class="stat-box"><div class="stat-label">Combo</div><div class="stat-value combo" style="color: #ff6b6b;">0x</div></div>
+<div class="stat-box"><div class="stat-label">Score</div><div class="stat-value score">0</div></div>
+</div>
+
+<div style="margin-bottom: 10px;">
+<div style="display: flex; justify-content: space-between; font-size: 0.9em; margin-bottom: 5px;">
+<span>Progress</span>
+<span><span class="current-score">0</span>/<span class="target-score">10000</span></span>
+</div>
+<div class="progress-bar"><div class="progress" id="level-progress"></div></div>
+</div>
+
+<div class="grid"></div>
+
+<div class="controls">
+<button id="restart-btn">🔄 התחל מחדש</button>
+<button id="hint-btn">💡 עזרה</button>
+</div>
+</div>
+
+<div class="sidebar">
+<div class="sidebar-section">
+<div class="sidebar-title">בונוס Combo</div>
+<div class="combo-counter" id="combo-display">0x</div>
+</div>
+
+<div class="sidebar-section">
+<div class="sidebar-title">Power-ups</div>
+<div class="powerup-list">
+<button class="powerup-btn" id="bomb-btn">💥 +5000</button>
+<button class="powerup-btn" id="lightning-btn">⚡ +3000</button>
+<button class="powerup-btn" id="star-btn">✨ +4000</button>
+<button class="powerup-btn" id="freeze-btn">❄️ +5</button>
+</div>
+</div>
+
+<div class="sidebar-section">
+<div class="sidebar-title">ניקוד הגבוה</div>
+<div style="text-align: center; font-size: 1.8em; color: #ffd700; margin: 8px 0;" id="best-score">0</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="modal" id="level-complete-modal">
+<div class="modal-content">
+<h2>🎉 סיימת את הלוקל!</h2>
+<div style="font-size: 2em; margin: 10px 0;" id="star-display">⭐⭐⭐</div>
+<p>ניקוד: <span id="final-score">0</span></p>
+<p>לוקל: <span id="completed-level">1</span>/20</p>
+<button onclick="nextLevel()" style="width: 100%; margin-top: 15px;">לוקל הבא →</button>
+</div>
+</div>
+
+<div class="modal" id="game-over-modal">
+<div class="modal-content">
+<h2 style="color: #ff6b6b;">Game Over!</h2>
+<p>ניקוד סופי: <span id="game-over-score">0</span></p>
+<button id="retry-btn" onclick="retryLevel()" style="width: 100%; margin-top: 15px;">נסה שוב</button>
+</div>
+</div>
+
+<div class="modal" id="game-complete-modal">
+<div class="modal-content">
+<h2>🏆 מדהים!</h2>
+<div class="trophy">🏆</div>
+<p>סיימת את כל 20 הלוקלים!</p>
+<p>ניקוד סופי: <span id="final-total-score">0</span></p>
+<button onclick="playAgain()" style="width: 100%; margin-top: 15px;">שחק שוב</button>
+</div>
+</div>
+
+<script>
+const shapes = [
+  { id: 0, color: '#e74c3c', name: 'heart' },
+  { id: 1, color: '#f39c12', name: 'star' },
+  { id: 2, color: '#9b59b6', name: 'diamond' },
+  { id: 3, color: '#3498db', name: 'circle' },
+  { id: 4, color: '#1abc9c', name: 'square' },
+  { id: 5, color: '#e91e63', name: 'triangle' },
+  { id: 6, color: '#2ecc71', name: 'hexagon' },
+  { id: 7, color: '#f1c40f', name: 'moon' }
+];
+
+const gameState = {
+  gridSize: 8,
+  grid: [],
+  score: 0,
+  moves: 20,
+  currentLevel: 1,
+  combo: 0,
+  isAnimating: false,
+  powerups: { bomb: 1, lightning: 1, star: 1, freeze: 0 }
+};
+
+const levels = Array.from({length: 20}, (_, i) => ({
+  target: 10000 + (i * 5000),
+  moves: Math.max(12, 25 - Math.floor(i / 2))
+}));
+
+const gridEl = document.querySelector('.grid');
+const scoreEl = document.querySelector('.score');
+const movesEl = document.querySelector('.moves');
+const levelEl = document.querySelector('.level');
+const progressEl = document.getElementById('level-progress');
+const targetEl = document.querySelector('.target-score');
+
+function getSvgShape(shapeId) {
+  const shape = shapes[shapeId];
+  const svgs = {
+    heart: `<svg viewBox="0 0 100 100"><path d="M50,85 C20,70 10,50 10,35 C10,20 20,10 30,10 C40,10 50,20 50,30 C50,20 60,10 70,10 C80,10 90,20 90,35 C90,50 80,70 50,85Z" fill="${shape.color}" stroke="white" stroke-width="2"/>`,
+    star: `<svg viewBox="0 0 100 100"><polygon points="50,10 61,40 92,40 67,60 78,90 50,70 22,90 33,60 8,40 39,40" fill="${shape.color}" stroke="white" stroke-width="2"/>`,
+    diamond: `<svg viewBox="0 0 100 100"><polygon points="50,15 85,50 50,85 15,50" fill="${shape.color}" stroke="white" stroke-width="2"/>`,
+    circle: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="35" fill="${shape.color}" stroke="white" stroke-width="2"/>`,
+    square: `<svg viewBox="0 0 100 100"><rect x="20" y="20" width="60" height="60" fill="${shape.color}" stroke="white" stroke-width="2"/>`,
+    triangle: `<svg viewBox="0 0 100 100"><polygon points="50,15 85,75 15,75" fill="${shape.color}" stroke="white" stroke-width="2"/>`,
+    hexagon: `<svg viewBox="0 0 100 100"><polygon points="50,10 90,30 90,70 50,90 10,70 10,30" fill="${shape.color}" stroke="white" stroke-width="2"/>`,
+    moon: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="35" fill="${shape.color}" stroke="white" stroke-width="2"/><circle cx="60" cy="40" r="35" fill="#764ba2" stroke="white" stroke-width="2"/>`
+  };
+  return svgs[shape.name] + '</svg>';
+}
+
+function initGame() {
+  gameState.grid = [];
+  gameState.score = 0;
+  gameState.combo = 0;
+  gameState.isAnimating = false;
+  
+  const level = levels[gameState.currentLevel - 1];
+  gameState.moves = level.moves;
+  
+  scoreEl.textContent = '0';
+  movesEl.textContent = gameState.moves;
+  levelEl.textContent = gameState.currentLevel;
+  targetEl.textContent = level.target;
+  document.querySelector('.current-score').textContent = '0';
+  progressEl.style.width = '0%';
+  
+  gridEl.innerHTML = '';
+  
+  for (let row = 0; row < 8; row++) {
+    gameState.grid[row] = [];
+    for (let col = 0; col < 8; col++) {
+      createCandy(row, col);
+    }
+  }
+  
+  let hasMatches = true;
+  while (hasMatches) {
+    hasMatches = checkMatches();
+    if (hasMatches) fillEmpty();
+  }
+}
+
+function createCandy(row, col) {
+  const idx = Math.floor(Math.random() * shapes.length);
+  gameState.grid[row][col] = idx;
+  
+  const el = document.createElement('div');
+  el.classList.add('candy');
+  el.innerHTML = getSvgShape(idx);
+  el.dataset.row = row;
+  el.dataset.col = col;
+  el.style.background = 'rgba(255,255,255,0.1)';
+  el.style.borderRadius = '12px';
+  el.addEventListener('click', () => handleClick(el, row, col));
+  gridEl.appendChild(el);
+}
+
+let selected = null;
+
+function handleClick(el, row, col) {
+  if (gameState.isAnimating) return;
+  
+  if (!selected) {
+    selected = { el, row, col };
+    el.classList.add('selected');
+  } else {
+    if (selected.row === row && selected.col === col) {
+      selected.el.classList.remove('selected');
+      selected = null;
+      return;
+    }
+    
+    if ((Math.abs(row - selected.row) === 1 && col === selected.col) || (Math.abs(col - selected.col) === 1 && row === selected.row)) {
+      swap(selected.row, selected.col, row, col);
+    } else {
+      selected.el.classList.remove('selected');
+      selected = { el, row, col };
+      el.classList.add('selected');
+    }
+  }
+}
+
+function swap(r1, c1, r2, c2) {
+  gameState.isAnimating = true;
+  [gameState.grid[r1][c1], gameState.grid[r2][c2]] = [gameState.grid[r2][c2], gameState.grid[r1][c1]];
+  updateDisplay();
+  
+  if (checkMatches()) {
+    gameState.moves--;
+    movesEl.textContent = gameState.moves;
+    gameState.combo = 0;
+    setTimeout(() => { 
+      fillEmpty();
+      cascade();
+    }, 150);
+  } else {
+    [gameState.grid[r1][c1], gameState.grid[r2][c2]] = [gameState.grid[r2][c2], gameState.grid[r1][c1]];
+    updateDisplay();
+    gameState.isAnimating = false;
+  }
+  selected = null;
+}
+
+function checkMatches() {
+  const matched = new Set();
+  
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 6; c++) {
+      if (gameState.grid[r][c] !== null && gameState.grid[r][c] === gameState.grid[r][c+1] && gameState.grid[r][c] === gameState.grid[r][c+2]) {
+        let len = 3;
+        while (c + len < 8 && gameState.grid[r][c+len] === gameState.grid[r][c]) len++;
+        for (let i = 0; i < len; i++) matched.add(`${r},${c+i}`);
+        gameState.score += len * 500;
+        gameState.combo++;
+      }
+    }
+  }
+  
+  for (let c = 0; c < 8; c++) {
+    for (let r = 0; r < 6; r++) {
+      if (gameState.grid[r][c] !== null && gameState.grid[r][c] === gameState.grid[r+1][c] && gameState.grid[r][c] === gameState.grid[r+2][c]) {
+        let len = 3;
+        while (r + len < 8 && gameState.grid[r+len][c] === gameState.grid[r][c]) len++;
+        for (let i = 0; i < len; i++) matched.add(`${r+i},${c}`);
+        gameState.score += len * 500;
+        gameState.combo++;
+      }
+    }
+  }
+  
+  if (matched.size > 0) {
+    const mult = 1 + (gameState.combo * 0.25);
+    gameState.score = Math.floor(gameState.score * mult);
+    scoreEl.textContent = gameState.score;
+    document.querySelector('.combo').textContent = gameState.combo + 'x';
+    document.getElementById('combo-display').textContent = gameState.combo + 'x';
+    document.querySelector('.current-score').textContent = gameState.score;
+    
+    const level = levels[gameState.currentLevel - 1];
+    progressEl.style.width = Math.min((gameState.score / level.target) * 100, 100) + '%';
+    
+    matched.forEach(pos => {
+      const [r, c] = pos.split(',').map(Number);
+      const idx = r * 8 + c;
+      if (gridEl.children[idx]) {
+        gridEl.children[idx].classList.add('matched');
+        gameState.grid[r][c] = null;
+      }
+    });
+    return true;
+  }
+  return false;
+}
+
+function fillEmpty() {
+  for (let c = 0; c < 8; c++) {
+    let empty = 0;
+    for (let r = 7; r >= 0; r--) {
+      if (gameState.grid[r][c] === null) {
+        empty++;
+      } else if (empty > 0) {
+        gameState.grid[r + empty][c] = gameState.grid[r][c];
+        gameState.grid[r][c] = null;
+      }
+    }
+    for (let r = 0; r < empty; r++) {
+      const idx = Math.floor(Math.random() * shapes.length);
+      gameState.grid[r][c] = idx;
+    }
+  }
+  updateDisplay();
+}
+
+function cascade() {
+  setTimeout(() => {
+    if (checkMatches()) {
+      setTimeout(() => { 
+        fillEmpty();
+        cascade();
+      }, 150);
+    } else {
+      gameState.isAnimating = false;
+      checkState();
+    }
+  }, 150);
+}
+
+function updateDisplay() {
+  gridEl.innerHTML = '';
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      if (gameState.grid[r][c] !== null) {
+        const idx = gameState.grid[r][c];
+        const el = document.createElement('div');
+        el.classList.add('candy');
+        el.innerHTML = getSvgShape(idx);
+        el.style.background = 'rgba(255,255,255,0.1)';
+        el.style.borderRadius = '12px';
+        el.addEventListener('click', () => handleClick(el, r, c));
+        gridEl.appendChild(el);
+      } else {
+        const e = document.createElement('div');
+        e.classList.add('candy');
+        e.style.visibility = 'hidden';
+        gridEl.appendChild(e);
+      }
+    }
+  }
+}
+
+function checkState() {
+  const level = levels[gameState.currentLevel - 1];
+  if (gameState.score >= level.target) {
+    document.getElementById('final-score').textContent = gameState.score;
+    document.getElementById('completed-level').textContent = gameState.currentLevel;
+    const stars = gameState.score >= level.target * 1.5 ? 3 : gameState.score >= level.target * 1.2 ? 2 : 1;
+    document.getElementById('star-display').textContent = '⭐'.repeat(stars);
+    document.getElementById('level-complete-modal').style.display = 'flex';
+    if (gameState.currentLevel === 20) {
+      setTimeout(() => {
+        document.getElementById('level-complete-modal').style.display = 'none';
+        document.getElementById('final-total-score').textContent = gameState.score;
+        document.getElementById('game-complete-modal').style.display = 'flex';
+      }, 2000);
+    }
+  } else if (gameState.moves <= 0) {
+    document.getElementById('game-over-score').textContent = gameState.score;
+    document.getElementById('game-over-modal').style.display = 'flex';
+  }
+}
+
+document.getElementById('restart-btn').addEventListener('click', initGame);
+document.getElementById('hint-btn').addEventListener('click', () => {
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 7; c++) {
+      const t = gameState.grid[r][c];
+      gameState.grid[r][c] = gameState.grid[r][c+1];
+      gameState.grid[r][c+1] = t;
+      let found = false;
+      for (let rr = 0; rr < 8 && !found; rr++) {
+        for (let cc = 0; cc < 6 && !found; cc++) {
+          if (gameState.grid[rr][cc] !== null && gameState.grid[rr][cc] === gameState.grid[rr][cc+1] && gameState.grid[rr][cc] === gameState.grid[rr][cc+2]) found = true;
+        }
+      }
+      if (found) {
+        gridEl.children[r*8+c].style.animation = 'pulse 0.8s 3';
+        gridEl.children[r*8+c+1].style.animation = 'pulse 0.8s 3';
+        gameState.grid[r][c+1] = gameState.grid[r][c];
+        gameState.grid[r][c] = t;
+        return;
+      }
+      gameState.grid[r][c+1] = gameState.grid[r][c];
+      gameState.grid[r][c] = t;
+    }
+  }
+});
+
+document.getElementById('bomb-btn').addEventListener('click', () => {
+  if (gameState.powerups.bomb > 0) {
+    gameState.score += 5000;
+    updateScore();
+    gameState.powerups.bomb--;
+    updatePowerups();
+  }
+});
+
+document.getElementById('lightning-btn').addEventListener('click', () => {
+  if (gameState.powerups.lightning > 0) {
+    gameState.score += 3000;
+    updateScore();
+    gameState.powerups.lightning--;
+    updatePowerups();
+  }
+});
+
+document.getElementById('star-btn').addEventListener('click', () => {
+  if (gameState.powerups.star > 0) {
+    gameState.score += 4000;
+    updateScore();
+    gameState.powerups.star--;
+    updatePowerups();
+  }
+});
+
+document.getElementById('freeze-btn').addEventListener('click', () => {
+  if (gameState.powerups.freeze > 0) {
+    gameState.moves += 5;
+    movesEl.textContent = gameState.moves;
+    gameState.powerups.freeze--;
+    updatePowerups();
+  }
+});
+
+function updateScore() {
+  scoreEl.textContent = gameState.score;
+  document.querySelector('.current-score').textContent = gameState.score;
+  const level = levels[gameState.currentLevel - 1];
+  progressEl.style.width = Math.min((gameState.score / level.target) * 100, 100) + '%';
+  checkState();
+}
+
+function updatePowerups() {
+  document.getElementById('bomb-btn').textContent = `💥 +5000 (${gameState.powerups.bomb})`;
+  document.getElementById('lightning-btn').textContent = `⚡ +3000 (${gameState.powerups.lightning})`;
+  document.getElementById('star-btn').textContent = `✨ +4000 (${gameState.powerups.star})`;
+  document.getElementById('freeze-btn').textContent = `❄️ +5 (${gameState.powerups.freeze})`;
+  
+  document.getElementById('bomb-btn').disabled = gameState.powerups.bomb === 0;
+  document.getElementById('lightning-btn').disabled = gameState.powerups.lightning === 0;
+  document.getElementById('star-btn').disabled = gameState.powerups.star === 0;
+  document.getElementById('freeze-btn').disabled = gameState.powerups.freeze === 0;
+}
+
+window.nextLevel = function() {
+  document.getElementById('level-complete-modal').style.display = 'none';
+  gameState.currentLevel++;
+  if (gameState.currentLevel > 20) gameState.currentLevel = 1;
+  gameState.powerups = { bomb: 1, lightning: 1, star: 1, freeze: gameState.currentLevel > 5 ? 1 : 0 };
+  updatePowerups();
+  initGame();
+};
+
+window.retryLevel = function() {
+  document.getElementById('game-over-modal').style.display = 'none';
+  gameState.powerups = { bomb: 1, lightning: 1, star: 1, freeze: gameState.currentLevel > 5 ? 1 : 0 };
+  updatePowerups();
+  initGame();
+};
+
+window.playAgain = function() {
+  document.getElementById('game-complete-modal').style.display = 'none';
+  gameState.currentLevel = 1;
+  gameState.score = 0;
+  gameState.powerups = { bomb: 1, lightning: 1, star: 1, freeze: 0 };
+  updatePowerups();
+  initGame();
+};
+
+updatePowerups();
+initGame();
+</script>
+</html>

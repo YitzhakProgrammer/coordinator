@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>מנקלה אנכית מקצועית</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0e6d2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 { color: #5d4037; margin-bottom: 5px; }
+        #menu, #game-container, #network-panel {
+            background-color: #d7ccc8;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        .btn {
+            background-color: #8d6e63;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 8px;
+            margin: 8px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .btn:hover { background-color: #5d4037; }
+        textarea { width: 100%; height: 80px; direction: ltr; margin: 5px 0; font-size: 11px; }
+        
+        #board {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #a1887f;
+            padding: 20px;
+            border-radius: 20px;
+            gap: 15px;
+            width: 240px;
+        }
+        .store {
+            width: 200px;
+            height: 80px;
+            background-color: #6d4c41;
+            color: white;
+            border-radius: 40px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(14px, 1fr));
+            grid-auto-rows: 14px;
+            gap: 5px;
+            padding: 15px;
+            box-shadow: inset 0 4px 8px rgba(0,0,0,0.4);
+            position: relative;
+            box-sizing: border-box;
+            align-content: center;
+            justify-content: center;
+        }
+        .columns-container {
+            display: flex;
+            gap: 25px;
+            width: 100%;
+            justify-content: center;
+        }
+        .column { display: flex; flex-direction: column; gap: 12px; }
+        .pit {
+            width: 85px;
+            height: 85px;
+            background-color: #d7ccc8;
+            border-radius: 50%;
+            display: grid;
+            grid-template-columns: repeat(4, 14px);
+            grid-auto-rows: 14px;
+            gap: 4px;
+            padding: 10px;
+            cursor: pointer;
+            box-shadow: inset 0 4px 6px rgba(0,0,0,0.3);
+            user-select: none;
+            position: relative;
+            box-sizing: border-box;
+            align-content: center;
+            justify-content: center;
+        }
+        .pit:hover { background-color: #f5f5f5; transform: scale(1.05); }
+        .stone-element {
+            width: 14px;
+            height: 14px;
+            background-color: #3e2723;
+            border-radius: 50%;
+            box-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+        }
+        .pit::after, .store::after {
+            content: attr(data-count);
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 13px;
+            top: -30px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s;
+            z-index: 10;
+            white-space: nowrap;
+        }
+        .pit:hover::after, .store:hover::after { opacity: 1; }
+        #status { margin-top: 15px; font-size: 20px; font-weight: bold; color: #3e2723; min-height: 30px; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <h1>מנקלה אנכית פרו</h1>
+
+    <div id="menu">
+        <button class="btn" onclick="startGame('local')">משחק מקומי (שני שחקנים)</button>
+        <br>
+        <button class="btn" onclick="startGame('ai')">משחק מול מחשב אסטרטגי (חכם)</button>
+        <br>
+        <button class="btn" onclick="showNetworkPanel()">משחק רשת (משני מחשבים)</button>
+    </div>
+
+    <div id="network-panel" class="hidden">
+        <h3>חיבור רשת ישיר (P2P)</h3>
+        <p>1. לחץ על "צור חדר" במחשב א', העתק את הקוד ושלח למחשב ב'.</p>
+        <button class="btn" onclick="initHost()">1. צור חדר (מחשב א')</button>
+        <br>
+        <label>הקוד שלך (שלח לשחקן השני):</label>
+        <textarea id="local-offer" readonly></textarea>
+        
+        <p>2. במחשב ב', הדבק את הקוד שקיבלת ולחץ על "התחבר":</p>
+        <textarea id="remote-offer" placeholder="הדבק את הקוד מהמחשב השני כאן..."></textarea>
+        <button class="btn" onclick="connectToPeer()">2. התחבר / אשר קוד</button>
+        <br>
+        <button class="btn" style="background-color:#7c5a50;" onclick="resetToMenu()">ביטול</button>
+    </div>
+
+    <div id="game-container" class="hidden">
+        <div id="board">
+            <div id="store-2" class="store" data-count="0 אבנים"></div>
+            <div class="columns-container">
+                <div class="column" id="col-1">
+                    <div id="pit-0" class="pit" onclick="clickPit(0)"></div>
+                    <div id="pit-1" class="pit" onclick="clickPit(1)"></div>
+                    <div id="pit-2" class="pit" onclick="clickPit(2)"></div>
+                    <div id="pit-3" class="pit" onclick="clickPit(3)"></div>
+                    <div id="pit-4" class="pit" onclick="clickPit(4)"></div>
+                    <div id="pit-5" class="pit" onclick="clickPit(5)"></div>
+                </div>
+                <div class="column" id="col-2">
+                    <div id="pit-12" class="pit" onclick="clickPit(12)"></div>
+                    <div id="pit-11" class="pit" onclick="clickPit(11)"></div>
+                    <div id="pit-10" class="pit" onclick="clickPit(10)"></div>
+                    <div id="pit-9" class="pit" onclick="clickPit(9)"></div>
+                    <div id="pit-8" class="pit" onclick="clickPit(8)"></div>
+                    <div id="pit-7" class="pit" onclick="clickPit(7)"></div>
+                </div>
+            </div>
+            <div id="store-1" class="store" data-count="0 אבנים"></div>
+        </div>
+        <div id="status">תור שחקן 1</div>
+        <button class="btn" style="margin-top:15px; background-color:#6d4c41;" onclick="resetToMenu()">חזרה לתפריט</button>
+    </div>
+
+    <script>
+        let board = [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0];
+        let turn = 1;
+        let gameMode = 'local';
+        let isAnimating = false;
+        let myRole = 1; // שחקן 1 או 2 במשחק רשת
+
+        // משתני רשת (WebRTC)
+        let peerConnection;
+        let dataChannel;
+
+        function startGame(mode) {
+            gameMode = mode;
+            board = [4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 0];
+            turn = 1;
+            isAnimating = false;
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('network-panel').classList.add('hidden');
+            document.getElementById('game-container').classList.remove('hidden');
+            renderBoard();
+        }
+
+        function showNetworkPanel() {
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('network-panel').classList.remove('hidden');
+        }
+
+        function resetToMenu() {
+            document.getElementById('game-container').classList.add('hidden');
+            document.getElementById('network-panel').classList.add('hidden');
+            document.getElementById('menu').classList.remove('hidden');
+            if(peerConnection) { peerConnection.close(); }
+        }
+
+        function renderBoard() {
+            for (let i = 0; i < 14; i++) {
+                let el = (i === 6) ? document.getElementById('store-1') : (i === 13) ? document.getElementById('store-2') : document.getElementById(`pit-${i}`);
+                if (!el) continue;
+                el.innerHTML = '';
+                el.setAttribute('data-count', `${board[i]} אבנים`);
+                for (let j = 0; j < board[i]; j++) {
+                    let stone = document.createElement('div');
+                    stone.className = 'stone-element';
+                    el.appendChild(stone);
+                }
+            }
+            if (gameMode === 'ai' && turn === 2) {
+                document.getElementById('status').innerText = "המחשב מחשב שרשרת מהלכים...";
+            } else if (gameMode === 'network') {
+                document.getElementById('status').innerText = (turn === myRole) ? "תורך לשחק!" : "מחכה ליריב ברשת...";
+            } else {
+                document.getElementById('status').innerText = `תור שחקן ${turn}`;
+            }
+        }
+
+        function clickPit(idx) {
+            if (isAnimating) return;
+            if (gameMode === 'ai' && turn === 2) return;
+            if (gameMode === 'network' && turn !== myRole) return;
+            if (turn === 1 && (idx < 0 || idx > 5)) return;
+            if (turn === 2 && (idx < 7 || idx > 12)) return;
+            if (board[idx] === 0) return;
+
+            if (gameMode === 'network' && dataChannel && dataChannel.readyState === "open") {
+                dataChannel.send(JSON.stringify({ type: 'move', index: idx }));
+            }
+
+            isAnimating = true;
+            animateMove(idx);
+        }
+
+        function animateMove(choice) {
+            let stonesHand = board[choice];
+            board[choice] = 0;
+            renderBoard();
+            let currentPit = choice;
+
+            function dropStone() {
+                if (stonesHand > 0) {
+                    currentPit = (currentPit + 1) % 14;
+                    if (turn === 1 && currentPit === 13) currentPit = (currentPit + 1) % 14;
+                    if (turn === 2 && currentPit === 6) currentPit = (currentPit + 1) % 14;
+
+                    board[currentPit]++;
+                    stonesHand--;
+                    renderBoard();
+                    setTimeout(dropStone, 300); 
+                } else {
+                    // זריעה מתמשכת: אם הגענו לגומה לא ריקה שהיא לא הבית - ממשיכים בסיבוב
+                    if (currentPit !== 6 && currentPit !== 13 && board[currentPit] > 1) {
+                        stonesHand = board[currentPit];
+                        board[currentPit] = 0;
+                        renderBoard();
+                        setTimeout(dropStone, 500); 
+                    } else {
+                        endTurnSequence(currentPit);
+                    }
+                }
+            }
+            setTimeout(dropStone, 300);
+        }
+
+        function endTurnSequence(finalPit) {
+            if (checkGameOver()) { isAnimating = false; return; }
+            let extraTurn = (turn === 1 && finalPit === 6) || (turn === 2 && finalPit === 13);
+            if (!extraTurn) { turn = (turn === 1) ? 2 : 1; }
+            renderBoard();
+            isAnimating = false;
+
+            if (gameMode === 'ai' && turn === 2) {
+                setTimeout(triggerAI, 600);
+            }
+        }
+
+        function checkGameOver() {
+            let side1Empty = board.slice(0, 6).reduce((a, b) => a + b, 0) === 0;
+            let side2Empty = board.slice(7, 13).reduce((a, b) => a + b, 0) === 0;
+
+            if (side1Empty || side2Empty) {
+                board[6] += board.slice(0, 6).reduce((a, b) => a + b, 0);
+                board[13] += board.slice(7, 13).reduce((a, b) => a + b, 0);
+                for (let i = 0; i < 6; i++) { board[i] = 0; board[i + 7] = 0; }
+                renderBoard();
+
+                let winner = "תיקו!";
+                if (board[6] > board[13]) winner = "שחקן 1 מנצח!";
+                if (board[13] > board[6]) winner = (gameMode === 'ai') ? "המחשב ניצח!" : "שחקן 2 מנצח!";
+                
+                alert(`המשחק נגמר!\nתוצאה:\nשחקן 1: ${board[6]}\nשחקן 2: ${board[13]}\n\n${winner}`);
+                resetToMenu();
+                return true;
+            }
+            return false;
+        }
+
+        // ==========================================
+        //  מנוע אסטרטגיה חכם (MINIMAX עם עומק חישוב)
+        // ==========================================
+        function triggerAI() {
+            if (isAnimating) return;
+            let bestMove = getBestAIMove(board);
+            if (bestMove !== null) {
+                isAnimating = true;
+                animateMove(bestMove);
+            }
+        }
+
+        function getBestAIMove(currentBoard) {
+            let bestMove = null;
+            let maxEval = -Infinity;
+            let moves = [];
+            for (let i = 7; i <= 12; i++) { if (currentBoard[i] > 0) moves.push(i); }
+
+            for (let move of moves) {
+                let { nextBoard, extraTurn } = simFullMove(currentBoard, move, 2);
+                let score = minimax(nextBoard, 6, -Infinity, Infinity, extraTurn); // עומק חישוב של 6 מהלכים קדימה
+                if (score > maxEval) {
+                    maxEval = score;
+                    bestMove = move;
+                }
+            }
+            return bestMove;
+        }
+
+        function minimax(tempBoard, depth, alpha, beta, maximizingPlayer) {
+            let s1 = tempBoard.slice(0, 6).reduce((a, b) => a + b, 0) === 0;
+            let s2 = tempBoard.slice(7, 13).reduce((a, b) => a + b, 0) === 0;
+            if (depth === 0 || s1 || s2) {
+                return (tempBoard[13] + tempBoard.slice(7, 13).reduce((a, b) => a + b, 0)) - 
+                       (tempBoard[6] + tempBoard.slice(0, 6).reduce((a, b) => a + b, 0));
+            }
+
+            if (maximizingPlayer) {
+                let maxEval = -Infinity;
+                for (let i = 7; i <= 12; i++) {
+                    if (tempBoard[i] > 0) {
+                        let { nextBoard, extraTurn } = simFullMove(tempBoard, i, 2);
+                        let evaluation = minimax(nextBoard, depth - 1, alpha, beta, extraTurn);
+                        maxEval = Math.max(maxEval, evaluation);
+                        alpha = Math.max(alpha, evaluation);
+                        if (beta <= alpha) break;
+                    }
+                }
+                return maxEval;
+            } else {
+                let minEval = Infinity;
+                for (let i = 0; i < 6; i++) {
+                    if (tempBoard[i] > 0) {
+                        let { nextBoard, extraTurn } = simFullMove(tempBoard, i, 1);
+                        let evaluation = minimax(nextBoard, depth - 1, alpha, beta, !extraTurn);
+                        minEval = Math.min(minEval, evaluation);
+                        beta = Math.min(beta, evaluation);
+                        if (beta <= alpha) break;
+                    }
+                }
+                return minEval;
+            }
+        }
+
+        function simFullMove(originBoard, choice, p) {
+            let nb = [...originBoard];
+            let stones = nb[choice];
+            nb[choice] = 0;
+            let curr = choice;
+
+            while (stones > 0) {
+                curr = (curr + 1) % 14;
+                if (p === 1 && curr === 13) curr = (curr + 1) % 14;
+                if (p === 2 && curr === 6) curr = (curr + 1) % 14;
+                nb[curr]++;
+                stones--;
+
+                if (stones === 0 && curr !== 6 && curr !== 13 && nb[curr] > 1) {
+                    stones = nb[curr];
+                    nb[curr] = 0;
+                }
+            }
+            let extraTurn = (p === 1 && curr === 6) || (p === 2 && curr === 13);
+            return { nextBoard: nb, extraTurn };
+        }
+
+        // ==========================================
+        //         לוגיקת חיבור רשת (WebRTC P2P)
+        // ==========================================
+        function setupPeer() {
+            peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+            
+            peerConnection.onicecandidate = event => {
+                if (!event.candidate) {
+                    document.getElementById('local-offer').value = btoa(JSON.stringify(peerConnection.localDescription));
+                }
+            };
+
+            peerConnection.ondatachannel = event => {
+                dataChannel = event.channel;
+                setupChannelEvents();
+            };
+        }
+
+        function setupChannelEvents() {
+            dataChannel.onopen = () => startGame('network');
+            dataChannel.onmessage = event => {
+                let msg = JSON.parse(event.data);
+                if (msg.type === 'move') {
+                    isAnimating = true;
+                    animateMove(msg.index);
+                }
+            };
+        }
+
+        function initHost() {
+            myRole = 1;
+            setupPeer();
+            dataChannel = peerConnection.createDataChannel("mancalaChannel");
+            setupChannelEvents();
+            
+            peerConnection.createOffer().then(offer => peerConnection.setLocalDescription(offer));
+        }
+
+        function connectToPeer() {
+            let rawText = document.getElementById('remote-offer').value.trim();
+            if (!rawText) return;
+            let sessionDesc = JSON.parse(atob(rawText));
+
+            if (!peerConnection) { // אם אנחנו צד ב' (הלקוח)
+                myRole = 2;
+                setupPeer();
+                peerConnection.setRemoteDescription(new RTCSessionDescription(sessionDesc)).then(() => {
+                    peerConnection.createAnswer().then(answer => {
+                        peerConnection.setLocalDescription(answer);
+                    });
+                });
+            } else { // אם אנחנו צד א' ומקבלים את תשובת האישור
+                peerConnection.setRemoteDescription(new RTCSessionDescription(sessionDesc));
+            }
+        }
+    </script>
+</body>
+</html>

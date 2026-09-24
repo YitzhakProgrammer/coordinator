@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>4 בשורה - מהדורת פרימיום</title>
+    <style>
+        :root {
+            --wood-dark: #3e2723;
+            --wood-light: #5d4037;
+            --bg-dark: #121212; /* רקע שחור יוקרתי */
+            --player-color: #1e88e5; /* כחול */
+            --computer-color: #e53935; /* אדום */
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--bg-dark);
+            margin: 0;
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+
+        .top-menu {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            background: var(--wood-dark);
+            padding: 15px 40px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.8);
+            border-bottom: 4px solid var(--wood-light);
+        }
+
+        button {
+            padding: 10px 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            background-color: #f5f5f5;
+            color: var(--wood-dark);
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        button:hover {
+            background-color: #e0e0e0;
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        button:disabled {
+            background-color: #555;
+            color: #888;
+            cursor: not-allowed;
+        }
+
+        #status {
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .board-wrapper {
+            background: var(--wood-dark);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.9);
+            border: 10px solid var(--wood-light);
+        }
+
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(7, 65px);
+            grid-template-rows: repeat(6, 65px);
+            gap: 12px;
+        }
+
+        .cell {
+            width: 65px;
+            height: 65px;
+            background: #222; /* חורים כהים בלוח */
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: inset 0 8px 10px rgba(0,0,0,0.6);
+            position: relative;
+            transition: background 0.3s;
+        }
+
+        /* עיצוב הדסקיות */
+        .cell.player {
+            background: radial-gradient(circle at 35% 35%, #42a5f5, var(--player-color), #0d47a1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 -4px 6px rgba(0,0,0,0.3);
+        }
+
+        .cell.computer {
+            background: radial-gradient(circle at 35% 35%, #ef5350, var(--computer-color), #b71c1c);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 -4px 6px rgba(0,0,0,0.3);
+        }
+
+        /* אנימציה עדינה בבחירה */
+        .cell:hover:not(.player):not(.computer) {
+            background: #333;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="top-menu">
+        <button onclick="resetGame()">משחק חדש</button>
+        <button id="undoBtn" onclick="undoMove()">ביטול מהלך</button>
+    </div>
+
+    <div id="status">תורך (כחול)</div>
+
+    <div class="board-wrapper">
+        <div id="game-board"></div>
+    </div>
+
+    <script>
+        const ROWS = 6;
+        const COLS = 7;
+        let board = [];
+        let history = []; 
+        let gameActive = true;
+        const PLAYER = 'player';
+        const COMPUTER = 'computer';
+
+        const boardElement = document.getElementById('game-board');
+        const statusElement = document.getElementById('status');
+        const undoBtn = document.getElementById('undoBtn');
+
+        function initBoard() {
+            boardElement.innerHTML = '';
+            board = Array(ROWS).fill(null).map(() => Array(COLS).fill(null));
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = r;
+                    cell.dataset.col = c;
+                    cell.onclick = () => handleMove(c);
+                    boardElement.appendChild(cell);
+                }
+            }
+            updateUndoState();
+        }
+
+        function handleMove(col) {
+            if (!gameActive) return;
+
+            const row = getEmptyRow(col);
+            if (row !== -1) {
+                // שמירת המצב הנוכחי להיסטוריה לפני הביצוע
+                history.push(JSON.parse(JSON.stringify(board)));
+                
+                board[row][col] = PLAYER;
+                render();
+
+                if (checkWin(PLAYER)) {
+                    statusElement.innerText = "ניצחון כחול!";
+                    gameActive = false;
+                } else if (boardFull()) {
+                    statusElement.innerText = "תיקו!";
+                    gameActive = false;
+                } else {
+                    statusElement.innerText = "המחשב חושב...";
+                    gameActive = false; 
+                    setTimeout(aiMove, 600);
+                }
+                updateUndoState();
+            }
+        }
+
+        function aiMove() {
+            let col = getBestMove();
+            const row = getEmptyRow(col);
+            board[row][col] = COMPUTER;
+            render();
+
+            if (checkWin(COMPUTER)) {
+                statusElement.innerText = "המחשב (אדום) ניצח!";
+                gameActive = false;
+            } else if (boardFull()) {
+                statusElement.innerText = "תיקו!";
+                gameActive = false;
+            } else {
+                statusElement.innerText = "תורך (כחול)";
+                gameActive = true;
+            }
+        }
+
+        function getBestMove() {
+            // הגנה - חסימת השחקן
+            for (let c = 0; c < COLS; c++) {
+                let r = getEmptyRow(c);
+                if (r !== -1) {
+                    board[r][c] = PLAYER;
+                    if (checkWin(PLAYER)) { board[r][c] = null; return c; }
+                    board[r][c] = null;
+                }
+            }
+            // התקפה - ניסיון לנצח
+            for (let c = 0; c < COLS; c++) {
+                let r = getEmptyRow(c);
+                if (r !== -1) {
+                    board[r][c] = COMPUTER;
+                    if (checkWin(COMPUTER)) { board[r][c] = null; return c; }
+                    board[r][c] = null;
+                }
+            }
+            // עדיפות למרכז
+            const pref = [3, 2, 4, 1, 5, 0, 6];
+            for (let c of pref) {
+                if (getEmptyRow(c) !== -1) return c;
+            }
+        }
+
+        function getEmptyRow(col) {
+            for (let r = ROWS - 1; r >= 0; r--) {
+                if (!board[r][col]) return r;
+            }
+            return -1;
+        }
+
+        function undoMove() {
+            if (history.length > 0) {
+                board = history.pop();
+                gameActive = true;
+                statusElement.innerText = "בוצע ביטול. תורך (כחול)";
+                render();
+                updateUndoState();
+            }
+        }
+
+        function updateUndoState() {
+            undoBtn.disabled = history.length === 0;
+        }
+
+        function render() {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                const r = cell.dataset.row;
+                const c = cell.dataset.col;
+                cell.className = 'cell';
+                if (board[r][c]) cell.classList.add(board[r][c]);
+            });
+        }
+
+        function checkWin(p) {
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    if (winAt(r, c, 0, 1, p) || winAt(r, c, 1, 0, p) ||
+                        winAt(r, c, 1, 1, p) || winAt(r, c, 1, -1, p)) return true;
+                }
+            }
+            return false;
+        }
+
+        function winAt(r, c, dr, dc, p) {
+            let count = 0;
+            for (let i = 0; i < 4; i++) {
+                let nr = r + i * dr, nc = c + i * dc;
+                if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && board[nr][nc] === p) count++;
+                else break;
+            }
+            return count === 4;
+        }
+
+        function boardFull() { return board[0].every(c => c !== null); }
+
+        function resetGame() {
+            gameActive = true;
+            history = [];
+            statusElement.innerText = "תורך (כחול)";
+            initBoard();
+        }
+
+        initBoard();
+    </script>
+</body>
+</html>
